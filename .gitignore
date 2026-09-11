@@ -12,7 +12,23 @@ node_modules/
 dist/
 build/
 
+# Next.js build output (safety net for sub-projects)
+.next/
+out/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Test coverage
+coverage/
+
 # misc
 *.log
+*.pem
 .env
 .env.local
+.env*.local
