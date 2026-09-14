@@ -10,7 +10,6 @@ import { getEquipments } from "@/lib/api/equipments";
 import { getPortfolios } from "@/lib/api/portfolios";
 import { getModuleConfig } from "@/lib/api/module-config";
 
-export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [profile, articlesData, moduleConfig, equipmentsData, portfoliosData] =

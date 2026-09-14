@@ -2,7 +2,6 @@ import { getModuleConfig } from "@/lib/api/module-config";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
 import { EquipmentContent } from "@/components/EquipmentContent";
 
-export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "器材",

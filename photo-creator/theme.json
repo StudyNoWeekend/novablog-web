@@ -1,0 +1,17 @@
+{
+  "id": "photo-creator",
+  "name": "光影集",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向摄影爱好者与视觉内容消费者的高留白、图片优先作品集博客",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/photo-creator",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html",
+      "/portfolios/*": "/portfolio.html"
+    }
+  }
+}

@@ -11,22 +11,36 @@ import {
 import {
   getTravelById,
   getHotTravels,
-  incrementTravelView,
+  getTravels,
 } from "@/lib/api/travels";
 import { getModuleConfig } from "@/lib/api/module-config";
 import { TravelCard } from "@/components/TravelCard";
 import { TravelLikeButton } from "@/components/TravelLikeButton";
 import { Comments } from "@/components/Comments";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
-
-export const dynamic = "force-dynamic";
+import { TravelViewTracker } from "@/components/ViewTracker";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+// 后端不可达时的构建占位 id（output: export 不允许 generateStaticParams 返回空数组）；
+// 该占位页渲染时不发任何请求，直接 404，保证构建不依赖后端可达（主题规范 3.4）
+const FALLBACK_ID = "__fallback__";
+
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const res = await getTravels({ page: 1, page_size: 100 });
+  if (res.list.length === 0) return [{ id: FALLBACK_ID }];
+  return res.list.map((travel) => ({ id: travel.id }));
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params;
+  if (id === FALLBACK_ID) {
+    return { title: "攻略未找到" };
+  }
   const travel = await getTravelById(id);
   if (!travel) return { title: "攻略未找到" };
   return { title: travel.title, description: travel.summary };
@@ -76,14 +90,14 @@ export default async function TravelDetailPage({ params }: PageProps) {
   }
 
   const { id } = await params;
+  if (id === FALLBACK_ID) {
+    notFound();
+  }
   const travel = await getTravelById(id);
 
   if (!travel) {
     notFound();
   }
-
-  // Fire and forget — don't block rendering
-  incrementTravelView(id);
 
   const hotTravels = await getHotTravels(4);
   const moreTravels = hotTravels.filter((t) => t.id !== travel.id).slice(0, 3);
@@ -154,6 +168,9 @@ export default async function TravelDetailPage({ params }: PageProps) {
 
       {/* Content column */}
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:px-8 md:py-10">
+        {/* 浏览计数客户端上报（静态导出后服务端计数失效） */}
+        <TravelViewTracker id={travel.id} />
+
         {/* Action bar */}
         <div className="flex flex-wrap items-center gap-3">
           <TravelLikeButton travelId={travel.id} initialCount={travel.like_count} />

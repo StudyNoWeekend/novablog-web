@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
@@ -51,6 +52,8 @@ export default async function RootLayout({
       <body
         className={`${playfair.variable} min-h-screen bg-background text-text-primary antialiased`}
       >
+        {/* 部署端注入的运行时配置（同域部署时该文件不存在，静默忽略） */}
+        <Script src="/theme-config.js" strategy="beforeInteractive" />
         <div className="flex min-h-screen flex-col">
           <MusicPlayerProvider>
             <Navbar modules={modules} />

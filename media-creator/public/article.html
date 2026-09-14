@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的文章详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>文章加载中 | Media Creator Blog</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #8b5cf6;
+      --accent-soft: #f3eeff;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    .shell-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .shell-header a { color: var(--accent); text-decoration: none; }
+    .shell-header a:hover { text-decoration: underline; }
+    .brand { color: var(--text); }
+    .brand::before { content: "▶ "; color: var(--accent); }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+    .status {
+      color: var(--muted);
+      padding: 48px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent); }
+    article h1 {
+      font-size: 30px;
+      line-height: 1.3;
+      margin: 8px 0 16px;
+      letter-spacing: -0.02em;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .meta .tag { color: var(--accent); }
+    .cover { width: 100%; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 28px; }
+    .content { font-size: 16px; }
+    .content h2, .content h3, .content h4 { margin: 32px 0 12px; letter-spacing: -0.01em; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 20px; }
+    .content p { margin: 14px 0; }
+    .content a { color: var(--accent); }
+    .content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9em;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .content pre {
+      background: #18181b;
+      color: #f4f4f5;
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    .content pre code { background: none; color: inherit; padding: 0; }
+    .content blockquote {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 10px 16px;
+      margin: 18px 0;
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+    }
+    .content ul, .content ol { margin: 14px 0 14px 24px; }
+    .content li { margin: 6px 0; }
+    .content img { max-width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand">Media Creator Blog</span>
+    <a href="/">← 返回首页</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载文章…</div>
+    <article id="article" hidden>
+      <h1 id="a-title"></h1>
+      <div class="meta" id="a-meta"></div>
+      <img id="a-cover" class="cover" alt="" hidden />
+      <div class="content" id="a-content"></div>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+
+      // 从 URL 解析 slug：/articles/{slug} | /articles/{slug}.html | /articles/{slug}/
+      function parseSlug() {
+        var m = location.pathname.match(/\/articles\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/articles\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码（如 /articles/%zz）：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#|mailto:)/i.test(u)) return u;
+        return "#";
+      }
+
+      // 轻量 Markdown 渲染（先整体转义防 XSS，再按行解析常用块级/行内语法）
+      function renderMarkdown(src) {
+        var lines = escapeHtml(src).split(/\r?\n/);
+        var out = [], i = 0, inCode = false, codeBuf = [], listType = null;
+
+        function closeList() {
+          if (listType) { out.push("</" + listType + ">"); listType = null; }
+        }
+        function inline(s) {
+          s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+          s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, src) {
+            return '<img src="' + safeUrl(src) + '" alt="' + alt + '" />';
+          });
+          s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, text, href) {
+            return '<a href="' + safeUrl(href) + '" target="_blank" rel="noopener">' + text + "</a>";
+          });
+          s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+          s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+          return s;
+        }
+
+        while (i < lines.length) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            if (inCode) {
+              out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+              codeBuf = []; inCode = false;
+            } else { closeList(); inCode = true; }
+            i++; continue;
+          }
+          if (inCode) { codeBuf.push(line); i++; continue; }
+
+          var h = line.match(/^(#{1,4})\s+(.*)$/);
+          if (h) {
+            closeList();
+            var lv = h[1].length;
+            out.push("<h" + lv + ">" + inline(h[2]) + "</h" + lv + ">");
+            i++; continue;
+          }
+          if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { closeList(); out.push("<hr/>"); i++; continue; }
+          if (/^\s*&gt;\s?/.test(line)) {
+            closeList();
+            var quote = [];
+            while (i < lines.length && /^\s*&gt;\s?/.test(lines[i])) {
+              quote.push(lines[i].replace(/^\s*&gt;\s?/, "")); i++;
+            }
+            out.push("<blockquote><p>" + inline(quote.join(" ")) + "</p></blockquote>");
+            continue;
+          }
+          if (/^\s*[-*+]\s+/.test(line)) {
+            if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
+            out.push("<li>" + inline(line.replace(/^\s*[-*+]\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*\d+\.\s+/.test(line)) {
+            if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+            out.push("<li>" + inline(line.replace(/^\s*\d+\.\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*$/.test(line)) { closeList(); i++; continue; }
+
+          var para = [];
+          while (i < lines.length && !/^\s*$/.test(lines[i]) &&
+                 !/^(#{1,4})\s|^```|^\s*[-*+]\s|^\s*\d+\.\s|^\s*&gt;/.test(lines[i])) {
+            para.push(lines[i]); i++;
+          }
+          if (para.length) { closeList(); out.push("<p>" + inline(para.join("<br/>")) + "</p>"); }
+          else { i++; }
+        }
+        closeList();
+        if (inCode && codeBuf.length) out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+        return out.join("\n");
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(a) {
+        document.title = a.title + " | Media Creator Blog";
+        el("a-title").textContent = a.title || "无标题";
+        var meta = [];
+        if (a.category_name) meta.push('<span class="tag"># ' + escapeHtml(a.category_name) + "</span>");
+        if (a.published_at || a.created_at) meta.push("<span>" + escapeHtml(a.published_at || a.created_at) + "</span>");
+        if (a.view_count !== undefined) meta.push("<span>" + escapeHtml(a.view_count) + " 阅读</span>");
+        if (Array.isArray(a.tag_names) && a.tag_names.length) {
+          a.tag_names.forEach(function (t) { meta.push('<span class="tag">' + escapeHtml(t) + "</span>"); });
+        }
+        el("a-meta").innerHTML = meta.join(" ");
+        if (a.cover_image) {
+          var c = el("a-cover");
+          c.src = safeUrl(a.cover_image);
+          c.hidden = false;
+        }
+        el("a-content").innerHTML = renderMarkdown(a.content || a.summary || "");
+        el("status").hidden = true;
+        el("article").hidden = false;
+      }
+
+      var slug = parseSlug();
+      if (!slug) { showError("无效的文章地址"); return; }
+
+      fetch(siteRoot + "/api/v1/public/articles/" + encodeURIComponent(slug), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "文章不存在或已下架"); }
+        })
+        .catch(function () { showError("文章加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

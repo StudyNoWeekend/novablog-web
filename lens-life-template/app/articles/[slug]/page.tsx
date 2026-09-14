@@ -4,22 +4,36 @@ import Image from "next/image";
 import { ArrowLeft, Calendar, Eye, MessageCircle } from "lucide-react";
 import {
   getArticleBySlug,
-  incrementArticleView,
+  getArticles,
   getRandomArticles,
 } from "@/lib/api/articles";
 import { getModuleConfig } from "@/lib/api/module-config";
 import { ArticleCard } from "@/components/ArticleCard";
 import { Comments } from "@/components/Comments";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
-
-export const dynamic = "force-dynamic";
+import { ArticleViewTracker } from "@/components/ViewTracker";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// 后端不可达时的构建占位 slug（output: export 不允许 generateStaticParams 返回空数组）；
+// 该占位页渲染时不发任何请求，直接 404，保证构建不依赖后端可达（主题规范 3.4）
+const FALLBACK_SLUG = "__fallback__";
+
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const res = await getArticles({ page: 1, page_size: 100 });
+  if (res.list.length === 0) return [{ slug: FALLBACK_SLUG }];
+  return res.list.map((article) => ({ slug: article.slug }));
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
+  if (slug === FALLBACK_SLUG) {
+    return { title: "文章未找到" };
+  }
   const article = await getArticleBySlug(slug);
 
   if (!article) {
@@ -39,14 +53,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   }
 
   const { slug } = await params;
+  if (slug === FALLBACK_SLUG) {
+    notFound();
+  }
   const article = await getArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
-
-  // Fire and forget — don't block rendering
-  incrementArticleView(slug);
 
   const dateStr = article.published_at || article.created_at;
   const formattedDate = new Date(dateStr).toLocaleDateString("zh-CN", {
@@ -113,6 +127,9 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
       {/* Meta + Content column */}
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:px-8 md:py-10">
+        {/* 浏览计数客户端上报（静态导出后服务端计数失效） */}
+        <ArticleViewTracker slug={article.slug} />
+
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted">
           <span className="flex items-center gap-1.5">

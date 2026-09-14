@@ -19,14 +19,27 @@ import {
   Video,
 } from "./types";
 
-function getBaseUrl(): string {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!base) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_API_BASE_URL. Please set it in .env.local."
-    );
+declare global {
+  interface Window {
+    __NOVA_CONFIG__?: { apiBase?: string };
   }
-  return base.replace(/\/$/, "");
+}
+
+function getBaseUrl(): string {
+  // 优先级：部署时注入的 theme-config.js > 编译期环境变量 > 同域相对路径
+  const injected =
+    typeof window !== "undefined" && window.__NOVA_CONFIG__?.apiBase;
+  if (injected) {
+    // apiBase 允许携带 /api/v1 前缀（见主题规范 3.2），这里归一化为站点根地址
+    return injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
+  }
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (base) {
+    // 与注入分支一致：允许携带 /api/v1 前缀，归一化为站点根地址
+    return base.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "");
+  }
+  // 同域部署（CMS 统一托管）时直接走相对路径
+  return "";
 }
 
 function friendlyError(status: number, message: string): string {
@@ -72,6 +85,8 @@ async function request<T>(
       "Content-Type": "application/json",
       ...(options?.headers || {}),
     },
+    // 默认 15s 超时，避免构建期/运行期请求无限挂起（可由调用方传入 signal 覆盖）
+    signal: AbortSignal.timeout(15_000),
     ...options,
   };
 

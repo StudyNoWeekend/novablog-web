@@ -7,9 +7,9 @@ NovaBlog CMS 官方主题仓库。每个子目录是一个独立的博客主题�
 | 主题 | 目录 | 状态 | 简介 |
 |---|---|---|---|
 | 极客风 | [tech-geek](./tech-geek) | 已上架 v0.1.0 | 面向开发者、开源爱好者与硬核技术读者的深色极客风格 |
-| 明快创作 | [media-creator](./media-creator) | 待规范改造 | 面向视频观众与社交媒体追随者的明亮活泼风格内容主页 |
-| 光影集 | [photo-creator](./photo-creator) | 待规范改造 | 面向摄影爱好者与视觉内容消费者的高留白、图片优先作品集博客 |
-| lens-life | [lens-life-template](./lens-life-template) | 待规范改造（现为 SSR，需改造为静态导出） | 生活影像风格 |
+| 明快创作 | [media-creator](./media-creator) | 已上架 v0.1.0 | 面向视频观众与社交媒体追随者的明亮活泼风格内容主页 |
+| 光影集 | [photo-creator](./photo-creator) | 已上架 v0.1.0 | 面向摄影爱好者与视觉内容消费者的高留白、图片优先作品集博客 |
+| 镜头生活 | [lens-life-template](./lens-life-template) | 已上架 v0.1.0 | 风光、城市、人文与航拍的暗色优雅摄影生活博客 |
 
 主题改造清单与准入标准见[《主题包规范》第九章](./docs/theme-spec.md)。
 

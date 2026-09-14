@@ -10,7 +10,6 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
 
 const stats = [
   { label: "年摄影经验", value: "10+", icon: Camera },

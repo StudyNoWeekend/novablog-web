@@ -2,7 +2,6 @@ import { getModuleConfig } from "@/lib/api/module-config";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
 import { PortfolioContent } from "@/components/PortfolioContent";
 
-export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "作品集",
