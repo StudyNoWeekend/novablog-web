@@ -1,28 +1,72 @@
 name: Release Theme Artifacts
 
-# 按主题包规范构建静态制品（theme.json + dist[/screenshots]）并发布：
-# - 推送 v* 标签：制品附件挂到对应 GitHub Release（{theme}-{version}.tar.gz + sha256）
+# 主题级发布：一个 tag 只构建、只发布一个主题，新增主题无需修改本文件。
+# tag 规范：{主题目录名}-v{语义化版本}，如 tech-geek-v0.1.0、tech-geek-v0.2.0-beta.1
+# - 推送主题 tag：制品附件挂到对应 GitHub Release（{theme}-{version}.tar.gz + sha256）
 # - 手动触发（workflow_dispatch）：制品作为 Actions Artifact 上传，供测试下载
 on:
   push:
     tags:
-      - "v*"
+      - "*-v*"
   workflow_dispatch:
+    inputs:
+      theme:
+        description: "主题目录名（目录根须含 theme.json）"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Build ${{ matrix.theme }}
+    name: Build theme
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      # 已按主题规范改造完成（根目录含 theme.json）的主题逐个加入
-      matrix:
-        theme: [tech-geek]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve theme and verify versions
+        id: resolve
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_THEME: ${{ inputs.theme }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            THEME="$INPUT_THEME"
+            VERSION=""
+          else
+            if ! [[ "$TAG" =~ ^(.+)-v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+              echo "::error::tag「$TAG」不符合 {主题目录名}-v{语义化版本} 规范（例：tech-geek-v0.1.0）"
+              exit 1
+            fi
+            THEME="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+          fi
+
+          if [ ! -f "$THEME/theme.json" ]; then
+            echo "::error::目录 $THEME/ 不存在或缺少 theme.json（新增主题见 docs/theme-spec.md）"
+            exit 1
+          fi
+
+          TJ_VERSION=$(node -p "require('./$THEME/theme.json').version")
+          if [ -n "$VERSION" ] && [ "$VERSION" != "$TJ_VERSION" ]; then
+            echo "::error::tag 版本($VERSION) 与 theme.json 版本($TJ_VERSION) 不一致"
+            exit 1
+          fi
+
+          if [ ! -f "$THEME/package.json" ]; then
+            echo "::error::目录 $THEME/ 缺少 package.json"
+            exit 1
+          fi
+          PJ_VERSION=$(node -p "require('./$THEME/package.json').version")
+          if [ "$TJ_VERSION" != "$PJ_VERSION" ]; then
+            echo "::error::theme.json 版本($TJ_VERSION) 与 package.json 版本($PJ_VERSION) 不一致，两者必须保持相同"
+            exit 1
+          fi
+
+          echo "theme=$THEME" >> "$GITHUB_OUTPUT"
+          echo "version=$TJ_VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: pnpm/action-setup@v4
         with:
@@ -32,30 +76,30 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: ${{ matrix.theme }}/pnpm-lock.yaml
+          cache-dependency-path: ${{ steps.resolve.outputs.theme }}/pnpm-lock.yaml
 
       - name: Install dependencies
-        working-directory: ${{ matrix.theme }}
+        working-directory: ${{ steps.resolve.outputs.theme }}
         run: pnpm install --frozen-lockfile
 
       # 同域相对路径构建；未设置时 client.ts 回退相对路径，
       # 构建期拉取失败仅影响预生成页数量，不影响制品产出
       - name: Build
-        working-directory: ${{ matrix.theme }}
+        working-directory: ${{ steps.resolve.outputs.theme }}
         run: pnpm build
 
       - name: Pack artifact
         id: pack
-        working-directory: ${{ matrix.theme }}
+        working-directory: ${{ steps.resolve.outputs.theme }}
         run: |
-          VERSION=$(node -p "require('./theme.json').version")
-          NAME="${{ matrix.theme }}-${VERSION}"
+          NAME="${{ steps.resolve.outputs.theme }}-${{ steps.resolve.outputs.version }}"
           if [ -d screenshots ]; then
             tar -czf "/tmp/${NAME}.tar.gz" theme.json dist screenshots
           else
             tar -czf "/tmp/${NAME}.tar.gz" theme.json dist
           fi
-          shasum -a 256 "/tmp/${NAME}.tar.gz" > "/tmp/${NAME}.tar.gz.sha256"
+          # 以相对文件名生成校验和，下游可直接 shasum -c 比对
+          ( cd /tmp && shasum -a 256 "${NAME}.tar.gz" > "${NAME}.tar.gz.sha256" )
           echo "name=${NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact (manual run)
@@ -67,7 +111,7 @@ jobs:
             /tmp/${{ steps.pack.outputs.name }}.tar.gz
             /tmp/${{ steps.pack.outputs.name }}.tar.gz.sha256
 
-      - name: Attach to GitHub Release (tag push)
+      - name: Attach to GitHub Release (theme tag)
         if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
