@@ -85,6 +85,8 @@ async function request<T>(
       "Content-Type": "application/json",
       ...(options?.headers || {}),
     },
+    // 默认 15s 超时，避免构建期/运行期请求无限挂起（可由调用方传入 signal 覆盖）
+    signal: AbortSignal.timeout(15_000),
     ...options,
   };
 
