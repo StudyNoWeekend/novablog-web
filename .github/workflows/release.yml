@@ -1,0 +1,76 @@
+name: Release Theme Artifacts
+
+# 按主题包规范构建静态制品（theme.json + dist[/screenshots]）并发布：
+# - 推送 v* 标签：制品附件挂到对应 GitHub Release（{theme}-{version}.tar.gz + sha256）
+# - 手动触发（workflow_dispatch）：制品作为 Actions Artifact 上传，供测试下载
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.theme }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # 已按主题规范改造完成（根目录含 theme.json）的主题逐个加入
+      matrix:
+        theme: [tech-geek]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ${{ matrix.theme }}/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.theme }}
+        run: pnpm install --frozen-lockfile
+
+      # 同域相对路径构建；未设置时 client.ts 回退相对路径，
+      # 构建期拉取失败仅影响预生成页数量，不影响制品产出
+      - name: Build
+        working-directory: ${{ matrix.theme }}
+        run: pnpm build
+
+      - name: Pack artifact
+        id: pack
+        working-directory: ${{ matrix.theme }}
+        run: |
+          VERSION=$(node -p "require('./theme.json').version")
+          NAME="${{ matrix.theme }}-${VERSION}"
+          if [ -d screenshots ]; then
+            tar -czf "/tmp/${NAME}.tar.gz" theme.json dist screenshots
+          else
+            tar -czf "/tmp/${NAME}.tar.gz" theme.json dist
+          fi
+          shasum -a 256 "/tmp/${NAME}.tar.gz" > "/tmp/${NAME}.tar.gz.sha256"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.name }}
+          path: |
+            /tmp/${{ steps.pack.outputs.name }}.tar.gz
+            /tmp/${{ steps.pack.outputs.name }}.tar.gz.sha256
+
+      - name: Attach to GitHub Release (tag push)
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            /tmp/${{ steps.pack.outputs.name }}.tar.gz
+            /tmp/${{ steps.pack.outputs.name }}.tar.gz.sha256
