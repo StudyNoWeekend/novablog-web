@@ -114,20 +114,38 @@ export function HeroSection({ profile }: HeroSectionProps) {
           </>
         )}
 
-        <div className="mt-4 flex items-center gap-3 text-sm font-medium tracking-wide text-text-muted md:text-base">
-          <span>摄影</span>
-          <span className="h-1 w-1 rounded-full bg-accent" />
-          <span>旅行</span>
-          <span className="h-1 w-1 rounded-full bg-accent" />
-          <span>生活</span>
-        </div>
+        {/* Tags from API — 摄影·旅行·生活 */}
+        {profile && profile.tags && profile.tags.length > 0 ? (
+          <div className="mt-4 flex items-center gap-3 text-sm font-medium tracking-wide text-text-muted md:text-base">
+            {profile.tags.map((tag, index) => (
+              <>
+                {index > 0 && (
+                  <span className="h-1 w-1 rounded-full bg-accent" />
+                )}
+                <span>{tag}</span>
+              </>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 h-5 w-32 animate-pulse rounded-md bg-text-muted/20" />
+        )}
 
         {profile ? (
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-text-secondary md:text-xl">
-            {profile.bio}
-          </p>
+          <>
+            {profile.blog_description && (
+              <p className="mt-6 max-w-lg text-base leading-relaxed text-text-muted/80 md:text-lg">
+                {profile.blog_description}
+              </p>
+            )}
+            <p className={`max-w-md text-lg leading-relaxed text-text-secondary md:text-xl ${profile.blog_description ? "mt-3" : "mt-6"}`}>
+              {profile.bio}
+            </p>
+          </>
         ) : (
-          <div className="mt-6 h-6 w-64 animate-pulse rounded-md bg-text-muted/20" />
+          <>
+            <div className="mt-4 h-5 w-48 animate-pulse rounded-md bg-text-muted/20" />
+            <div className="mt-3 h-6 w-64 animate-pulse rounded-md bg-text-muted/20" />
+          </>
         )}
 
         {/* Social Icons — only from API */}

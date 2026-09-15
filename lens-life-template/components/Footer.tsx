@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Instagram, Mail, MapPin, Aperture } from "lucide-react";
+import { Instagram, Mail, MapPin } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
 
 interface FooterProps {
@@ -7,42 +7,8 @@ interface FooterProps {
 }
 
 const DEFAULT_EMAIL = "hello@lenslife.blog";
-const DEFAULT_LOCATION = "中国 · 上海";
 
-const FALLBACK_SOCIALS: { label: string; url: string; icon: "ig" | "weibo" | "bilibili" | "xiaohongshu" }[] = [
-  { label: "Instagram", url: "https://instagram.com/lenslife", icon: "ig" },
-  { label: "微博", url: "https://weibo.com/lenslife", icon: "weibo" },
-  { label: "Bilibili", url: "https://space.bilibili.com/lenslife", icon: "bilibili" },
-  { label: "小红书", url: "https://xiaohongshu.com/lenslife", icon: "xiaohongshu" },
-];
-
-function SocialIcon({ platform, url, isFallback }: { platform: string; url: string; isFallback: boolean }) {
-  if (isFallback) {
-    const social = FALLBACK_SOCIALS.find((s) => s.label === platform);
-    if (!social) return null;
-    const Icon =
-      social.icon === "ig" ? Instagram : null;
-    return (
-      <a
-        href={social.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={social.label}
-        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-sm font-medium text-text-muted transition-all duration-200 hover:border-accent hover:text-accent"
-      >
-        {social.icon === "ig" ? (
-          <Instagram className="h-4 w-4" strokeWidth={1.5} />
-        ) : social.icon === "weibo" ? (
-          "微"
-        ) : social.icon === "bilibili" ? (
-          "B"
-        ) : (
-          "红"
-        )}
-      </a>
-    );
-  }
-
+function SocialIcon({ platform, url }: { platform: string; url: string }) {
   const p = platform.toLowerCase();
   const isMail = p === "email" || p === "mail";
   return (
@@ -87,7 +53,13 @@ export function Footer({ profile }: FooterProps) {
               href="/"
               className="flex cursor-pointer items-center gap-2 text-lg font-medium tracking-wide text-text-primary transition-colors duration-200 ease-out hover:text-accent"
             >
-              <Aperture className="h-5 w-5 text-accent" strokeWidth={1.5} />
+              {profile?.blog_icon && (
+                <img
+                  src={profile.blog_icon}
+                  alt={profile.blog_title || ""}
+                  className="h-6 w-6 rounded object-cover"
+                />
+              )}
               <span className="font-[var(--font-playfair)] italic">
                 {profile?.blog_title || "Lens & Life"}
               </span>
@@ -100,38 +72,32 @@ export function Footer({ profile }: FooterProps) {
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-text-muted">
             <a
-              href={`mailto:${DEFAULT_EMAIL}`}
+              href={`mailto:${profile?.email || DEFAULT_EMAIL}`}
               className="flex cursor-pointer items-center gap-1.5 transition-colors duration-200 ease-out hover:text-text-primary"
             >
               <Mail className="h-4 w-4" strokeWidth={1.5} />
-              <span>{DEFAULT_EMAIL}</span>
+              <span>{profile?.email || DEFAULT_EMAIL}</span>
             </a>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" strokeWidth={1.5} />
-              <span>{DEFAULT_LOCATION}</span>
-            </span>
+            {profile?.city && (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4" strokeWidth={1.5} />
+                <span>{profile.city}</span>
+              </span>
+            )}
           </div>
 
-          {/* Social Icons */}
-          <div className="flex items-center gap-3">
-            {socialLinks.length > 0
-              ? socialLinks.map((link) => (
-                  <SocialIcon
-                    key={link.platform}
-                    platform={link.platform}
-                    url={link.url}
-                    isFallback={false}
-                  />
-                ))
-              : FALLBACK_SOCIALS.map((s) => (
-                  <SocialIcon
-                    key={s.label}
-                    platform={s.label}
-                    url={s.url}
-                    isFallback={true}
-                  />
-                ))}
-          </div>
+          {/* Social Icons — only from profile */}
+          {socialLinks.length > 0 && (
+            <div className="flex items-center gap-3">
+              {socialLinks.map((link) => (
+                <SocialIcon
+                  key={link.platform}
+                  platform={link.platform}
+                  url={link.url}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-subtle">

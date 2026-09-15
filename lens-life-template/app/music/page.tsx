@@ -5,7 +5,7 @@ import { MusicContent } from "@/components/MusicContent";
 
 export const metadata = {
   title: "音乐分享",
-  description: "写代码、修图、赶路时陪伴我的旋律。",
+  description: "",
 };
 
 export default async function MusicPage() {

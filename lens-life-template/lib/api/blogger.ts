@@ -17,6 +17,8 @@ export interface BloggerProfile {
   blog_description: string;
   page_background: string;
   blog_icon: string;
+  email?: string;
+  city?: string;
   tags?: string[];
   social_links: SocialLink[];
 }

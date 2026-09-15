@@ -42,9 +42,7 @@ export function MusicContent() {
           <h1 className="font-[var(--font-heading)] text-4xl font-medium text-text-primary sm:text-5xl">
             音乐分享
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-text-muted">
-            写代码、修图、赶路时陪伴我的旋律。点击任意一首，播放器将收进顶部导航栏。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
         </header>
 
         {loading ? (

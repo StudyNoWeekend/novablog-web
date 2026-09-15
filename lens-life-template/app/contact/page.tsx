@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 const DEFAULT_EMAIL = "hello@lenslife.blog";
-const DEFAULT_LOCATION = "中国 · 上海";
 const DEFAULT_PHOTOGRAPHER_NAME = "博主";
 const DEFAULT_PHOTOGRAPHER_TAGLINE = "用镜头收藏世界的边角与光芒";
 
@@ -70,17 +69,13 @@ export default function ContactPage() {
     getBloggerProfile().then(setProfile);
   }, []);
 
-  // Social links from API, or mock-free inline defaults
+  // Social links from API only
   const socialLinks = profile?.social_links?.length
     ? profile.social_links.map((s) => ({
         platform: s.name || s.platform,
         url: s.url,
       }))
-    : [
-        { platform: "Instagram", url: "https://instagram.com/lenslife" },
-        { platform: "微博", url: "https://weibo.com/lenslife" },
-        { platform: "Bilibili", url: "https://space.bilibili.com/lenslife" },
-      ];
+    : [];
 
   const avatar = profile?.avatar;
   const name = profile?.nickname || DEFAULT_PHOTOGRAPHER_NAME;
@@ -139,9 +134,7 @@ export default function ContactPage() {
           <h1 className="font-[var(--font-playfair)] text-3xl font-medium italic text-text-primary sm:text-4xl">
             联系我
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-text-muted">
-            期待与你交流摄影与旅行
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
         </div>
       </section>
 
@@ -279,7 +272,7 @@ export default function ContactPage() {
 
               <div className="mt-6 space-y-4">
                 <a
-                  href={`mailto:${DEFAULT_EMAIL}`}
+                  href={`mailto:${profile?.email || DEFAULT_EMAIL}`}
                   className="group flex cursor-pointer items-center gap-4 rounded-radius-md border border-border bg-background p-4 transition-all duration-200 ease-out hover:border-accent"
                 >
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-subtle text-accent">
@@ -288,22 +281,24 @@ export default function ContactPage() {
                   <div className="min-w-0">
                     <p className="text-xs text-text-muted">邮箱</p>
                     <p className="truncate text-sm font-medium text-text-primary transition-colors group-hover:text-accent">
-                      {DEFAULT_EMAIL}
+                      {profile?.email || DEFAULT_EMAIL}
                     </p>
                   </div>
                 </a>
 
-                <div className="flex items-center gap-4 rounded-radius-md border border-border bg-background p-4">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-subtle text-accent">
-                    <MapPin className="h-4 w-4" strokeWidth={1.5} />
-                  </span>
-                  <div>
-                    <p className="text-xs text-text-muted">所在地</p>
-                    <p className="text-sm font-medium text-text-primary">
-                      {DEFAULT_LOCATION}
-                    </p>
+                {profile?.city && (
+                  <div className="flex items-center gap-4 rounded-radius-md border border-border bg-background p-4">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-subtle text-accent">
+                      <MapPin className="h-4 w-4" strokeWidth={1.5} />
+                    </span>
+                    <div>
+                      <p className="text-xs text-text-muted">所在地</p>
+                      <p className="text-sm font-medium text-text-primary">
+                        {profile.city}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {socialLinks.length > 0 && (

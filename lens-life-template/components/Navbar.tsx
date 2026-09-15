@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import type { ModuleConfig } from "@/lib/types";
+import type { BloggerProfile } from "@/lib/api/blogger";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { apiFetch } from "@/lib/api/client";
 
@@ -45,6 +46,7 @@ export function Navbar({ modules: _modules }: NavbarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [runtimeModules, setRuntimeModules] = useState<ModuleConfig | null>(null);
+  const [profile, setProfile] = useState<BloggerProfile | null>(null);
 
   // 客户端运行时重新获取模块配置，覆盖构建时传入的 "全部启用" 默认值
   useEffect(() => {
@@ -58,6 +60,17 @@ export function Navbar({ modules: _modules }: NavbarProps) {
       .catch(() => {
         // 静默失败，保留构建时传入的值
       });
+    return () => { cancelled = true; };
+  }, []);
+
+  // 客户端获取博主资料
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<BloggerProfile>("/public/blogger")
+      .then((data) => {
+        if (!cancelled) setProfile(data);
+      })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -77,6 +90,24 @@ export function Navbar({ modules: _modules }: NavbarProps) {
         <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           {/* Logo + Mini Player */}
           <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href="/"
+              className="group flex shrink-0 cursor-pointer items-center gap-2 text-lg font-medium tracking-wide text-text-primary transition-colors duration-200 ease-out hover:text-accent"
+              onClick={closeMenu}
+            >
+              {profile?.blog_icon && (
+                <img
+                  src={profile.blog_icon}
+                  alt={profile.blog_title || ""}
+                  className="h-7 w-7 rounded object-cover"
+                />
+              )}
+              {profile?.blog_title && (
+                <span className="hidden font-[var(--font-playfair)] italic sm:inline">
+                  {profile.blog_title}
+                </span>
+              )}
+            </Link>
             <MiniPlayer />
           </div>
 
