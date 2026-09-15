@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Aperture } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import type { ModuleConfig } from "@/lib/types";
 import { MiniPlayer } from "@/components/MiniPlayer";
+import { apiFetch } from "@/lib/api/client";
 
 interface NavItem {
   label: string;
@@ -25,13 +26,43 @@ const NAV_ITEMS: NavItem[] = [
   { label: "联系我", href: "/contact" },
 ];
 
+const ALL_ENABLED: ModuleConfig = {
+  article_enabled: true,
+  media_enabled: true,
+  music_enabled: true,
+  video_enabled: true,
+  travel_enabled: true,
+  portfolio_enabled: true,
+  equipment_enabled: true,
+  updated_at: "",
+};
+
 interface NavbarProps {
   modules: ModuleConfig;
 }
 
-export function Navbar({ modules }: NavbarProps) {
+export function Navbar({ modules: _modules }: NavbarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [runtimeModules, setRuntimeModules] = useState<ModuleConfig | null>(null);
+
+  // 客户端运行时重新获取模块配置，覆盖构建时传入的 "全部启用" 默认值
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<ModuleConfig>("/public/module-config")
+      .then((config) => {
+        if (!cancelled) {
+          setRuntimeModules({ ...ALL_ENABLED, ...config });
+        }
+      })
+      .catch(() => {
+        // 静默失败，保留构建时传入的值
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // 优先使用运行时获取的配置，降级到构建时 prop
+  const modules = runtimeModules ?? _modules;
 
   const navItems = NAV_ITEMS.filter(
     (item) => !item.moduleKey || modules[item.moduleKey]
@@ -46,19 +77,6 @@ export function Navbar({ modules }: NavbarProps) {
         <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           {/* Logo + Mini Player */}
           <div className="flex min-w-0 items-center gap-3">
-            <Link
-              href="/"
-              className="group flex shrink-0 cursor-pointer items-center gap-2 text-lg font-medium tracking-wide text-text-primary transition-colors duration-200 ease-out hover:text-accent"
-              onClick={closeMenu}
-            >
-              <Aperture
-                className="h-6 w-6 text-accent transition-transform duration-300 ease-out group-hover:rotate-45"
-                strokeWidth={1.5}
-              />
-              <span className="hidden font-[var(--font-playfair)] italic sm:inline">
-                Lens & Life
-              </span>
-            </Link>
             <MiniPlayer />
           </div>
 
