@@ -263,13 +263,15 @@ gh release create tech-geek-v0.1.0 tech-geek-0.1.0.tar.gz tech-geek-0.1.0.tar.gz
 
 ### 5.5 发布前置自检（避免烧 CI 轮次）
 
-打 tag 前在本地模拟 CI 环境做一次离线构建（后端不可达）：
+打 tag 前在本地做一次**与 CI 完全一致**的构建：
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:59999 pnpm build   # 59999 为无监听端口
+NEXT_PUBLIC_API_BASE_URL= pnpm build   # 空值覆盖本地 .env.local，保证与 CI（无该变量）环境一致
 ```
 
-构建必须成功且不挂起；产物 `dist/` 应包含 `index.html`、`404.html` 与全部壳页面。
+构建必须成功且不挂起（取数失败自动回退占位 slug，与 CI 同路径）；产物 `dist/` 应包含 `index.html`、`404.html` 与全部壳页面，且**客户端 chunk 中不得出现任何具体 API 地址**（可用 `grep -r "localhost\|127.0.0.1" dist/` 复查）。
+
+> ⚠️ **禁止**通过设置 `NEXT_PUBLIC_API_BASE_URL` 为死地址（如 `http://127.0.0.1:59999`）模拟后端不可达后打包发布——该变量为编译期内联，死地址会被烤进客户端 chunk，访客浏览器将向死地址取数（违反 §3.2）。本地 `.env.local` 存有调试地址时同理：不覆盖直接构建的产物**不得用于发布**（这正是 §8.2「本地构建成功、CI 失败」的常见根因）。
 
 ---
 
@@ -371,7 +373,7 @@ themes:
 | `目录 x/ 不存在或缺少 theme.json` | tag 前缀与实际目录不符 / 清单缺失 | 核对目录名与清单 |
 | `specifiers in the lockfile … don't match specs in package.json` | 改了依赖未重新生成 lockfile | `pnpm install` 更新 lockfile 并提交 |
 | `Export encountered an error … took more than 60 seconds` | 构建期取数挂起（占位页未短路 / 请求无超时） | 按 §3.4 占位短路 + §3.2 超时改造 |
-| 本地构建成功、CI 失败 | 本地 `.env.local` 有可达后端而 CI 没有 | 按 5.5 做离线构建自检 |
+| 本地构建成功、CI 失败 | 本地 `.env.local` 有可达后端而 CI 没有 | 按 5.5 自检（`NEXT_PUBLIC_API_BASE_URL=` 空值覆盖本地 `.env.local`） |
 
 重打 tag 的标准操作：
 
