@@ -16,6 +16,7 @@ const FALLBACK_SLUG = "__fallback__";
 export async function generateStaticParams() {
   try {
     const res = await articles.list({ page: 1, page_size: 100 });
+    if (res.list.length === 0) return [{ slug: FALLBACK_SLUG }];
     return res.list.map((article) => ({ slug: article.slug }));
   } catch {
     return [{ slug: FALLBACK_SLUG }];

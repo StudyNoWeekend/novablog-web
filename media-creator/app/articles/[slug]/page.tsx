@@ -12,6 +12,8 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamicParams = false;
+
 // 后端不可达时的构建占位 slug（output: export 不允许 generateStaticParams 返回空数组）；
 // 该占位页渲染时不发任何请求，直接 404，保证构建不依赖后端可达（主题规范 3.4）
 const FALLBACK_SLUG = "__fallback__";
