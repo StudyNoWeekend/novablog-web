@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import {
   AtSign,
@@ -40,9 +41,6 @@ const platformLabelMap: Record<string, string> = {
   email: "Email",
 };
 
-const FALLBACK_BACKGROUND =
-  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80";
-
 function getSocialIcon(platform: string): React.ElementType {
   const key = platform.toLowerCase();
   return platformIconMap[key] ?? LinkIcon;
@@ -65,7 +63,8 @@ export function HeroSection({ profile }: HeroSectionProps) {
     });
   };
 
-  const backgroundUrl = profile?.page_background || FALLBACK_BACKGROUND;
+  const backgroundUrl = profile?.page_background;
+  const hasBackground = !!backgroundUrl;
   const hasApiSocialLinks =
     profile && profile.social_links && profile.social_links.length > 0;
 
@@ -73,14 +72,18 @@ export function HeroSection({ profile }: HeroSectionProps) {
     <section className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <Image
-          src={backgroundUrl}
-          alt={profile?.blog_title || "Landscape photography background"}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        {hasBackground ? (
+          <Image
+            src={backgroundUrl!}
+            alt={profile?.blog_title || "Landscape photography background"}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="h-full w-full bg-background" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
       </div>
 
@@ -118,12 +121,12 @@ export function HeroSection({ profile }: HeroSectionProps) {
         {profile && profile.tags && profile.tags.length > 0 ? (
           <div className="mt-4 flex items-center gap-3 text-sm font-medium tracking-wide text-text-muted md:text-base">
             {profile.tags.map((tag, index) => (
-              <>
+              <React.Fragment key={tag}>
                 {index > 0 && (
                   <span className="h-1 w-1 rounded-full bg-accent" />
                 )}
                 <span>{tag}</span>
-              </>
+              </React.Fragment>
             ))}
           </div>
         ) : (

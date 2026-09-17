@@ -29,6 +29,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-background-soft text-text-subtle">

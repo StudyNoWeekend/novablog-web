@@ -38,6 +38,7 @@ export function MiniPlayer() {
             fill
             sizes="32px"
             className="object-cover"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
