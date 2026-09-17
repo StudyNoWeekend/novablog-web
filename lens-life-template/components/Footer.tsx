@@ -1,6 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Instagram, Mail, MapPin } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { apiFetch } from "@/lib/api/client";
+import themeInfo from "@/theme.json";
 
 interface FooterProps {
   profile: BloggerProfile | null;
@@ -34,8 +39,26 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
   );
 }
 
-export function Footer({ profile }: FooterProps) {
-  const currentYear = new Date().getFullYear();
+export function Footer({ profile: serverProfile }: FooterProps) {
+  const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
+  const [currentYear, setCurrentYear] = useState(2026);
+
+  // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<BloggerProfile>("/public/blogger")
+      .then((data) => {
+        if (!cancelled) setProfile(data);
+      })
+      .catch(() => {
+        // 静默失败，保留服务端传入的值
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
   const socialLinks = profile?.social_links?.length
     ? profile.social_links.map((s) => ({
         platform: s.name || s.platform,
@@ -49,21 +72,26 @@ export function Footer({ profile }: FooterProps) {
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           {/* Brand */}
           <div className="flex flex-col items-center gap-2 md:items-start">
-            <Link
-              href="/"
-              className="flex cursor-pointer items-center gap-2 text-lg font-medium tracking-wide text-text-primary transition-colors duration-200 ease-out hover:text-accent"
-            >
-              {profile?.blog_icon && (
-                <img
-                  src={profile.blog_icon}
-                  alt={profile.blog_title || ""}
-                  className="h-6 w-6 rounded object-cover"
-                />
-              )}
-              <span className="font-[var(--font-playfair)] italic">
-                {profile?.blog_title || "Lens & Life"}
+            <div className="flex items-center gap-2.5">
+              <Link
+                href="/"
+                className="flex cursor-pointer items-center gap-2 text-lg font-medium tracking-wide text-text-primary transition-colors duration-200 ease-out hover:text-accent"
+              >
+                {profile?.blog_icon && (
+                  <img
+                    src={profile.blog_icon}
+                    alt={profile.blog_title || ""}
+                    className="h-6 w-6 rounded object-cover"
+                  />
+                )}
+                <span className="font-[var(--font-playfair)] italic">
+                  {profile?.blog_title || "Lens & Life"}
+                </span>
+              </Link>
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-text-muted">
+                v{themeInfo.version}
               </span>
-            </Link>
+            </div>
             <p className="text-sm text-text-muted">
               {profile?.blog_description || "用镜头收藏世界的边角与光芒"}
             </p>

@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { AudioUrl, Paginated, Song } from "@/lib/types";
+import type { AudioUrl, Paginated, Playlist, Song } from "@/lib/types";
 
 export interface GetSongsParams {
   page?: number;
@@ -33,5 +33,14 @@ export async function getSongAudioUrl(songId: string): Promise<string | null> {
   } catch (error) {
     console.error("Failed to fetch song audio url:", error);
     return null;
+  }
+}
+
+export async function getPlaylists(): Promise<Playlist[]> {
+  try {
+    return await apiFetch<Playlist[]>("/public/music/playlists");
+  } catch (error) {
+    console.error("Failed to fetch playlists:", error);
+    return [];
   }
 }

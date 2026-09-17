@@ -167,6 +167,20 @@ export interface Video {
   updated_at: string;
 }
 
+// ---------- 歌单 ----------
+export interface Playlist {
+  id: string;
+  title: string;
+  cover_url: string;
+  platform: string;
+  platform_url: string;
+  description: string;
+  sort_order: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // ---------- 音乐 ----------
 export interface Song {
   id: string;
