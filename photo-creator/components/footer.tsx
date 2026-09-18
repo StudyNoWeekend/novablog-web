@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SocialLinks } from "./social-links";
 import type { Blogger } from "@/lib/api";
+import themeInfo from "@/theme.json";
 
 interface FooterProps {
   blogger: Blogger | null;
@@ -10,7 +11,6 @@ interface FooterProps {
 
 export function Footer({ blogger }: FooterProps) {
   const title = blogger?.blog_title?.trim() || "摄影作品集";
-  const year = new Date().getFullYear();
 
   const emailLink = blogger?.social_links?.find((link) =>
     ["mail", "email"].includes(link.platform.toLowerCase())
@@ -62,9 +62,19 @@ export function Footer({ blogger }: FooterProps) {
 
           {socialLinks.length > 0 && <SocialLinks links={socialLinks} />}
 
-          <p className="pt-8 text-xs text-muted-foreground">
-            © {year} {title}. 保留所有权利。
-          </p>
+          {themeInfo.homepage && (
+            <p className="pt-8 text-xs text-muted-foreground">
+              来源：
+              <a
+                href={themeInfo.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer rounded-md transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {themeInfo.homepage}
+              </a>
+            </p>
+          )}
         </div>
       </div>
     </footer>

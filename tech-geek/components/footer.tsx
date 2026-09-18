@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Rss, Mail, Globe } from "lucide-react";
 import { blogger, Blogger } from "@/lib/api";
+import themeInfo from "@/theme.json";
 
 const GithubIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -35,8 +36,6 @@ export function Footer() {
       .then(setInfo)
       .catch(() => setInfo(null));
   }, []);
-
-  const year = new Date().getFullYear();
 
   return (
     <footer className="border-t border-border bg-card">
@@ -75,7 +74,19 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground md:flex-row">
-          <p>© {year} {info?.nickname || "Tech Geek"}. All rights reserved.</p>
+          {themeInfo.homepage && (
+            <p>
+              来源：
+              <a
+                href={themeInfo.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+              >
+                {themeInfo.homepage}
+              </a>
+            </p>
+          )}
           <div className="flex items-center gap-4">
             <Link
               href="/"

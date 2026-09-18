@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Heart, Globe } from "lucide-react";
 import { blogger, type Blogger } from "@/lib/api";
+import themeInfo from "@/theme.json";
 
 export function Footer() {
   const [info, setInfo] = useState<Blogger | null>(null);
@@ -49,7 +50,19 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
-          <p>© {new Date().getFullYear()} {info?.nickname || "Media Creator"}. All rights reserved.</p>
+          {themeInfo.homepage && (
+            <p>
+              来源：
+              <a
+                href={themeInfo.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+              >
+                {themeInfo.homepage}
+              </a>
+            </p>
+          )}
           <p className="flex items-center gap-1">
             Made with <Heart className="h-3.5 w-3.5 text-destructive fill-destructive" /> using Next.js & shadcn/ui
           </p>
