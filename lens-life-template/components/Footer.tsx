@@ -41,7 +41,6 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
 
 export function Footer({ profile: serverProfile }: FooterProps) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
-  const [currentYear, setCurrentYear] = useState(2026);
 
   // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
   useEffect(() => {
@@ -56,9 +55,6 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
   const socialLinks = profile?.social_links?.length
     ? profile.social_links.map((s) => ({
         platform: s.name || s.platform,
@@ -128,9 +124,21 @@ export function Footer({ profile: serverProfile }: FooterProps) {
           )}
         </div>
 
-        <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-subtle">
-          <p>© {currentYear} {profile?.nickname || "Lens & Life"}. All rights reserved.</p>
-        </div>
+        {themeInfo.homepage && (
+          <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-subtle">
+            <p>
+              来源：
+              <a
+                href={themeInfo.homepage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors duration-200 ease-out hover:text-accent"
+              >
+                {themeInfo.homepage}
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </footer>
   );
