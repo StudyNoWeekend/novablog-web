@@ -16,7 +16,7 @@ export function ModuleDisabled({ moduleLabel }: ModuleDisabledProps) {
           {moduleLabel ? `「${moduleLabel}」模块暂未开启` : "该模块暂未开启"}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-text-muted">
-          博主暂未开放此内容，敬请期待
+          暂未开放此内容，敬请期待
         </p>
         <Link
           href="/"

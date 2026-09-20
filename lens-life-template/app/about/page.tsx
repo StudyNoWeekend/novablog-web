@@ -11,34 +11,17 @@ import {
 } from "lucide-react";
 
 
-const stats = [
-  { label: "年摄影经验", value: "10+", icon: Camera },
-  { label: "城市足迹", value: "30+", icon: MapPin },
-  { label: "作品", value: "1000+", icon: ImageIcon },
-];
+const stats: {
+  label: string;
+  value: string;
+  icon: React.ElementType;
+}[] = [];
 
-const milestones = [
-  {
-    year: "2016",
-    title: "第一次独自进藏",
-    description: "带着一台二手单反走完了川藏南线，从此爱上高原摄影。",
-  },
-  {
-    year: "2019",
-    title: "作品入选国家地理摄影大赛",
-    description: "《雪山下的牧羊人》获得地方类优秀奖。",
-  },
-  {
-    year: "2021",
-    title: "创立 Lens & Life 博客",
-    description: "开始系统分享摄影教程、器材评测与旅行故事。",
-  },
-  {
-    year: "2024",
-    title: "出版首本摄影集《边角与光芒》",
-    description: "收录十年间在中国西部与东南亚拍摄的作品。",
-  },
-];
+const milestones: {
+  year: string;
+  title: string;
+  description: string;
+}[] = [];
 
 function getSocialIcon(platform: string): React.ElementType {
   const key = platform.toLowerCase();
@@ -62,7 +45,7 @@ export default async function AboutPage() {
               ? profile.bio.length > 60
                 ? `${profile.bio.slice(0, 60)}...`
                 : profile.bio
-              : "用镜头收藏世界的边角与光芒"}
+              : ""}
           </p>
         </div>
       </section>
@@ -76,7 +59,7 @@ export default async function AboutPage() {
               {profile?.avatar ? (
                 <Image
                   src={profile.avatar}
-                  alt={profile.nickname || "博主"}
+                  alt={profile.nickname || ""}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 224px, 288px"
@@ -90,9 +73,9 @@ export default async function AboutPage() {
             {/* Info */}
             <div className="flex flex-1 flex-col items-center text-center md:items-start md:text-left">
               <h2 className="font-[var(--font-playfair)] text-3xl font-medium text-text-primary sm:text-4xl">
-                {profile?.nickname || "博主"}
+                {profile?.nickname || ""}
               </h2>
-              <p className="mt-2 text-accent">摄影 | 旅行 | 生活</p>
+              <p className="mt-2 text-accent">{profile?.tags?.join(" | ") || ""}</p>
 
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-text-secondary">
                 {profile?.bio || ""}
@@ -169,9 +152,7 @@ export default async function AboutPage() {
               <h2 className="font-[var(--font-playfair)] text-2xl font-medium italic text-text-primary sm:text-3xl">
                 关注我
               </h2>
-              <p className="mx-auto mt-3 max-w-xl text-text-muted">
-                在社交媒体上与我分享光影与旅途
-              </p>
+              <p className="mx-auto mt-3 max-w-xl text-text-muted" />
             </div>
 
             <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

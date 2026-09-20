@@ -11,7 +11,7 @@ interface FooterProps {
   profile: BloggerProfile | null;
 }
 
-const DEFAULT_EMAIL = "hello@lenslife.blog";
+const DEFAULT_EMAIL = "";
 
 function SocialIcon({ platform, url }: { platform: string; url: string }) {
   const p = platform.toLowerCase();
@@ -81,7 +81,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
                   />
                 )}
                 <span className="font-[var(--font-playfair)] italic">
-                  {profile?.blog_title || "Lens & Life"}
+                  {profile?.blog_title || ""}
                 </span>
               </Link>
               <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-text-muted">
@@ -89,7 +89,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
               </span>
             </div>
             <p className="text-sm text-text-muted">
-              {profile?.blog_description || "用镜头收藏世界的边角与光芒"}
+              {profile?.blog_description || ""}
             </p>
           </div>
 

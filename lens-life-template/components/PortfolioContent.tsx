@@ -47,9 +47,7 @@ export function PortfolioContent() {
           <h1 className="font-[var(--font-heading)] text-4xl font-medium text-text-primary sm:text-5xl">
             作品集
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-text-muted">
-            光影的切片 —— 从雪山之巅到城市街头，记录那些转瞬即逝的瞬间。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
         </header>
 
         {/* Category filters (derived from data) */}

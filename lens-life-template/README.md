@@ -1,8 +1,8 @@
 # lens-life-template（镜头生活）
 
-用镜头收藏世界的边角与光芒：风光、城市、人文与航拍作品，以及摄影教程与器材分享的暗色优雅风格 novablog 前端。
+暗色优雅风格的 novablog 前端主题模板。
 
-当前版本 **v1.0.0**，发布 tag 为 `lens-life-template-v1.0.0`。
+当前版本 **v1.0.2**，发布 tag 为 `lens-life-template-v1.0.2`。
 
 ## 功能模块
 

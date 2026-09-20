@@ -18,9 +18,7 @@ export default async function TravelsPage() {
           <h1 className="font-[var(--font-playfair)] text-4xl font-bold text-text-primary md:text-5xl">
             旅行攻略
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg">
-            从雪山到大海，从城市到旷野。每一份攻略，都是用脚步丈量过的路线。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg" />
 
           {/* Keyword Search（纯 HTML GET 表单，静态托管可用） */}
           <form

@@ -41,7 +41,7 @@ export function HomePageContent() {
       setEquipmentsData(e);
       setPortfoliosData(po);
 
-      // 动态设置 favicon，弥补静态导出下 generateMetadata 无法获取 blog_icon 的限制
+      // 动态设置 favicon 与页面标题，弥补静态导出下 generateMetadata 无法获取个人资料的限制
       if (p?.blog_icon) {
         let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
         if (!link) {
@@ -50,6 +50,9 @@ export function HomePageContent() {
           document.head.appendChild(link);
         }
         link.href = p.blog_icon;
+      }
+      if (p?.blog_title) {
+        document.title = p.blog_title;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载首页失败");

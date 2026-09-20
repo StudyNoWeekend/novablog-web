@@ -4,8 +4,7 @@ import { MusicContent } from "@/components/MusicContent";
 
 
 export const metadata = {
-  title: "音乐分享",
-  description: "",
+  title: "音乐",
 };
 
 export default async function MusicPage() {

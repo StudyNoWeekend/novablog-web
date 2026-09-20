@@ -1,11 +1,11 @@
 {
   "id": "lens-life-template",
   "name": "镜头生活",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
-  "description": "用镜头收藏世界的边角与光芒：风光、城市、人文与航拍的摄影生活博客",
+  "description": "摄影生活博客模板",
   "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/lens-life-template",
   "screenshots": [],
   "routes": {

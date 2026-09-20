@@ -20,21 +20,24 @@ const playfair = Playfair_Display({
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const profile = await getBloggerProfile();
+    const blogTitle = profile?.blog_title || "";
 
     return {
-      title: profile?.blog_title || "Lens & Life | 林远舟的摄影博客",
+      title: {
+        default: blogTitle,
+        template: blogTitle ? `%s | ${blogTitle}` : "%s",
+      },
       description:
-        profile?.blog_description ||
-        "用镜头收藏世界的边角与光芒。风光、城市、人文与航拍作品，以及摄影教程与器材分享。",
-      keywords: ["摄影博客", "风光摄影", "城市摄影", "人文摄影", "航拍", "摄影教程"],
+        profile?.blog_description || "",
       icons: profile?.blog_icon ? { icon: profile.blog_icon } : undefined,
     };
   } catch {
     return {
-      title: "Lens & Life | 林远舟的摄影博客",
-      description:
-        "用镜头收藏世界的边角与光芒。风光、城市、人文与航拍作品，以及摄影教程与器材分享。",
-      keywords: ["摄影博客", "风光摄影", "城市摄影", "人文摄影", "航拍", "摄影教程"],
+      title: {
+        default: "",
+        template: "%s",
+      },
+      description: "",
     };
   }
 }

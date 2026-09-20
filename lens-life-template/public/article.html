@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- 动态内容壳页面：静态导出未预生成的文章详情由此页面客户端取数渲染（主题规范 3.4） -->
-  <title>文章加载中 | Lens &amp; Life</title>
+  <title>文章加载中</title>
   <script src="/theme-config.js"></script>
   <style>
     :root {
@@ -100,7 +100,7 @@
 </head>
 <body>
   <header class="shell-header">
-    <span class="brand serif">Lens <em>&amp;</em> Life</span>
+    <span class="brand serif" id="brand-text"></span>
     <a href="/">← 返回首页</a>
   </header>
   <main>
@@ -122,6 +122,20 @@
       var siteRoot = injected
         ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
         : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-text");
+            if (brand) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
 
       // 从 URL 解析 slug：/articles/{slug} | /articles/{slug}.html | /articles/{slug}/
       function parseSlug() {
@@ -230,7 +244,7 @@
       }
 
       function render(a) {
-        document.title = (a.title || "文章") + " | Lens & Life";
+        document.title = blogTitle ? (a.title || "文章") + " | " + blogTitle : (a.title || "文章");
         el("a-title").textContent = a.title || "无标题";
         var meta = [];
         if (a.category_name) meta.push('<span class="tag">' + escapeHtml(a.category_name) + "</span>");

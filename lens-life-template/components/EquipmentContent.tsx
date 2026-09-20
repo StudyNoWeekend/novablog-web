@@ -53,9 +53,7 @@ export function EquipmentContent() {
           <h1 className="font-[var(--font-heading)] text-4xl font-medium text-text-primary sm:text-5xl">
             器材
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-text-muted">
-            创作路上的伙伴 —— 每一件器材，都值得被认真记录。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
 
           {/* Search */}
           <div className="relative mx-auto mt-8 max-w-md">

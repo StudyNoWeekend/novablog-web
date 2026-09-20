@@ -67,7 +67,16 @@ export function Navbar({ modules: _modules }: NavbarProps) {
     let cancelled = false;
     apiFetch<BloggerProfile>("/public/blogger")
       .then((data) => {
-        if (!cancelled) setProfile(data);
+        if (!cancelled) {
+          setProfile(data);
+          // 弥补静态导出下构建期后端不可达、blog_title 未写入 <title> 的情况；
+          // 若构建期已生成（标题已包含 blog_title）则不做覆盖
+          if (data?.blog_title && !document.title.includes(data.blog_title)) {
+            document.title = document.title
+              ? `${document.title} | ${data.blog_title}`
+              : data.blog_title;
+          }
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };

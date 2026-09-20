@@ -7,9 +7,9 @@ import { getBloggerProfile } from "@/lib/api/blogger";
 import type { BloggerProfile } from "@/lib/api/blogger";
 import { Mail, MapPin, Instagram } from "lucide-react";
 
-const DEFAULT_EMAIL = "hello@lenslife.blog";
-const DEFAULT_PHOTOGRAPHER_NAME = "博主";
-const DEFAULT_PHOTOGRAPHER_TAGLINE = "用镜头收藏世界的边角与光芒";
+const DEFAULT_EMAIL = "";
+const DEFAULT_PHOTOGRAPHER_NAME = "";
+const DEFAULT_PHOTOGRAPHER_TAGLINE = "";
 
 function SocialLinkItem({ platform, url }: { platform: string; url: string }) {
   const isInstagram = platform.toLowerCase() === "instagram";

@@ -117,7 +117,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
           </>
         )}
 
-        {/* Tags from API — 摄影·旅行·生活 */}
+        {/* Tags from API */}
         {profile && profile.tags && profile.tags.length > 0 ? (
           <div className="mt-4 flex items-center gap-3 text-sm font-medium tracking-wide text-text-muted md:text-base">
             {profile.tags.map((tag, index) => (

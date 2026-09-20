@@ -18,9 +18,7 @@ export default async function VideosPage() {
           <h1 className="font-[var(--font-playfair)] text-4xl font-bold text-text-primary md:text-5xl">
             视频
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg">
-            用镜头记录动态的世界 —— 航拍、延时与旅拍 Vlog。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg" />
 
           {/* Keyword Search（纯 HTML GET 表单，静态托管可用） */}
           <form

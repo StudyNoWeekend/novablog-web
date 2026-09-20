@@ -18,9 +18,7 @@ export default async function ArticlesPage() {
           <h1 className="font-[var(--font-playfair)] text-4xl font-bold text-text-primary md:text-5xl">
             文章
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg">
-            记录旅途中的光影、器材的心得与后期的思考。每一篇文章，都是一次与世界的对话。
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg" />
 
           {/* Keyword Search（纯 HTML GET 表单，静态托管可用） */}
           <form action="/articles" method="GET" className="mx-auto mt-8 flex max-w-md items-center">
