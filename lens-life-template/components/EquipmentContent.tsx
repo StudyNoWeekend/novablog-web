@@ -51,7 +51,7 @@ export function EquipmentContent() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <header className="mb-12 text-center">
           <h1 className="font-[var(--font-heading)] text-4xl font-medium text-text-primary sm:text-5xl">
-            器材
+            设备
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
 
@@ -65,8 +65,8 @@ export function EquipmentContent() {
               type="search"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="搜索器材名称、品牌..."
-              aria-label="搜索器材"
+              placeholder="搜索设备名称、品牌..."
+              aria-label="搜索设备"
               className="min-h-11 w-full rounded-full border border-border bg-surface pl-10 pr-4 text-sm text-text-primary placeholder:text-text-subtle focus:border-accent focus:outline-none"
             />
           </div>
@@ -131,8 +131,8 @@ export function EquipmentContent() {
         ) : (
           <p className="py-20 text-center text-text-muted">
             {keyword || activeBrand
-              ? "没有符合条件的器材，试试调整筛选条件。"
-              : "暂无器材，敬请期待。"}
+              ? "没有符合条件的设备，试试调整筛选条件。"
+              : "暂无设备，敬请期待。"}
           </p>
         )}
       </div>

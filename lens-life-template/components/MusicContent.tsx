@@ -5,35 +5,16 @@ import Image from "next/image";
 import { Music2, ExternalLink, Headphones, ListMusic } from "lucide-react";
 import { getSongs, getPlaylists } from "@/lib/api/music";
 import { useMusicPlayer } from "@/components/MusicPlayerProvider";
+import { PlatformBadge } from "@/components/PlaylistCard";
 import type { Song, Playlist } from "@/lib/types";
 
 type Tab = "songs" | "playlists";
-
-const PLATFORM_LABELS: Record<string, string> = {
-  qq_music: "QQ 音乐",
-  netease: "网易云音乐",
-  netease_music: "网易云音乐",
-  spotify: "Spotify",
-  apple_music: "Apple Music",
-  migu: "咪咕音乐",
-  kugou: "酷狗音乐",
-  kuwo: "酷我音乐",
-};
 
 function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return "--:--";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;
-}
-
-function PlatformBadge({ platform }: { platform: string }) {
-  const label = PLATFORM_LABELS[platform] || platform;
-  return (
-    <span className="inline-flex items-center rounded-full bg-accent-subtle px-2.5 py-0.5 text-xs font-medium text-accent">
-      {label}
-    </span>
-  );
 }
 
 function SongSkeleton() {

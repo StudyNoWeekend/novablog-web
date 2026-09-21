@@ -4,13 +4,13 @@ import { EquipmentContent } from "@/components/EquipmentContent";
 
 
 export const metadata = {
-  title: "器材",
+  title: "设备",
 };
 
 export default async function GearPage() {
   const config = await getModuleConfig();
   if (!config.equipment_enabled) {
-    return <ModuleDisabled moduleLabel="器材" />;
+    return <ModuleDisabled moduleLabel="设备" />;
   }
 
   return <EquipmentContent />;

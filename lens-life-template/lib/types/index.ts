@@ -202,7 +202,7 @@ export interface AudioUrl {
   url: string;
 }
 
-// ---------- 器材 ----------
+// ---------- 设备 ----------
 export interface Equipment {
   id: string;
   name: string;

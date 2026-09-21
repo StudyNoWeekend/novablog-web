@@ -2,7 +2,7 @@
 
 暗色优雅风格的 novablog 前端主题模板。
 
-当前版本 **v1.0.3**，发布 tag 为 `lens-life-template-v1.0.3`。
+当前版本 **v1.0.4**，发布 tag 为 `lens-life-template-v1.0.4`。
 
 ## 功能模块
 

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Camera } from "lucide-react";
 import type { Equipment } from "@/lib/types";
 
@@ -8,7 +9,10 @@ interface EquipmentCardProps {
 
 export function EquipmentCard({ equipment }: EquipmentCardProps) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-radius-md bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover hover:ring-1 hover:ring-accent/30">
+    <Link
+      href={`/gear/${equipment.id}`}
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-radius-md bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover hover:ring-1 hover:ring-accent/30"
+    >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-background-soft">
         {equipment.image_url ? (
           <Image
@@ -31,7 +35,7 @@ export function EquipmentCard({ equipment }: EquipmentCardProps) {
             {equipment.brand}
           </span>
         )}
-        <h3 className="font-[var(--font-playfair)] text-lg font-medium text-text-primary">
+        <h3 className="font-[var(--font-playfair)] text-lg font-medium text-text-primary transition-colors duration-200 ease-out group-hover:text-accent">
           {equipment.name}
         </h3>
         {equipment.description && (
@@ -40,6 +44,6 @@ export function EquipmentCard({ equipment }: EquipmentCardProps) {
           </p>
         )}
       </div>
-    </article>
+    </Link>
   );
 }

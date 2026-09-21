@@ -7,20 +7,34 @@ import { Images } from "lucide-react";
 import { ArticleCard } from "@/components/ArticleCard";
 import { EquipmentCard } from "@/components/EquipmentCard";
 import { HeroSection } from "@/components/HeroSection";
+import { SongCard } from "@/components/SongCard";
+import { PlaylistCard } from "@/components/PlaylistCard";
+import { useMusicPlayer } from "@/components/MusicPlayerProvider";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getEquipments } from "@/lib/api/equipments";
 import { getPortfolios } from "@/lib/api/portfolios";
+import { getSongs, getPlaylists } from "@/lib/api/music";
 import { getModuleConfig } from "@/lib/api/module-config";
 import type { ModuleConfig } from "@/lib/types";
-import type { Article, Equipment, Portfolio, Paginated } from "@/lib/types";
+import type {
+  Article,
+  Equipment,
+  Portfolio,
+  Song,
+  Playlist,
+  Paginated,
+} from "@/lib/types";
 
 export function HomePageContent() {
+  const player = useMusicPlayer();
   const [profile, setProfile] = useState<BloggerProfile | null>(null);
   const [articlesData, setArticlesData] = useState<Paginated<Article>>({ list: [], total: 0, page: 1, page_size: 4, total_pages: 0 });
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig | null>(null);
   const [equipmentsData, setEquipmentsData] = useState<Paginated<Equipment>>({ list: [], total: 0, page: 1, page_size: 5, total_pages: 0 });
   const [portfoliosData, setPortfoliosData] = useState<Paginated<Portfolio>>({ list: [], total: 0, page: 1, page_size: 5, total_pages: 0 });
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,18 +42,22 @@ export function HomePageContent() {
     setLoading(true);
     setError(null);
     try {
-      const [p, a, m, e, po] = await Promise.all([
+      const [p, a, m, e, po, so, pl] = await Promise.all([
         getBloggerProfile(),
         getArticles({ page: 1, page_size: 4 }),
         getModuleConfig(),
         getEquipments({ page: 1, page_size: 5 }),
         getPortfolios({ page: 1, page_size: 5 }),
+        getSongs({ page: 1, page_size: 4 }),
+        getPlaylists(),
       ]);
       setProfile(p);
       setArticlesData(a);
       setModuleConfig(m);
       setEquipmentsData(e);
       setPortfoliosData(po);
+      setSongs(so.list);
+      setPlaylists(pl.slice(0, 4));
 
       // 动态设置 favicon 与页面标题，弥补静态导出下 generateMetadata 无法获取个人资料的限制
       if (p?.blog_icon) {
@@ -79,6 +97,15 @@ export function HomePageContent() {
     equipment_enabled: true,
     updated_at: "",
   };
+
+  // 点击首页歌曲时，将首页歌曲列表设为播放队列，便于迷你播放器上下曲切换
+  const handlePlaySong = useCallback(
+    (song: Song) => {
+      player.setPlaylist(songs);
+      player.playSong(song);
+    },
+    [player, songs]
+  );
 
   if (error) {
     return (
@@ -132,13 +159,13 @@ export function HomePageContent() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-10 flex items-end justify-between">
               <h2 className="font-[var(--font-playfair)] text-2xl font-bold text-text-primary md:text-3xl">
-                器材
+                设备
               </h2>
               <Link
                 href="/gear"
                 className="flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 ease-out hover:text-accent"
               >
-                查看全部器材
+                查看全部设备
                 <span>&gt;</span>
               </Link>
             </div>
@@ -205,6 +232,58 @@ export function HomePageContent() {
                     </p>
                   </div>
                 </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Latest Music Section */}
+      {!loading && modules.music_enabled && songs.length > 0 && (
+        <section className="bg-background-soft py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 flex items-end justify-between">
+              <h2 className="font-[var(--font-playfair)] text-2xl font-bold text-text-primary md:text-3xl">
+                最新音乐
+              </h2>
+              <Link
+                href="/music"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 ease-out hover:text-accent"
+              >
+                查看全部音乐
+                <span>&gt;</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {songs.map((song) => (
+                <SongCard key={song.id} song={song} onPlay={handlePlaySong} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Playlists Section */}
+      {!loading && modules.music_enabled && playlists.length > 0 && (
+        <section className="bg-background py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 flex items-end justify-between">
+              <h2 className="font-[var(--font-playfair)] text-2xl font-bold text-text-primary md:text-3xl">
+                音乐歌单
+              </h2>
+              <Link
+                href="/music"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 ease-out hover:text-accent"
+              >
+                查看全部歌单
+                <span>&gt;</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {playlists.map((playlist) => (
+                <PlaylistCard key={playlist.id} playlist={playlist} />
               ))}
             </div>
           </div>

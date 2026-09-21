@@ -27,3 +27,12 @@ export async function getEquipments(
     return { list: [], total: 0, page: 1, page_size: 20, total_pages: 0 };
   }
 }
+
+export async function getEquipmentById(id: string): Promise<Equipment | null> {
+  try {
+    return await apiFetch<Equipment>(`/public/equipments/${id}`);
+  } catch (error) {
+    console.error("Failed to fetch equipment detail:", error);
+    return null;
+  }
+}
