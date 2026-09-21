@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, X, Folder, Tag } from "lucide-react";
-import { articles, categories, Article, Category, PaginatedResponse } from "@/lib/api";
+import { articles, categories, getModuleConfig, Article, Category, PaginatedResponse } from "@/lib/api";
 import { ArticleCard } from "@/components/article-card";
 import { Pagination } from "@/components/pagination";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
+import { ModuleDisabled } from "@/components/module-disabled";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +30,7 @@ function ArticlesPageContent() {
 
   const [result, setResult] = useState<PaginatedResponse<Article> | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
+  const [articleEnabled, setArticleEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(keyword);
@@ -49,7 +51,7 @@ function ArticlesPageContent() {
   const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
-      const [res, cats] = await Promise.all([
+      const [res, cats, modules] = await Promise.all([
         articles.list({
           page: tag ? 1 : page,
           page_size: tag ? 100 : PAGE_SIZE,
@@ -57,9 +59,11 @@ function ArticlesPageContent() {
           keyword: keyword || undefined,
         }),
         categories.list(),
+        getModuleConfig(),
       ]);
       setResult(res);
       setCategoryList(cats);
+      setArticleEnabled(modules.article_enabled);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载文章失败");
@@ -196,6 +200,8 @@ function ArticlesPageContent() {
 
       {loading ? (
         <Loading text="加载文章中..." />
+      ) : !articleEnabled ? (
+        <ModuleDisabled moduleLabel="文章" />
       ) : error ? (
         <ErrorState title="文章加载失败" message={error} onRetry={fetchArticles} />
       ) : pagedList.length === 0 ? (

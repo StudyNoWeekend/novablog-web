@@ -6,6 +6,7 @@ import { Rss, Mail, Globe } from "lucide-react";
 import { blogger, Blogger } from "@/lib/api";
 import themeInfo from "@/theme.json";
 
+/* lucide-react 1.x 移除了品牌图标，社交品牌图标使用内联 SVG（Simple Icons 路径） */
 const GithubIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
     <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.6.11.793-.26.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.998.108-.776.42-1.305.763-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.31.468-2.381 1.235-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23A11.51 11.51 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.233 1.911 1.233 3.221 0 4.61-2.807 5.625-5.48 5.921.43.372.823 1.102.823 2.222v3.293c0 .32.192.694.8.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
@@ -27,15 +28,33 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   website: Globe,
 };
 
-export function Footer() {
-  const [info, setInfo] = useState<Blogger | null>(null);
+interface FooterProps {
+  /** 构建期传入的初始值；客户端运行时会重新获取并覆盖 */
+  initialProfile: Blogger | null;
+}
 
+export function Footer({ initialProfile }: FooterProps) {
+  const [info, setInfo] = useState<Blogger | null>(initialProfile);
+
+  // 运行时重新获取博主资料，覆盖构建期固化值（静态导出双保险）
   useEffect(() => {
+    let cancelled = false;
     blogger
       .get()
-      .then(setInfo)
-      .catch(() => setInfo(null));
+      .then((data) => {
+        if (!cancelled) setInfo(data);
+      })
+      .catch(() => {
+        // 静默失败，保留构建时传入的值
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const socialLinks = [...(info?.social_links ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order
+  );
 
   return (
     <footer className="border-t border-border bg-card">
@@ -50,25 +69,23 @@ export function Footer() {
             </p>
           </div>
 
-          {info?.social_links && info.social_links.length > 0 && (
+          {socialLinks.length > 0 && (
             <div className="flex items-center gap-3">
-              {info.social_links
-                .sort((a, b) => a.sort_order - b.sort_order)
-                .map((link) => {
-                  const Icon = iconMap[link.platform.toLowerCase()] || Mail;
-                  return (
-                    <a
-                      key={link.platform + link.url}
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                      aria-label={link.platform}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  );
-                })}
+              {socialLinks.map((link) => {
+                const Icon = iconMap[link.platform.toLowerCase()] || Globe;
+                return (
+                  <a
+                    key={link.platform + link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={link.name || link.platform}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
@@ -83,30 +100,36 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
               >
-                {themeInfo.homepage}
+                NovaBlog 官方主题
               </a>
             </p>
           )}
-          <div className="flex items-center gap-4">
+          <nav className="flex items-center gap-4" aria-label="页脚导航">
             <Link
               href="/"
-              className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md"
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               首页
             </Link>
             <Link
-              href="/articles"
-              className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md"
+              href="/categories"
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              文章
+              分类
             </Link>
             <Link
-              href="/music"
-              className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md"
+              href="/tags"
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              音乐
+              标签
             </Link>
-          </div>
+            <Link
+              href="/about"
+              className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              关于我
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>

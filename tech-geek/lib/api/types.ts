@@ -22,19 +22,39 @@ export interface PaginationParams extends ApiParams {
   page_size?: number;
 }
 
+export interface SocialLink {
+  platform: string;
+  name?: string;
+  icon?: string;
+  color?: string;
+  url: string;
+  sort_order: number;
+}
+
 export interface Blogger {
   nickname: string;
   avatar: string;
   bio: string;
+  email?: string;
+  city?: string;
   blog_title: string;
   blog_description: string;
   page_background: string;
   blog_icon: string;
-  social_links: {
-    platform: string;
-    url: string;
-    sort_order: number;
-  }[];
+  social_links: SocialLink[];
+  /** 博主自定义标签（如「开发者」「摄影爱好者」），非文章标签 */
+  tags?: string[];
+}
+
+export interface ModuleConfig {
+  article_enabled: boolean;
+  media_enabled: boolean;
+  music_enabled: boolean;
+  video_enabled: boolean;
+  travel_enabled: boolean;
+  portfolio_enabled: boolean;
+  equipment_enabled: boolean;
+  updated_at?: string;
 }
 
 export interface Article {

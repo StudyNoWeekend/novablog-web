@@ -1,11 +1,11 @@
 {
   "id": "tech-geek",
   "name": "极客风",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
-  "description": "面向开发者与硬核技术读者的深色终端风格博客主题",
+  "description": "面向开发者与硬核技术读者的技术博客主题，亮暗双主题，蓝色主色",
   "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/tech-geek",
   "screenshots": [],
   "routes": {

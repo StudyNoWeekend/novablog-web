@@ -3,38 +3,59 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Terminal, TrendingUp, Tag, Folder, ArrowRight } from "lucide-react";
-import { articles, categories, tags, blogger, Blogger, Article, Category, Tag as TagType } from "@/lib/api";
-import { ArticleCard } from "@/components/article-card";
+import {
+  Flame,
+  Tag,
+  Folder,
+  FolderOpen,
+  ArrowRight,
+  FileText,
+  Terminal,
+} from "lucide-react";
+import {
+  articles,
+  categories,
+  tags,
+  blogger,
+  getModuleConfig,
+  Blogger,
+  Article,
+  Category,
+  ModuleConfig,
+  PaginatedResponse,
+  Tag as TagType,
+} from "@/lib/api";
+import { ArticleListItem } from "@/components/article-list-item";
+import { ProfileCard } from "@/components/profile-card";
 import { ErrorState } from "@/components/error-state";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const LATEST_COUNT = 5;
 
 export default function HomePage() {
   const [info, setInfo] = useState<Blogger | null>(null);
-  const [hotArticles, setHotArticles] = useState<Article[]>([]);
-  const [latestArticles, setLatestArticles] = useState<Article[]>([]);
+  const [latest, setLatest] = useState<PaginatedResponse<Article> | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
   const [tagList, setTagList] = useState<TagType[]>([]);
+  const [modules, setModules] = useState<ModuleConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [bloggerRes, hotRes, latestRes, catRes, tagRes] = await Promise.all([
+      const [bloggerRes, latestRes, catRes, tagRes, moduleRes] = await Promise.all([
         blogger.get(),
-        articles.hot(5),
-        articles.list({ page: 1, page_size: 6 }),
+        articles.list({ page: 1, page_size: LATEST_COUNT }),
         categories.list(),
         tags.list(),
+        getModuleConfig(),
       ]);
       setInfo(bloggerRes);
-      setHotArticles(hotRes);
-      setLatestArticles(latestRes.list);
+      setLatest(latestRes);
       setCategoryList(catRes);
       setTagList(tagRes);
+      setModules(moduleRes);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载失败");
@@ -59,171 +80,289 @@ export default function HomePage() {
     );
   }
 
+  const articleEnabled = modules?.article_enabled ?? true;
+  const latestArticles = latest?.list ?? [];
+  const articleCount = latest?.total ?? 0;
+
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="absolute inset-0 opacity-5">
-          <div className="h-full w-full bg-[linear-gradient(rgba(34,211,238,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.1)_1px,transparent_1px)] bg-[size:2rem_2rem]" />
-        </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10">
-            {info?.avatar && (
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-primary/30 md:h-32 md:w-32">
-                <Image
-                  src={info.avatar}
-                  alt={info.nickname}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            )}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 font-mono text-sm text-primary">
-                <Terminal className="h-4 w-4" />
-                <span>{info?.blog_title || "Tech Geek Blog"}</span>
-              </div>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-5xl">
-                {info?.nickname || "Developer"}
-              </h1>
-              <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-                {info?.bio || info?.blog_description || "记录代码、架构与技术思考。"}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild className="cursor-pointer">
-                  <Link href="/articles">
-                    浏览文章
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild className="cursor-pointer">
-                  <Link href="/music">音乐</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Hero profile={info} articleCount={articleCount} categoryCount={categoryList.length} tagCount={tagList.length} />
 
-      {/* Hot / Featured */}
-      {hotArticles.length > 0 && (
-        <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-foreground md:text-2xl">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              热门文章
-            </h2>
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+          {/* 最新文章列表 */}
+          {articleEnabled && (
+            <section aria-labelledby="latest-articles">
+              <div className="mb-5 flex items-center justify-between">
+                <h2
+                  id="latest-articles"
+                  className="flex items-center gap-2 text-xl font-bold text-foreground"
+                >
+                  <Flame className="h-5 w-5 text-orange-500" aria-hidden="true" />
+                  最新文章
+                </h2>
+                <Link
+                  href="/articles"
+                  className="flex items-center gap-1 rounded text-sm text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  查看更多
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+
+              {latestArticles.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+                  暂无文章，快去后台发布第一篇吧
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {latestArticles.map((article) => (
+                    <ArticleListItem key={article.id} article={article} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* 侧边栏 */}
+          <aside className="space-y-6">
+            <ProfileCard
+              profile={info}
+              articleCount={articleCount}
+              categoryCount={categoryList.length}
+              tagCount={tagList.length}
+            />
+
+            {articleEnabled && (
+              <>
+                <SidebarCard
+                  icon={<Tag className="h-4 w-4 text-primary" aria-hidden="true" />}
+                  title="热门标签"
+                  more={{ href: "/tags", label: "查看更多" }}
+                >
+                  {tagList.length === 0 ? (
+                    <EmptyHint text="暂无标签" />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {tagList.slice(0, 12).map((tag) => (
+                        <Link
+                          key={tag.id}
+                          href={`/articles?tag=${encodeURIComponent(tag.name)}`}
+                          className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground transition-colors duration-200 hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {tag.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </SidebarCard>
+
+                <SidebarCard
+                  icon={<Folder className="h-4 w-4 text-primary" aria-hidden="true" />}
+                  title="分类目录"
+                  more={{ href: "/categories", label: "查看更多" }}
+                >
+                  {categoryList.length === 0 ? (
+                    <EmptyHint text="暂无分类" />
+                  ) : (
+                    <ul className="space-y-1">
+                      {categoryList.map((category) => (
+                        <li key={category.id}>
+                          <Link
+                            href={`/articles?category_id=${category.id}`}
+                            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <FolderOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            {category.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </SidebarCard>
+              </>
+            )}
+
+            {/* 写作激励卡（固定深色，对应设计稿） */}
             <Link
-              href="/articles"
-              className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80"
+              href="/about"
+              className="group flex items-center gap-4 rounded-lg border border-white/10 bg-slate-900 p-5 transition-colors duration-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              全部文章 <ArrowRight className="h-4 w-4" />
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-white/20 font-mono text-sm text-white">
+                <Terminal className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-white">坚持写作</span>
+                <span className="mt-0.5 block truncate text-sm text-slate-400">
+                  让技术沉淀为自己的成长
+                </span>
+              </span>
+              <ArrowRight
+                className="h-5 w-5 shrink-0 text-white transition-transform duration-200 group-hover:translate-x-1"
+                aria-hidden="true"
+              />
             </Link>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {hotArticles.slice(0, 3).map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
-        </section>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Hero：博主配置的页面背景图 + 深色遮罩，未配置时回退网格渐变 */
+function Hero({
+  profile,
+  articleCount,
+  categoryCount,
+  tagCount,
+}: {
+  profile: Blogger | null;
+  articleCount: number;
+  categoryCount: number;
+  tagCount: number;
+}) {
+  const stats = [
+    { icon: FileText, label: "文章", value: articleCount },
+    { icon: Folder, label: "分类", value: categoryCount },
+    { icon: Tag, label: "标签", value: tagCount },
+  ];
+
+  return (
+    <section className="relative overflow-hidden bg-slate-900">
+      {profile?.page_background ? (
+        <>
+          <Image
+            src={profile.page_background}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/80 to-slate-900/50" />
+        </>
+      ) : (
+        <div className="absolute inset-0">
+          <div className="h-full w-full bg-[linear-gradient(rgba(96,165,250,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(96,165,250,0.08)_1px,transparent_1px)] bg-[size:2rem_2rem]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/85 to-slate-900/60" />
+        </div>
       )}
 
-      {/* Latest */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-foreground md:text-2xl">最新文章</h2>
-          <Link
-            href="/articles"
-            className="flex items-center gap-1 text-sm text-primary transition-colors hover:text-primary/80"
-          >
-            查看更多 <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-        {latestArticles.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
-            暂无文章
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {latestArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
-        )}
-      </section>
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-white md:text-5xl">
+            你好，我是
+            <span className="text-blue-400">{profile?.nickname || "技术开发者"}</span>
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-slate-200/90 md:text-lg">
+            {profile?.bio || profile?.blog_description || "记录学习、思考和实践的点滴，在技术的世界里持续成长。"}
+          </p>
 
-      {/* Categories & Tags */}
-      <section className="border-t border-border bg-card">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:px-8">
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-              <Folder className="h-5 w-5 text-primary" />
-              分类
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {categoryList.map((category) => (
-                <Badge
-                  key={category.id}
-                  variant="outline"
-                  className="cursor-pointer border-border font-mono text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-                  asChild
-                >
-                  <Link href={`/articles?category_id=${category.id}`}>{category.name}</Link>
-                </Badge>
-              ))}
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/articles"
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            >
+              浏览最新文章
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/about"
+              className="inline-flex h-10 items-center rounded-lg border border-white/30 px-5 text-sm font-medium text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            >
+              关于我
+            </Link>
           </div>
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
-              <Tag className="h-5 w-5 text-primary" />
-              标签云
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {tagList.map((tag) => (
-                <Link
-                  key={tag.id}
-                  href={`/articles?tag=${encodeURIComponent(tag.name)}`}
-                  className="rounded bg-muted px-2 py-1 font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
-                >
-                  #{tag.name}
-                </Link>
-              ))}
-            </div>
-          </div>
+
+          <dl className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex items-center gap-2 text-sm text-slate-300">
+                <stat.icon className="h-4 w-4 text-blue-400" aria-hidden="true" />
+                <dt>{stat.label}</dt>
+                <dd className="font-semibold text-white">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
+  );
+}
+
+function SidebarCard({
+  icon,
+  title,
+  more,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  more?: { href: string; label: string };
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border border-border bg-card p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          {icon}
+          {title}
+        </h2>
+        {more && (
+          <Link
+            href={more.href}
+            className="flex items-center gap-0.5 rounded text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {more.label}
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function EmptyHint({ text }: { text: string }) {
+  return (
+    <p className="rounded-md border border-dashed border-border py-4 text-center text-xs text-muted-foreground">
+      {text}
+    </p>
   );
 }
 
 function HomeSkeleton() {
   return (
     <div className="flex flex-col">
-      <section className="border-b border-border bg-card">
+      <section className="bg-slate-900">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10">
-            <Skeleton className="h-24 w-24 rounded-full md:h-32 md:w-32" />
-            <div className="flex-1 space-y-4">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-10 w-64" />
-              <Skeleton className="h-6 w-full max-w-xl" />
-              <div className="flex gap-3 pt-2">
-                <Skeleton className="h-10 w-28" />
-                <Skeleton className="h-10 w-20" />
-              </div>
-            </div>
+          <Skeleton className="h-10 w-72 max-w-full bg-white/10 md:h-14" />
+          <Skeleton className="mt-4 h-5 w-full max-w-xl bg-white/10" />
+          <div className="mt-8 flex gap-3">
+            <Skeleton className="h-10 w-32 rounded-lg bg-white/10" />
+            <Skeleton className="h-10 w-24 rounded-lg bg-white/10" />
+          </div>
+          <div className="mt-10 flex gap-8">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-5 w-20 bg-white/10" />
+            ))}
           </div>
         </div>
       </section>
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <Skeleton className="mb-6 h-8 w-40" />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-72 rounded-lg" />
-          ))}
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-4">
+            {Array.from({ length: LATEST_COUNT }).map((_, i) => (
+              <Skeleton key={i} className="h-36 rounded-lg" />
+            ))}
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-80 rounded-lg" />
+            <Skeleton className="h-40 rounded-lg" />
+            <Skeleton className="h-48 rounded-lg" />
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

@@ -51,10 +51,11 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
             </Link>
           </Badge>
           {article.is_top && (
-            <Badge className="bg-accent text-accent-foreground hover:bg-accent/80">
-              <ArrowUp className="mr-1 h-3 w-3" />
+            /* 本仓库 Badge 非 asChild 用法会丢弃 children，置顶徽章用普通 span 实现 */
+            <span className="inline-flex h-5 items-center gap-0.5 rounded-4xl bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+              <ArrowUp className="h-3 w-3" aria-hidden="true" />
               置顶
-            </Badge>
+            </span>
           )}
         </div>
 

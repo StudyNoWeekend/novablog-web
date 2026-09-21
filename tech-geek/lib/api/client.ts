@@ -8,6 +8,7 @@ import {
   Category,
   Comment,
   CreateCommentPayload,
+  ModuleConfig,
   PaginatedResponse,
   PaginationParams,
   Portfolio,
@@ -24,6 +25,9 @@ declare global {
     __NOVA_CONFIG__?: { apiBase?: string };
   }
 }
+
+/** 请求超时（ms），可由环境变量覆盖，默认 15s */
+const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? "") || 15_000;
 
 function getBaseUrl(): string {
   // 优先级：部署时注入的 theme-config.js > 编译期环境变量 > 同域相对路径
@@ -85,8 +89,8 @@ async function request<T>(
       "Content-Type": "application/json",
       ...(options?.headers || {}),
     },
-    // 默认 15s 超时，避免构建期/运行期请求无限挂起（可由调用方传入 signal 覆盖）
-    signal: AbortSignal.timeout(15_000),
+    // 默认超时，避免构建期/运行期请求无限挂起（可由调用方传入 signal 覆盖）
+    signal: AbortSignal.timeout(API_TIMEOUT),
     ...options,
   };
 
@@ -201,3 +205,27 @@ export const music = {
   audioUrl: (songId: string) =>
     get<AudioUrl>(`/api/v1/public/music/audio-url/${songId}`),
 };
+
+export const ALL_ENABLED_MODULE_CONFIG: ModuleConfig = {
+  article_enabled: true,
+  media_enabled: true,
+  music_enabled: true,
+  video_enabled: true,
+  travel_enabled: true,
+  portfolio_enabled: true,
+  equipment_enabled: true,
+};
+
+/**
+ * 模块开关配置。失败时回退为全部开启，保证页面可用；
+ * 服务端（layout 构建期）与客户端（导航运行时重取、页面门禁）均可安全调用。
+ */
+export async function getModuleConfig(): Promise<ModuleConfig> {
+  try {
+    const config = await get<ModuleConfig>("/api/v1/public/module-config");
+    return { ...ALL_ENABLED_MODULE_CONFIG, ...config };
+  } catch (error) {
+    console.error("Failed to fetch module config:", error);
+    return ALL_ENABLED_MODULE_CONFIG;
+  }
+}

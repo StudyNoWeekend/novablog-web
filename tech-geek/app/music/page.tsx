@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Play, Pause, Music, Disc, Clock, AlertCircle } from "lucide-react";
-import { music, Song } from "@/lib/api";
+import { music, getModuleConfig, Song } from "@/lib/api";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
+import { ModuleDisabled } from "@/components/module-disabled";
 import { Button } from "@/components/ui/button";
 
 function formatDuration(seconds: number) {
@@ -16,6 +17,7 @@ function formatDuration(seconds: number) {
 
 export default function MusicPage() {
   const [songs, setSongs] = useState<Song[]>([]);
+  const [musicEnabled, setMusicEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -29,8 +31,12 @@ export default function MusicPage() {
   const fetchSongs = async () => {
     try {
       setLoading(true);
-      const res = await music.list({ page: 1, page_size: 100 });
+      const [res, modules] = await Promise.all([
+        music.list({ page: 1, page_size: 100 }),
+        getModuleConfig(),
+      ]);
       setSongs(res.list);
+      setMusicEnabled(modules.music_enabled);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载歌曲失败");
@@ -105,6 +111,10 @@ export default function MusicPage() {
         <Loading text="加载歌曲中..." />
       </div>
     );
+  }
+
+  if (!musicEnabled) {
+    return <ModuleDisabled moduleLabel="音乐" />;
   }
 
   if (error) {
