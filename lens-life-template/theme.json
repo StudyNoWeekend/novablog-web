@@ -1,7 +1,7 @@
 {
   "id": "lens-life-template",
   "name": "镜头生活",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",

@@ -17,6 +17,8 @@
       --danger: #e07a6a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 带 display 样式的元素（如 .reply-banner）被 hidden 时仍需隐藏 */
+    [hidden] { display: none !important; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -96,6 +98,115 @@
     .content li { margin: 8px 0; }
     .content img { max-width: 100%; border-radius: 6px; }
     .content hr { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+    h2.section { font-size: 24px; margin: 44px 0 18px; }
+    .c-count-badge {
+      background: rgba(201,168,106,.15);
+      color: var(--accent);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 2px 9px;
+      vertical-align: 3px;
+    }
+    .comments-form {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 28px;
+    }
+    .comments-form .reply-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border: 1px solid rgba(201,168,106,.3);
+      background: rgba(201,168,106,.08);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .comments-form .reply-banner em { color: var(--accent); font-style: normal; font-weight: 600; }
+    .comments-form .reply-banner button {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 2px 6px;
+    }
+    .comments-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 640px) { .comments-form .row2 { grid-template-columns: 1fr; } }
+    .comments-form input, .comments-form textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+    .comments-form input:focus, .comments-form textarea:focus { outline: none; border-color: var(--accent); }
+    .comments-form textarea { resize: vertical; min-height: 96px; line-height: 1.7; }
+    .field-err { color: var(--danger); font-size: 12px; margin-top: 4px; }
+    .form-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+    .char-count { color: var(--muted); font-size: 12px; }
+    .btn-submit {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .submit-msg { font-size: 13px; margin-top: 10px; }
+    .submit-msg.err { color: var(--danger); }
+    .submit-msg.ok { color: var(--accent); }
+    .comment-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .comment-head { display: flex; align-items: flex-start; gap: 10px; }
+    .comment-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); flex-shrink: 0;
+    }
+    .comment-avatar.blogger { border-color: rgba(201,168,106,.4); background: rgba(201,168,106,.12); color: var(--accent); }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .chip-blogger {
+      display: inline-block; background: var(--accent); color: var(--bg);
+      font-size: 10px; font-weight: 600; border-radius: 999px;
+      padding: 1px 8px; margin-left: 6px; vertical-align: 1px;
+    }
+    .comment-date { color: var(--muted); font-size: 12px; margin-left: 8px; font-weight: 400; }
+    .comment-content { font-size: 14px; color: var(--text); margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+    .comment-reply-btn {
+      background: none; border: none; padding: 0; margin-top: 8px;
+      color: var(--muted); font-size: 12px; cursor: pointer;
+    }
+    .comment-reply-btn:hover { color: var(--accent); }
+    .comment-replies { margin-left: 26px; margin-top: 10px; padding-left: 14px; border-left: 2px solid rgba(201,168,106,.25); }
+    .comment-replies .comment-card { background: var(--bg); padding: 12px 14px; }
+    .comment-replies .comment-avatar { width: 30px; height: 30px; }
+    .comments-empty { color: var(--muted); text-align: center; font-size: 14px; padding: 40px 0; }
+    .cmt-skeleton {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: cmt-pulse 1.5s ease-in-out infinite;
+    }
+    .sk-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .sk-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .sk-bar { height: 12px; border-radius: 4px; background: var(--border); margin-bottom: 8px; }
+    @keyframes cmt-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
   </style>
 </head>
 <body>
@@ -110,6 +221,37 @@
       <div class="meta" id="a-meta"></div>
       <img id="a-cover" class="cover" alt="" hidden />
       <div class="content" id="a-content"></div>
+      <section id="sec-comments" hidden>
+        <h2 class="section serif">评论 <span id="c-total" class="c-count-badge" hidden></span></h2>
+        <div class="comments-form">
+          <div id="c-reply-banner" class="reply-banner" hidden>
+            <span>回复 @<em id="c-reply-name"></em></span>
+            <button type="button" id="c-reply-cancel" aria-label="取消回复">×</button>
+          </div>
+          <form id="c-form" novalidate>
+            <div class="row2">
+              <div>
+                <input id="c-nickname" type="text" maxlength="50" placeholder="昵称 *" />
+                <p id="c-err-nickname" class="field-err" hidden></p>
+              </div>
+              <div>
+                <input id="c-website" type="url" maxlength="255" placeholder="网站（选填，https://...）" />
+                <p id="c-err-website" class="field-err" hidden></p>
+              </div>
+            </div>
+            <div>
+              <textarea id="c-content" rows="4" maxlength="2000" placeholder="写下你的想法... *"></textarea>
+              <p id="c-err-content" class="field-err" hidden></p>
+            </div>
+            <p id="c-submit-msg" class="submit-msg" hidden></p>
+            <div class="form-foot">
+              <span id="c-count-chars" class="char-count">0 / 2000</span>
+              <button id="c-submit" type="submit" class="btn-submit">发布评论</button>
+            </div>
+          </form>
+        </div>
+        <div id="c-list"></div>
+      </section>
     </article>
   </main>
 
@@ -250,6 +392,7 @@
         if (a.category_name) meta.push('<span class="tag">' + escapeHtml(a.category_name) + "</span>");
         if (a.published_at || a.created_at) meta.push(escapeHtml(a.published_at || a.created_at));
         if (a.view_count !== undefined) meta.push(escapeHtml(a.view_count) + " 次阅读");
+        if (a.comment_count !== undefined) meta.push(escapeHtml(a.comment_count) + " 条评论");
         if (Array.isArray(a.tag_names) && a.tag_names.length) {
           a.tag_names.forEach(function (t) { meta.push('<span class="tag"># ' + escapeHtml(t) + "</span>"); });
         }
@@ -268,6 +411,216 @@
         }
         el("status").hidden = true;
         el("article").hidden = false;
+        // 评论区：与文章后台 is_comment 开关保持一致（预渲染页同规则）
+        if (a.is_comment && a.id) { initComments(a.id); }
+      }
+
+      // ===== 评论模块（与站点预渲染页 components/Comments.tsx 行为对齐）=====
+      var COMMENT_TARGET_TYPE = "article";
+      var commentTargetId = "";
+      var replyTo = null; // { id: string, nickname: string }
+      var submitting = false;
+
+      var USER_ICON_SVG =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
+      function initComments(targetId) {
+        commentTargetId = String(targetId);
+        el("sec-comments").hidden = false;
+        renderCommentSkeleton();
+        bindCommentForm();
+        fetchComments();
+      }
+
+      function renderCommentSkeleton() {
+        var card =
+          '<div class="cmt-skeleton"><div class="sk-row"><span class="sk-avatar"></span>' +
+          '<span class="sk-bar" style="width:30%;margin:0"></span></div>' +
+          '<div class="sk-bar" style="width:100%"></div><div class="sk-bar" style="width:66%"></div></div>';
+        var html = "";
+        for (var i = 0; i < 3; i++) html += card;
+        el("c-list").innerHTML = html;
+        el("c-total").hidden = true;
+      }
+
+      function fetchComments() {
+        var query =
+          "target_type=" + encodeURIComponent(COMMENT_TARGET_TYPE) +
+          "&target_id=" + encodeURIComponent(commentTargetId) +
+          "&page=1&page_size=100";
+        return fetch(apiBase + "/public/comments?" + query, { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            var list = res && res.code === 0 && res.data && Array.isArray(res.data.list) ? res.data.list : [];
+            renderCommentList(list);
+          })
+          .catch(function () { renderCommentList([]); });
+      }
+
+      // 两级回复树：parent_id 指向的父评论存在则挂入其 replies，否则作为根评论
+      function buildCommentTree(list) {
+        var nodeMap = {};
+        var roots = [];
+        list.forEach(function (c) { nodeMap[c.id] = { c: c, replies: [] }; });
+        list.forEach(function (c) {
+          var node = nodeMap[c.id];
+          if (!node) return;
+          if (c.parent_id && nodeMap[c.parent_id]) nodeMap[c.parent_id].replies.push(node);
+          else roots.push(node);
+        });
+        return roots;
+      }
+
+      function commentDate(dateStr) {
+        var d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+      }
+
+      function commentCardHTML(node, isReply) {
+        var c = node.c;
+        var chip = c.is_blogger ? '<span class="chip-blogger">博主</span>' : "";
+        var date = commentDate(c.created_at || "");
+        var replyBtn = isReply ? "" :
+          '<button type="button" class="comment-reply-btn" data-reply-id="' + escapeHtml(c.id || "") +
+          '" data-reply-nick="' + escapeHtml(c.nickname || "") + '">回复</button>';
+        return (
+          '<div class="comment-card"><div class="comment-head">' +
+          '<span class="comment-avatar' + (c.is_blogger ? " blogger" : "") + '">' + USER_ICON_SVG + "</span>" +
+          '<div class="comment-body"><div>' +
+          '<span class="comment-name">' + escapeHtml(c.nickname || "") + "</span>" + chip +
+          (date ? '<span class="comment-date">' + escapeHtml(date) + "</span>" : "") +
+          "</div>" +
+          (c.content ? '<p class="comment-content">' + escapeHtml(c.content) + "</p>" : "") +
+          replyBtn +
+          "</div></div></div>"
+        );
+      }
+
+      function renderCommentList(list) {
+        var total = el("c-total");
+        if (list.length > 0) { total.textContent = String(list.length); total.hidden = false; }
+        else { total.hidden = true; }
+
+        var tree = buildCommentTree(list);
+        var box = el("c-list");
+        if (tree.length === 0) {
+          box.innerHTML = '<p class="comments-empty">还没有评论，来抢沙发吧～</p>';
+          return;
+        }
+        box.innerHTML = tree.map(function (node) {
+          var html = commentCardHTML(node, false);
+          if (node.replies.length) {
+            html += '<div class="comment-replies">' +
+              node.replies.map(function (r) { return commentCardHTML(r, true); }).join("") +
+              "</div>";
+          }
+          return html;
+        }).join("");
+      }
+
+      function setReplyTo(id, nickname) {
+        if (id) {
+          replyTo = { id: id, nickname: nickname || "" };
+          el("c-reply-name").textContent = nickname || "";
+          el("c-reply-banner").hidden = false;
+        } else {
+          replyTo = null;
+          el("c-reply-banner").hidden = true;
+        }
+      }
+
+      function setSubmitMsg(msg, kind) {
+        var node = el("c-submit-msg");
+        if (!msg) { node.hidden = true; node.textContent = ""; return; }
+        node.textContent = msg;
+        node.className = "submit-msg " + (kind || "");
+        node.hidden = false;
+      }
+
+      function setFieldError(id, msg) {
+        var node = el(id);
+        if (!msg) { node.hidden = true; node.textContent = ""; return; }
+        node.textContent = msg;
+        node.hidden = false;
+      }
+
+      function bindCommentForm() {
+        el("c-content").addEventListener("input", function () {
+          el("c-count-chars").textContent = this.value.trim().length + " / 2000";
+        });
+
+        el("c-reply-cancel").addEventListener("click", function () { setReplyTo(null); });
+
+        // 列表内「回复」按钮：事件委托
+        el("c-list").addEventListener("click", function (e) {
+          var btn = e.target.closest ? e.target.closest(".comment-reply-btn") : null;
+          if (!btn) return;
+          setReplyTo(btn.getAttribute("data-reply-id"), btn.getAttribute("data-reply-nick"));
+        });
+
+        el("c-form").addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          if (submitting) return;
+
+          var nickname = el("c-nickname").value.trim();
+          var website = el("c-website").value.trim();
+          var content = el("c-content").value.trim();
+
+          // 与预渲染页一致的逐字段校验（昵称 1-50 / 网址格式 / 内容 1-2000）
+          var errors = {};
+          if (!nickname) errors.nickname = "请填写昵称";
+          else if (nickname.length > 50) errors.nickname = "昵称不能超过 50 字符";
+          if (website && !/^https?:\/\/[\w.-]+(:\d+)?(\/[\w\-./?%&=]*)?$/i.test(website)) {
+            errors.website = "请输入有效的网址（以 http(s):// 开头）";
+          }
+          if (!content) errors.content = "请填写评论内容";
+          else if (content.length > 2000) errors.content = "评论内容不能超过 2000 字符";
+          setFieldError("c-err-nickname", errors.nickname);
+          setFieldError("c-err-website", errors.website);
+          setFieldError("c-err-content", errors.content);
+          if (errors.nickname || errors.website || errors.content) return;
+
+          submitting = true;
+          var btn = el("c-submit");
+          btn.disabled = true;
+          btn.textContent = "发布中...";
+          setSubmitMsg("", "");
+
+          var payload = {
+            target_type: COMMENT_TARGET_TYPE,
+            target_id: commentTargetId,
+            nickname: nickname,
+            content: content
+          };
+          if (replyTo) payload.parent_id = replyTo.id;
+          if (website) payload.website = website;
+
+          fetch(apiBase + "/public/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (res && res.code === 0) {
+                el("c-content").value = "";
+                el("c-count-chars").textContent = "0 / 2000";
+                setReplyTo(null);
+                setSubmitMsg("评论已提交，感谢你的留言！", "ok");
+                return fetchComments();
+              }
+              setSubmitMsg((res && res.msg) || "评论发布失败，请稍后再试", "err");
+            })
+            .catch(function () { setSubmitMsg("评论发布失败，请稍后再试", "err"); })
+            .then(function () {
+              submitting = false;
+              btn.disabled = false;
+              btn.textContent = "发布评论";
+            });
+        });
       }
 
       var slug = parseSlug();
