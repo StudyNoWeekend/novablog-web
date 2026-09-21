@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的作品集详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>作品集加载中 | Tech Geek Blog</title>
+  <script src="/theme-config.js"></script>
+  <script>
+    // 与主站一致的主题初始化：localStorage 记忆优先，其次跟随系统（亮色为默认）
+    (function () {
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "dark" || (!t && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --error: #dc2626;
+    }
+    html.dark {
+      --bg: #0b0f14;
+      --panel: #111827;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --error: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    .shell-header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 14px;
+    }
+    .shell-header a { color: var(--accent); text-decoration: none; }
+    .shell-header a:hover { text-decoration: underline; }
+    .brand { color: var(--muted); }
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    .status {
+      font-family: ui-monospace, Menlo, monospace;
+      color: var(--muted);
+      padding: 48px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--error); }
+    .status.error a { color: var(--accent); }
+    article h1 { font-size: 30px; line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.02em; }
+    .desc { color: var(--muted); margin-bottom: 8px; }
+    .count { font-size: 13px; color: var(--accent); font-family: ui-monospace, Menlo, monospace; margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .item {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .item a { display: block; aspect-ratio: 4 / 3; background: var(--bg); }
+    .item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .item .ph {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+    }
+    .item figcaption { padding: 12px 14px; }
+    .item .title { font-size: 15px; font-weight: 600; }
+    .item .caption { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand">tech-geek blog</span>
+    <a href="/">← 返回首页</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载作品集…</div>
+    <article id="portfolio" hidden>
+      <h1 id="p-name"></h1>
+      <p class="desc" id="p-desc" hidden></p>
+      <p class="count" id="p-count"></p>
+      <div class="grid" id="p-grid"></div>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+
+      // 从 URL 解析 id：/portfolio/{id} | /portfolio/{id}.html | /portfolio/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/portfolio\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/portfolio\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#|mailto:|data:image\/)/i.test(u)) return u;
+        return "#";
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(p) {
+        document.title = (p.name || "作品集") + " | Tech Geek Blog";
+        el("p-name").textContent = p.name || "作品集";
+
+        if (p.description) {
+          var d = el("p-desc");
+          d.textContent = p.description;
+          d.hidden = false;
+        }
+
+        var items = Array.isArray(p.items) ? p.items : [];
+        el("p-count").textContent = "共 " + items.length + " 个作品";
+
+        var html = "";
+        items.forEach(function (item, i) {
+          var url = safeUrl(item.output_url);
+          var title = item.title || "作品 " + (i + 1);
+          html += '<figure class="item">' +
+            '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
+            (item.output_url
+              ? '<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(title) + '" loading="lazy" />'
+              : '<div class="ph">无预览图</div>') +
+            "</a>" +
+            '<figcaption>' +
+            '<div class="title">' + escapeHtml(title) + "</div>" +
+            (item.description ? '<div class="caption">' + escapeHtml(item.description) + "</div>" : "") +
+            "</figcaption>" +
+            "</figure>";
+        });
+        el("p-grid").innerHTML = html;
+
+        el("status").hidden = true;
+        el("portfolio").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的作品集地址"); return; }
+
+      // 模块开关预检查：作品集模块关闭时不请求详情（失败按开启处理）
+      fetch(siteRoot + "/api/v1/public/module-config", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.portfolio_enabled === false) {
+            showError("作品集模块未开启");
+            return null;
+          }
+          return fetch(siteRoot + "/api/v1/public/portfolios/" + encodeURIComponent(id), {
+            headers: { Accept: "application/json" }
+          }).then(function (r) { return r.json(); });
+        })
+        .then(function (res) {
+          if (!res) return;
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "作品集不存在或已下架"); }
+        })
+        .catch(function () { showError("作品集加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

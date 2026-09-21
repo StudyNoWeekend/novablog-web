@@ -8,6 +8,7 @@ import {
   Category,
   Comment,
   CreateCommentPayload,
+  Equipment,
   ModuleConfig,
   PaginatedResponse,
   PaginationParams,
@@ -204,6 +205,12 @@ export const music = {
   detail: (id: string) => get<Song>(`/api/v1/public/music/songs/${id}`),
   audioUrl: (songId: string) =>
     get<AudioUrl>(`/api/v1/public/music/audio-url/${songId}`),
+};
+
+export const equipments = {
+  list: (params?: PaginationParams & { keyword?: string; brand?: string }) =>
+    get<PaginatedResponse<Equipment>>("/api/v1/public/equipments", params),
+  detail: (id: string) => get<Equipment>(`/api/v1/public/equipments/${id}`),
 };
 
 export const ALL_ENABLED_MODULE_CONFIG: ModuleConfig = {

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Code2 } from "lucide-react";
 import { Blogger } from "@/lib/api";
-import { getSocialIcon } from "@/components/social-icons";
+import { SocialIcon } from "@/components/social-icons";
 
 interface ProfileCardProps {
   profile: Blogger | null;
@@ -11,7 +11,7 @@ interface ProfileCardProps {
   tagCount: number;
 }
 
-/** 首页侧边栏博主卡片：封面头图 + 头像 + 简介 + 社交链接 + 数据统计 */
+/** 首页侧边栏博主卡片：封面头图 + 头像 + 全部标签 + 简介 + 社交链接 + 数据统计 */
 export function ProfileCard({
   profile,
   articleCount,
@@ -21,7 +21,6 @@ export function ProfileCard({
   const socialLinks = [...(profile?.social_links ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
   );
-  const badge = profile?.tags?.[0];
 
   const stats = [
     { label: "文章", value: articleCount },
@@ -45,8 +44,9 @@ export function ProfileCard({
         )}
       </div>
 
-      <div className="flex flex-col items-center px-4 pb-5">
-        <div className="-mt-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-card bg-muted">
+      {/* 头像需建立层叠上下文，避免被上方绝对定位的背景图遮挡 */}
+      <div className="relative z-10 -mt-10 flex justify-center">
+        <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-card bg-muted">
           {profile?.avatar ? (
             <Image
               src={profile.avatar}
@@ -60,7 +60,9 @@ export function ProfileCard({
             <Code2 className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
           )}
         </div>
+      </div>
 
+      <div className="flex flex-col items-center px-4 pb-5">
         <div className="mt-3 flex items-center gap-2">
           <Link
             href="/about"
@@ -68,12 +70,20 @@ export function ProfileCard({
           >
             {profile?.nickname || "开发者"}
           </Link>
-          {badge && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              {badge}
-            </span>
-          )}
         </div>
+
+        {profile?.tags && profile.tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+            {profile.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {profile?.bio && (
           <p className="mt-2 line-clamp-3 text-center text-sm leading-relaxed text-muted-foreground">
@@ -83,21 +93,18 @@ export function ProfileCard({
 
         {socialLinks.length > 0 && (
           <div className="mt-4 flex items-center gap-2">
-            {socialLinks.map((link) => {
-              const Icon = getSocialIcon(link.platform);
-              return (
-                <a
-                  key={link.platform + link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={link.name || link.platform}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors duration-200 hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              );
-            })}
+            {socialLinks.map((link) => (
+              <a
+                key={link.platform + link.url}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={link.name || link.platform}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors duration-200 hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <SocialIcon link={link} className="h-4 w-4" />
+              </a>
+            ))}
           </div>
         )}
 

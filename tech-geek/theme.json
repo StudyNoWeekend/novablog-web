@@ -1,7 +1,7 @@
 {
   "id": "tech-geek",
   "name": "极客风",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
@@ -10,7 +10,10 @@
   "screenshots": [],
   "routes": {
     "fallback": {
-      "/articles/*": "/article.html"
+      "/articles/*": "/article.html",
+      "/travels/*": "/travel.html",
+      "/portfolio/*": "/portfolio.html",
+      "/videos/*": "/video.html"
     }
   }
 }

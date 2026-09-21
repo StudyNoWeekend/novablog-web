@@ -220,3 +220,14 @@ export interface Song {
 export interface AudioUrl {
   url: string;
 }
+
+export interface Equipment {
+  id: string;
+  name: string;
+  image_url: string;
+  brand: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
