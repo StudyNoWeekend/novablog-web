@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+@theme {
+  /* Background colors */
+  --color-background: #fbfbf8;
+  --color-background-soft: #f3f6f0;
+  --color-surface: #ffffff;
+  --color-surface-highlight: #eef3ec;
+
+  /* Text colors */
+  --color-text-primary: #21302a;
+  --color-text-secondary: #3c4b44;
+  --color-text-muted: #66766d;
+  --color-text-subtle: #8fa096;
+
+  /* Accent colors */
+  --color-accent: #3e7c59;
+  --color-accent-hover: #2f6547;
+  --color-accent-subtle: rgba(62, 124, 89, 0.1);
+  --color-flame: #e8833a;
+  --color-flame-subtle: rgba(232, 131, 58, 0.12);
+
+  /* Border colors */
+  --color-border: #e7ebe3;
+  --color-border-strong: #d6ddd2;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(33, 48, 42, 0.07);
+  --shadow-card-hover: 0 16px 40px rgba(33, 48, 42, 0.13);
+
+  /* Border radius */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+
+  /* Spacing */
+  --spacing-18: 4.5rem;
+
+  /* Font families（--font-caveat / --font-zcool 由 next/font 注入到 body） */
+  --font-display: var(--font-zcool), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Script", cursive;
+  --font-body: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+
+  /* Animations */
+  --animate-page-fade-in: pageFadeIn 300ms ease-out forwards;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* next/font 的 --font-zcool / --font-caveat 定义在 body 上，
+     字体栈必须在 body 作用域求值（:root 处 var() 引用会失效） */
+  --font-display: var(--font-zcool), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Script", "Snell Roundhand", cursive;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom selection color */
+::selection {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+}
+
+/* Page transition animation */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    animation: none !important;
+  }
+}
+
+/* Hide scrollbar for chip strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 手账笔刷底（博主卡签名区 / 关于我按钮） */
+.brush-bg {
+  background-color: var(--color-accent-subtle);
+  border-radius: 46% 54% 52% 48% / 58% 46% 54% 42%;
+}
+
+.brush-bg-strong {
+  background-color: var(--color-accent);
+  border-radius: 52% 48% 55% 45% / 44% 56% 44% 56%;
+}
+
+/* 手绘虚线下划线 */
+.hand-underline {
+  background-image: linear-gradient(
+    to right,
+    var(--color-accent) 0,
+    var(--color-accent) 100%
+  );
+  background-size: 100% 2px;
+  background-position: 0 96%;
+  background-repeat: no-repeat;
+  padding-bottom: 2px;
+}
+
+/* Article content prose styles */
+.prose-content {
+  color: var(--color-text-secondary);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+}
+
+.prose-content > *:first-child {
+  margin-top: 0;
+}
+
+.prose-content > *:last-child {
+  margin-bottom: 0;
+}
+
+.prose-content h1,
+.prose-content h2,
+.prose-content h3,
+.prose-content h4,
+.prose-content h5,
+.prose-content h6 {
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.prose-content h1 { font-size: 1.875rem; }
+.prose-content h2 { font-size: 1.5rem; }
+.prose-content h3 { font-size: 1.25rem; }
+.prose-content h4 { font-size: 1.125rem; }
+
+.prose-content p {
+  margin-bottom: 1.25rem;
+}
+
+.prose-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.prose-content a:hover {
+  color: var(--color-accent-hover);
+}
+
+.prose-content ul,
+.prose-content ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.prose-content ul {
+  list-style-type: disc;
+}
+
+.prose-content ol {
+  list-style-type: decimal;
+}
+
+.prose-content li {
+  margin-bottom: 0.5rem;
+}
+
+.prose-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  margin: 1.5rem 0;
+  padding: 0.5rem 0 0.5rem 1.25rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.prose-content code {
+  background-color: var(--color-background-soft);
+  border-radius: 4px;
+  font-size: 0.9em;
+  padding: 0.15rem 0.4rem;
+}
+
+.prose-content pre {
+  background-color: var(--color-background-soft);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  padding: 1rem 1.25rem;
+}
+
+.prose-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.prose-content img {
+  border-radius: var(--radius-md);
+  height: auto;
+  margin: 1.5rem 0;
+  max-width: 100%;
+}
+
+.prose-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
+
+.prose-content table {
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+.prose-content th,
+.prose-content td {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.prose-content th {
+  background-color: var(--color-background-soft);
+  font-weight: 600;
+}

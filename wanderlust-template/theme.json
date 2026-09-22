@@ -1,0 +1,17 @@
+{
+  "id": "wanderlust-template",
+  "name": "漫游世界",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向旅行爱好者的清新手账风旅行博客主题：目的地、游记、攻略与装备",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/wanderlust-template",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html",
+      "/travels/*": "/travel.html"
+    }
+  }
+}
