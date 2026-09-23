@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Music2, ExternalLink, Headphones, ListMusic } from "lucide-react";
 import { getSongs, getPlaylists } from "@/lib/api/music";
 import { useMusicPlayer } from "@/components/MusicPlayerProvider";
-import { PlatformBadge } from "@/components/PlaylistCard";
 import type { Song, Playlist } from "@/lib/types";
 
 type Tab = "songs" | "playlists";
@@ -19,12 +18,12 @@ function formatDuration(seconds: number): string {
 
 function SongSkeleton() {
   return (
-    <li className="flex animate-pulse items-center gap-4 rounded-radius-md bg-surface p-4">
-      <div className="h-10 w-6 rounded bg-text-muted/20" />
-      <div className="h-12 w-12 rounded-sm bg-text-muted/20" />
+    <li className="flex animate-pulse items-center gap-4 rounded-lg border border-border bg-surface p-4">
+      <div className="h-10 w-6 rounded bg-surface-highlight" />
+      <div className="h-12 w-12 rounded-full bg-surface-highlight" />
       <div className="flex-1">
-        <div className="h-3.5 w-40 rounded bg-text-muted/20" />
-        <div className="mt-2 h-3 w-24 rounded bg-text-muted/10" />
+        <div className="h-3.5 w-40 rounded bg-surface-highlight" />
+        <div className="mt-2 h-3 w-24 rounded bg-surface-highlight/60" />
       </div>
     </li>
   );
@@ -32,12 +31,20 @@ function SongSkeleton() {
 
 function PlaylistSkeleton() {
   return (
-    <div className="animate-pulse rounded-radius-lg border border-border bg-surface p-4">
-      <div className="aspect-[3/2] w-full rounded-radius-md bg-text-muted/20" />
-      <div className="mt-4 h-4 w-3/4 rounded bg-text-muted/20" />
-      <div className="mt-2 h-3 w-1/3 rounded bg-text-muted/10" />
-      <div className="mt-2 h-3 w-full rounded bg-text-muted/10" />
+    <div className="animate-pulse rounded-lg border border-border bg-surface p-4 shadow-card">
+      <div className="aspect-[3/2] w-full rounded-md bg-surface-highlight" />
+      <div className="mt-4 h-4 w-3/4 rounded bg-surface-highlight" />
+      <div className="mt-2 h-3 w-1/3 rounded bg-surface-highlight/60" />
+      <div className="mt-2 h-3 w-full rounded bg-surface-highlight/60" />
     </div>
+  );
+}
+
+function PlatformBadge({ platform }: { platform: string }) {
+  return (
+    <span className="shrink-0 rounded-full bg-accent-subtle px-2.5 py-0.5 text-[11px] font-medium text-accent-hover">
+      {platform}
+    </span>
   );
 }
 
@@ -47,10 +54,10 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
       href={playlist.platform_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block rounded-radius-lg border border-border bg-surface p-4 shadow-card transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
+      className="group block rounded-lg border border-border bg-surface p-4 shadow-card transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-card-hover"
     >
       {/* Cover */}
-      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-radius-md bg-background-soft">
+      <div className="relative aspect-[3/2] w-full overflow-hidden rounded-md bg-background-soft">
         {playlist.cover_url ? (
           <Image
             src={playlist.cover_url}
@@ -62,7 +69,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <Music2 className="h-10 w-10 text-text-subtle" strokeWidth={1.5} />
+            <Music2 className="h-10 w-10 text-text-subtle" strokeWidth={1.6} />
           </div>
         )}
         {/* External link indicator on hover */}
@@ -74,13 +81,13 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
       {/* Info */}
       <div className="mt-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-medium text-text-primary line-clamp-1">
+          <h3 className="line-clamp-1 font-display text-sm text-text-primary">
             {playlist.title}
           </h3>
           <PlatformBadge platform={playlist.platform} />
         </div>
         {playlist.description && (
-          <p className="text-xs text-text-muted line-clamp-2">
+          <p className="line-clamp-2 text-xs text-text-muted">
             {playlist.description}
           </p>
         )}
@@ -140,18 +147,11 @@ export function MusicContent() {
   ];
 
   return (
-    <div className="flex-1 bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <header className="mb-12 text-center">
-          <h1 className="font-[var(--font-heading)] text-4xl font-medium text-text-primary sm:text-5xl">
-            音乐分享
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-text-muted" />
-        </header>
-
+    <section className="flex-1 py-12 md:py-16">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Tab switcher */}
         <div className="mb-10 flex justify-center">
-          <div className="inline-flex rounded-radius-md border border-border bg-surface p-1 shadow-card">
+          <div className="inline-flex rounded-full border border-border bg-surface p-1 shadow-card">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.key;
@@ -160,13 +160,13 @@ export function MusicContent() {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex cursor-pointer items-center gap-2 rounded-radius-sm px-5 py-2.5 text-sm font-medium transition-all duration-200 ease-out ${
+                  className={`flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 ease-out ${
                     isActive
-                      ? "bg-accent text-black shadow-sm"
+                      ? "bg-accent text-white shadow-card"
                       : "text-text-muted hover:text-text-primary"
                   }`}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={1.5} />
+                  <Icon className="h-4 w-4" strokeWidth={1.6} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -184,7 +184,7 @@ export function MusicContent() {
                 ))}
               </ul>
             ) : songs.length > 0 ? (
-              <ul className="divide-y divide-border overflow-hidden rounded-radius-md border border-border bg-surface shadow-card">
+              <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface shadow-card">
                 {songs.map((song, index) => {
                   const isActive = song.id === currentId;
                   return (
@@ -227,7 +227,7 @@ export function MusicContent() {
                       </div>
 
                       {/* Cover */}
-                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-background-soft">
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-background-soft">
                         {song.cover_url ? (
                           <Image
                             src={song.cover_url}
@@ -241,7 +241,7 @@ export function MusicContent() {
                           <div className="flex h-full w-full items-center justify-center">
                             <Music2
                               className="h-5 w-5 text-text-subtle"
-                              strokeWidth={1.5}
+                              strokeWidth={1.6}
                             />
                           </div>
                         )}
@@ -250,7 +250,7 @@ export function MusicContent() {
                       {/* Title / Artist */}
                       <div className="min-w-0 flex-1">
                         <p
-                          className={`truncate text-sm font-medium transition-colors duration-200 ${
+                          className={`truncate font-display text-sm transition-colors duration-200 ${
                             isActive ? "text-accent" : "text-text-primary"
                           }`}
                         >
@@ -303,6 +303,6 @@ export function MusicContent() {
           </>
         )}
       </div>
-    </div>
+    </section>
   );
 }

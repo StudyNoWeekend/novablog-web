@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Headphones, Menu, Search, X } from "lucide-react";
 import type { ModuleConfig } from "@/lib/types";
 import type { BloggerProfile } from "@/lib/api/blogger";
-import { MiniPlayer } from "@/components/MiniPlayer";
 import { apiFetch } from "@/lib/api/client";
 
 interface NavItem {
@@ -126,7 +125,6 @@ export function Navbar({ modules: _modules }: NavbarProps) {
                 {profile?.blog_title || "Melody Notes"}
               </span>
             </Link>
-            <MiniPlayer />
           </div>
 
           {/* Desktop Navigation */}

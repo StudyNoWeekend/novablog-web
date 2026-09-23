@@ -13,7 +13,7 @@
 | `/travels`、`/travels/[id]` | 旅拍攻略列表与详情，含点赞、评论 | `travel_enabled` |
 | `/portfolio` | 作品集画廊，支持大图浏览 | `portfolio_enabled` |
 | `/videos` | 视频列表 | `video_enabled` |
-| `/music` | 音乐分享，含歌单与全局迷你播放器 | `music_enabled` |
+| `/music` | 音乐分享，含歌单与全局悬浮播放器（B 站外链 iframe） | `music_enabled` |
 | `/gear`、`/gear/[id]` | 设备清单与详情页 | `equipment_enabled` |
 | `/about`、`/contact` | 关于与联系页 | — |
 

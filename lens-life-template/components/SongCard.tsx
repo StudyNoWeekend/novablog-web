@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Music2, Pause, Play } from "lucide-react";
+import { Music2, Play } from "lucide-react";
 import { useMusicPlayer } from "@/components/MusicPlayerProvider";
 import type { Song } from "@/lib/types";
 
@@ -19,7 +19,8 @@ function formatDuration(seconds: number): string {
 
 /**
  * 首页音乐卡片：结构与文章卡片一致（封面 + 元信息 + 标题），
- * 点击通过全局播放器播放，播放中封面常驻暂停/播放按钮。
+ * 点击通过全局悬浮播放器播放；当前歌曲常驻播放标识。
+ * 播放控制均在 B 站外链播放器（iframe）内部完成。
  */
 export function SongCard({ song, onPlay }: SongCardProps) {
   const player = useMusicPlayer();
@@ -67,8 +68,13 @@ export function SongCard({ song, onPlay }: SongCardProps) {
           >
             {player.urlLoading && isActive ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-            ) : player.isPlaying && isActive ? (
-              <Pause className="h-5 w-5 fill-current" strokeWidth={1.5} />
+            ) : isActive ? (
+              // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+              <span className="flex h-3.5 items-end gap-[2.5px]" aria-hidden="true">
+                <span className="h-[45%] w-[3px] rounded-full bg-current" />
+                <span className="h-full w-[3px] rounded-full bg-current" />
+                <span className="h-[70%] w-[3px] rounded-full bg-current" />
+              </span>
             ) : (
               <Play className="ml-0.5 h-5 w-5 fill-current" strokeWidth={1.5} />
             )}

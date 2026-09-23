@@ -200,7 +200,8 @@ export const music = {
   list: (params?: PaginationParams & { category_id?: string }) =>
     get<PaginatedResponse<Song>>("/api/v1/public/music/songs", params),
   detail: (id: string) => get<Song>(`/api/v1/public/music/songs/${id}`),
-  audioUrl: (songId: string) =>
+  // 返回 B 站官方外链播放器地址，需用 <iframe> 内嵌播放（不支持音频直链）
+  playerUrl: (songId: string) =>
     get<AudioUrl>(`/api/v1/public/music/audio-url/${songId}`),
 };
 

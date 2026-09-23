@@ -44,7 +44,6 @@
   /* Animations */
   --animate-page-fade-in: pageFadeIn 300ms ease-out forwards;
   --animate-overlay-fade-in: overlayFadeIn 200ms ease-out forwards;
-  --animate-eq-bar: eqBar 900ms ease-in-out infinite;
 }
 
 /* Base styles */
@@ -130,22 +129,6 @@ body {
   to {
     opacity: 1;
   }
-}
-
-/* Music equalizer bars (playing indicator) */
-@keyframes eqBar {
-  0%,
-  100% {
-    transform: scaleY(0.35);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.eq-bar {
-  transform-origin: bottom;
-  animation: eqBar 900ms ease-in-out infinite;
 }
 
 /* Hide scrollbar for thumbnail strips */

@@ -227,6 +227,7 @@ export interface Song {
   updated_at: string;
 }
 
+/** B 站官方外链播放器地址（iframe 内嵌播放用，非音频直链） */
 export interface AudioUrl {
   url: string;
 }

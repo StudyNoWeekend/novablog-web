@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Pause, Play, RefreshCw } from "lucide-react";
+import { Play, RefreshCw } from "lucide-react";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BloggerCard } from "@/components/BloggerCard";
 import { HeroSection } from "@/components/HeroSection";
@@ -171,8 +171,13 @@ export function HomeContent() {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
                     <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent-strong/95 text-on-accent shadow-glow transition-transform duration-200 group-hover:scale-110">
-                      {player.currentSong?.id === featured.id && player.isPlaying ? (
-                        <Pause className="ml-0.5 h-6 w-6 fill-current" strokeWidth={1.5} />
+                      {player.currentSong?.id === featured.id ? (
+                        // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+                        <span className="flex h-4 items-end gap-[2.5px]" aria-hidden="true">
+                          <span className="h-[45%] w-[3px] rounded-sm bg-current" />
+                          <span className="h-full w-[3px] rounded-sm bg-current" />
+                          <span className="h-[70%] w-[3px] rounded-sm bg-current" />
+                        </span>
                       ) : (
                         <Play className="ml-1 h-6 w-6 fill-current" strokeWidth={1.5} />
                       )}
@@ -219,15 +224,12 @@ export function HomeContent() {
                                 {song.artist}
                               </span>
                             </span>
-                            {isCurrent && player.isPlaying ? (
-                              <span className="flex h-4 shrink-0 items-end gap-[2px]" aria-label="正在播放">
-                                {[0, 1, 2].map((b) => (
-                                  <span
-                                    key={b}
-                                    className="eq-bar w-[3px] rounded-sm bg-accent"
-                                    style={{ height: "100%", animationDelay: `${b * 0.18}s` }}
-                                  />
-                                ))}
+                            {isCurrent ? (
+                              // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+                              <span className="flex h-4 shrink-0 items-end gap-[2px]" aria-label="当前歌曲">
+                                <span className="h-[45%] w-[3px] rounded-sm bg-accent" />
+                                <span className="h-full w-[3px] rounded-sm bg-accent" />
+                                <span className="h-[70%] w-[3px] rounded-sm bg-accent" />
                               </span>
                             ) : null}
                             <span className="shrink-0 text-xs tabular-nums text-text-subtle">

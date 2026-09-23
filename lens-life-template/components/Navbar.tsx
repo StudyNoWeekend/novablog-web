@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import type { ModuleConfig } from "@/lib/types";
 import type { BloggerProfile } from "@/lib/api/blogger";
-import { MiniPlayer } from "@/components/MiniPlayer";
 import { apiFetch } from "@/lib/api/client";
 
 interface NavItem {
@@ -96,7 +95,7 @@ export function Navbar({ modules: _modules }: NavbarProps) {
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          {/* Logo + Mini Player */}
+          {/* Logo */}
           <div className="flex min-w-0 items-center gap-3">
             <Link
               href="/"
@@ -116,7 +115,6 @@ export function Navbar({ modules: _modules }: NavbarProps) {
                 </span>
               )}
             </Link>
-            <MiniPlayer />
           </div>
 
           {/* Desktop Navigation */}

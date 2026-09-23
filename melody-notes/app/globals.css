@@ -46,7 +46,6 @@
 
   /* Animations */
   --animate-page-fade-in: pageFadeIn 300ms ease-out forwards;
-  --animate-eq-bar: eqBar 900ms ease-in-out infinite;
   --animate-float-slow: floatSlow 7s ease-in-out infinite;
 }
 
@@ -123,22 +122,6 @@ body {
   .page-transition {
     animation: none !important;
   }
-}
-
-/* Music equalizer bars (playing indicator) */
-@keyframes eqBar {
-  0%,
-  100% {
-    transform: scaleY(0.35);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.eq-bar {
-  transform-origin: bottom;
-  animation: eqBar 900ms ease-in-out infinite;
 }
 
 /* 慢速漂浮（Hero 装饰音符） */

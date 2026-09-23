@@ -21,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "游记", href: "/articles", moduleKey: "article_enabled" },
   { label: "攻略", href: "/travels", moduleKey: "travel_enabled" },
   { label: "装备", href: "/gear", moduleKey: "equipment_enabled" },
+  { label: "音乐", href: "/music", moduleKey: "music_enabled" },
   { label: "关于我", href: "/about" },
 ];
 

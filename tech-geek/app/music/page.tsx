@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Play, Pause, Music, Disc, Clock, AlertCircle } from "lucide-react";
+import { Music, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { music, getModuleConfig, Song } from "@/lib/api";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
 import { ModuleDisabled } from "@/components/module-disabled";
-import { Button } from "@/components/ui/button";
 
 function formatDuration(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -21,12 +20,12 @@ export default function MusicPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [audioError, setAudioError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
+  const [urlLoading, setUrlLoading] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [iframeReady, setIframeReady] = useState(false);
+  // 防止快速切歌时旧请求的响应覆盖新歌曲的播放地址
+  const requestedRef = useRef<string | null>(null);
 
   const fetchSongs = async () => {
     try {
@@ -50,60 +49,28 @@ export default function MusicPage() {
   }, []);
 
   const handlePlay = async (song: Song) => {
-    setAudioError(null);
-    if (currentSong?.id === song.id) {
-      if (playing) {
-        audioRef.current?.pause();
-        setPlaying(false);
-      } else {
-        audioRef.current?.play().catch((err) => setAudioError(err.message));
-        setPlaying(true);
-      }
-      return;
-    }
+    if (currentSong?.id === song.id) return;
+    requestedRef.current = song.id;
+    setCurrentSong(song);
+    setPlayerUrl(null);
+    setIframeReady(false);
+    setUrlError(null);
+    setUrlLoading(true);
 
     try {
-      const res = await music.audioUrl(song.id);
-      setCurrentSong(song);
-      setAudioUrl(res.url);
-      setPlaying(true);
-      setCurrentTime(0);
+      // 返回 B 站官方外链播放器地址，必须用 iframe 内嵌播放
+      const res = await music.playerUrl(song.id);
+      if (requestedRef.current !== song.id) return;
+      setPlayerUrl(res.url);
     } catch (err) {
-      setAudioError(err instanceof Error ? err.message : "获取音频地址失败");
+      if (requestedRef.current !== song.id) return;
+      setUrlError(err instanceof Error ? err.message : "获取播放地址失败");
+    } finally {
+      if (requestedRef.current === song.id) {
+        setUrlLoading(false);
+      }
     }
   };
-
-  useEffect(() => {
-    if (!audioUrl) return;
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onLoadedMetadata = () => setDuration(audio.duration || 0);
-    const onEnded = () => setPlaying(false);
-    const onError = () => setAudioError("音频播放失败，请检查网络或链接有效性");
-
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onError);
-
-    audio.play().catch((err) => setAudioError(err.message));
-
-    return () => {
-      audio.pause();
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onError);
-    };
-  }, [audioUrl]);
 
   if (loading) {
     return (
@@ -134,58 +101,57 @@ export default function MusicPage() {
         </h1>
       </div>
 
-      {/* Player */}
+      {/* Player：B 站官方外链播放器（iframe 内嵌，播放控制在 iframe 内完成） */}
       {currentSong && (
         <div className="mb-8 rounded-lg border border-border bg-card p-4 md:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-border">
-              {currentSong.cover_url ? (
-                <Image
-                  src={currentSong.cover_url}
-                  alt={currentSong.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-muted">
-                  <Disc className="h-10 w-10 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">{currentSong.title}</p>
-              <p className="text-sm text-muted-foreground">{currentSong.artist}</p>
-              <div className="mt-3 flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
+          <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-black">
+            {urlLoading && (
+              <div className="absolute inset-0 animate-pulse bg-muted" />
+            )}
+            {urlError ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted px-4 text-center">
+                <AlertCircle className="h-6 w-6 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">{urlError}</p>
+                <button
+                  type="button"
                   onClick={() => handlePlay(currentSong)}
-                  className="h-10 w-10 cursor-pointer"
-                  aria-label={playing ? "暂停" : "播放"}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                 >
-                  {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                </Button>
-                <div className="flex-1">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-primary transition-all"
-                      style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                    />
-                  </div>
-                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                    <span>{formatDuration(currentTime)}</span>
-                    <span>{formatDuration(duration || currentSong.duration)}</span>
-                  </div>
-                </div>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  重试
+                </button>
               </div>
-              {audioError && (
-                <p className="mt-2 flex items-center gap-1 text-xs text-destructive">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {audioError}
-                </p>
-              )}
+            ) : playerUrl ? (
+              <>
+                {!iframeReady && (
+                  <div className="absolute inset-0 animate-pulse bg-muted" />
+                )}
+                <iframe
+                  src={playerUrl}
+                  title={`${currentSong.title} - ${currentSong.artist}`}
+                  allow="autoplay; fullscreen; encrypted-media"
+                  allowFullScreen
+                  scrolling="no"
+                  frameBorder="0"
+                  onLoad={() => setIframeReady(true)}
+                  className="absolute inset-0 h-full w-full"
+                />
+              </>
+            ) : null}
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-foreground">
+                {currentSong.title}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">
+                {currentSong.artist}
+              </p>
             </div>
+            <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {formatDuration(currentSong.duration)}
+            </span>
           </div>
         </div>
       )}
@@ -218,11 +184,15 @@ export default function MusicPage() {
                   aria-label={`播放 ${song.title}`}
                 >
                   <span className="w-6 text-center font-mono text-sm text-muted-foreground">
-                    {isCurrent && playing ? (
-                      <span className="inline-flex h-4 items-end gap-0.5">
-                        <span className="w-0.5 animate-[bounce_1s_infinite] bg-primary" style={{ height: "60%" }} />
-                        <span className="w-0.5 animate-[bounce_1.2s_infinite] bg-primary" style={{ height: "100%" }} />
-                        <span className="w-0.5 animate-[bounce_0.8s_infinite] bg-primary" style={{ height: "80%" }} />
+                    {isCurrent ? (
+                      // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+                      <span
+                        className="inline-flex h-4 items-end gap-0.5"
+                        aria-label="当前歌曲"
+                      >
+                        <span className="w-0.5 rounded bg-primary" style={{ height: "60%" }} />
+                        <span className="w-0.5 rounded bg-primary" style={{ height: "100%" }} />
+                        <span className="w-0.5 rounded bg-primary" style={{ height: "80%" }} />
                       </span>
                     ) : (
                       index + 1

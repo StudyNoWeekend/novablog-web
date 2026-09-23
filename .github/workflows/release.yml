@@ -115,6 +115,8 @@ jobs:
         if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
+          # 自动按自上个 Release 以来的提交生成更新说明，官方市场同步该正文作为主题更新日志
+          generate_release_notes: true
           files: |
             /tmp/${{ steps.pack.outputs.name }}.tar.gz
             /tmp/${{ steps.pack.outputs.name }}.tar.gz.sha256

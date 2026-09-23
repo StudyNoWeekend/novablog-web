@@ -26,12 +26,17 @@ export async function getSongs(
   }
 }
 
-export async function getSongAudioUrl(songId: string): Promise<string | null> {
+/**
+ * 获取歌曲的 B 站官方外链播放器地址。
+ * 后端不再返回可直连的音频 CDN 直链（B 站防盗链，直连 403），
+ * 返回的 url 需用 <iframe allow="autoplay; fullscreen; encrypted-media"> 内嵌播放。
+ */
+export async function getSongPlayerUrl(songId: string): Promise<string | null> {
   try {
     const data = await apiFetch<AudioUrl>(`/public/music/audio-url/${songId}`);
     return data?.url ?? null;
   } catch (error) {
-    console.error("Failed to fetch song audio url:", error);
+    console.error("Failed to fetch song player url:", error);
     return null;
   }
 }

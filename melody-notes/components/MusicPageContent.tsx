@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Music2, Pause, Play, Search } from "lucide-react";
+import { Music2, Play, Search } from "lucide-react";
 import { useMusicPlayer } from "@/components/MusicPlayerProvider";
 import { getSongs } from "@/lib/api/music";
 import type { Song } from "@/lib/types";
@@ -160,8 +160,13 @@ export function MusicPageContent() {
                             isCurrent ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                           }`}
                         >
-                          {isCurrent && player.isPlaying ? (
-                            <Pause className="h-4 w-4 fill-current text-white" />
+                          {isCurrent ? (
+                            // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+                            <span className="flex h-4 items-end gap-[2px]" aria-hidden="true">
+                              <span className="h-[45%] w-[3px] rounded-sm bg-white" />
+                              <span className="h-full w-[3px] rounded-sm bg-white" />
+                              <span className="h-[70%] w-[3px] rounded-sm bg-white" />
+                            </span>
                           ) : (
                             <Play className="ml-0.5 h-4 w-4 fill-current text-white" />
                           )}
@@ -180,16 +185,13 @@ export function MusicPageContent() {
                         <p className="truncate text-xs text-text-subtle">{song.artist}</p>
                       </div>
 
-                      {/* 播放中均衡器 */}
-                      {isCurrent && player.isPlaying ? (
-                        <span className="flex h-4 shrink-0 items-end gap-[2px]" aria-label="正在播放">
-                          {[0, 1, 2, 3].map((b) => (
-                            <span
-                              key={b}
-                              className="eq-bar w-[3px] rounded-sm bg-accent"
-                              style={{ height: "100%", animationDelay: `${b * 0.15}s` }}
-                            />
-                          ))}
+                      {/* 当前歌曲标识 */}
+                      {isCurrent ? (
+                        // iframe 内无法感知播放状态，静态音柱仅表示"当前歌曲"
+                        <span className="flex h-4 shrink-0 items-end gap-[2px]" aria-label="当前歌曲">
+                          <span className="h-[45%] w-[3px] rounded-sm bg-accent" />
+                          <span className="h-full w-[3px] rounded-sm bg-accent" />
+                          <span className="h-[70%] w-[3px] rounded-sm bg-accent" />
                         </span>
                       ) : null}
 

@@ -12,6 +12,7 @@
 | `/articles/[slug]` | 文章详情：封面大图、Markdown 正文、评论（两级回复）、浏览计数上报 | articles / comments |
 | `/games` | 游戏库列表（复用器材模块：游戏名/封面/厂商/介绍） | equipments |
 | `/games/[id]` | 游戏详情 + 「查找相关攻略文章」入口 | equipments |
+| `/music` | 游戏音乐：歌曲列表（右下角悬浮播放器，B 站外链 iframe 播放）+ 第三方歌单 | music / playlists |
 | `/about` | 关于我：头像、简介、标签、合作邮箱、文章/视频/游戏统计、社交链接 | blogger / articles / videos / equipments |
 
 ## 主题特性

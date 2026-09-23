@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { MusicPlayerProvider } from "@/components/MusicPlayerProvider";
+import { FloatingPlayer } from "@/components/FloatingPlayer";
 import { getBloggerProfile } from "@/lib/api/blogger";
 import { getModuleConfig } from "@/lib/api/module-config";
 
@@ -64,6 +65,7 @@ export default async function RootLayout({
               <PageTransition>{children}</PageTransition>
             </main>
             <Footer profile={profile} />
+            <FloatingPlayer />
           </MusicPlayerProvider>
         </div>
       </body>

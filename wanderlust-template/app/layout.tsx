@@ -5,6 +5,8 @@ import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { MusicPlayerProvider } from "@/components/MusicPlayerProvider";
+import { FloatingPlayer } from "@/components/FloatingPlayer";
 import { getBloggerProfile } from "@/lib/api/blogger";
 import { getModuleConfig } from "@/lib/api/module-config";
 
@@ -62,11 +64,14 @@ export default async function RootLayout({
         {/* 部署端注入的运行时配置（同域部署时该文件不存在，静默忽略） */}
         <Script src="/theme-config.js" strategy="beforeInteractive" />
         <div className="flex min-h-screen flex-col">
-          <Navbar modules={modules} />
-          <main className="flex flex-1 flex-col">
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <Footer profile={profile} />
+          <MusicPlayerProvider>
+            <Navbar modules={modules} />
+            <main className="flex flex-1 flex-col">
+              <PageTransition>{children}</PageTransition>
+            </main>
+            <Footer profile={profile} />
+            <FloatingPlayer />
+          </MusicPlayerProvider>
         </div>
       </body>
     </html>

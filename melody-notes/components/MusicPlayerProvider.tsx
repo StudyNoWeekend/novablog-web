@@ -5,27 +5,33 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
-import { getSongAudioUrl } from "@/lib/api/music";
+import { getSongPlayerUrl } from "@/lib/api/music";
 import type { Song } from "@/lib/types";
 
+/**
+ * 全局音乐播放器状态。
+ *
+ * 音源为 B 站官方外链播放器（iframe 内嵌，跨域），无法监听
+ * timeupdate/ended/play/pause 等事件，因此不再提供播放进度、
+ * seek 与外部播放/暂停控制；isPlaying 由 iframe 内部自行管理。
+ * 播放结束不会自动切下一首，由用户手动切歌。
+ */
 interface MusicPlayerContextValue {
   playlist: Song[];
   setPlaylist: (songs: Song[]) => void;
   currentSong: Song | null;
-  isPlaying: boolean;
-  currentTime: number;
-  duration: number;
+  playerUrl: string | null;
   urlLoading: boolean;
   urlError: boolean;
+  minimized: boolean;
   playSong: (song: Song) => void;
-  togglePlay: () => void;
   playNext: () => void;
   playPrev: () => void;
   close: () => void;
-  seek: (ratio: number) => void;
+  toggleMinimized: () => void;
+  retry: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextValue | null>(null);
@@ -45,44 +51,27 @@ export function MusicPlayerProvider({
 }) {
   const [playlist, setPlaylist] = useState<Song[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
   const [urlLoading, setUrlLoading] = useState(false);
   const [urlError, setUrlError] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [minimized, setMinimized] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const songId = currentId;
-  const songDuration = playlist.find((s) => s.id === songId)?.duration ?? 0;
+  const currentSong = playlist.find((s) => s.id === songId) ?? null;
   const currentIndex = playlist.findIndex((s) => s.id === songId);
 
-  // Keep latest playNext without re-creating the Audio element
-  const playNextRef = useRef<() => void>(() => {});
-
-  // Fetch audio url whenever song changes
+  // Fetch the iframe player url whenever song changes.
+  // 加载/错误态的重置都在事件处理器（startSong/close/retry）中同步完成，
+  // effect 内只做异步取数，避免在 effect 中直接 setState。
   useEffect(() => {
-    if (!songId) {
-      setAudioUrl(null);
-      setUrlLoading(false);
-      setUrlError(false);
-      setCurrentTime(0);
-      setDuration(0);
-      setIsPlaying(false);
-      return;
-    }
+    if (!songId) return;
 
     let cancelled = false;
-    setUrlLoading(true);
-    setUrlError(false);
-    setAudioUrl(null);
-    setCurrentTime(0);
-    setDuration(songDuration);
-
-    getSongAudioUrl(songId).then((url) => {
+    getSongPlayerUrl(songId).then((url) => {
       if (cancelled) return;
       if (url) {
-        setAudioUrl(url);
+        setPlayerUrl(url);
       } else {
         setUrlError(true);
       }
@@ -92,115 +81,58 @@ export function MusicPlayerProvider({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [songId]);
+  }, [songId, reloadKey]);
 
-  // Create / replace the Audio element when url changes
-  useEffect(() => {
-    if (!audioUrl) return;
-
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onLoadedMetadata = () => {
-      setDuration(audio.duration || songDuration || 0);
-    };
-    const onEnded = () => {
-      setIsPlaying(false);
-      playNextRef.current();
-    };
-    const onError = () => {
-      setIsPlaying(false);
-      setUrlError(true);
-    };
-
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onError);
-
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-
-    return () => {
-      audio.pause();
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onError);
-      audio.src = "";
-      audioRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioUrl]);
+  const startSong = useCallback((id: string) => {
+    setCurrentId(id);
+    setPlayerUrl(null);
+    setUrlLoading(true);
+    setUrlError(false);
+    setMinimized(false);
+  }, []);
 
   const playSong = useCallback(
     (song: Song) => {
       if (song.id === currentId) {
-        // Clicking the active song toggles play/pause
-        const audio = audioRef.current;
-        if (!audio) return;
-        if (audio.paused) {
-          audio
-            .play()
-            .then(() => setIsPlaying(true))
-            .catch(() => setIsPlaying(false));
-        } else {
-          audio.pause();
-          setIsPlaying(false);
-        }
+        // 点击当前歌曲：展开 / 收起悬浮播放器
+        setMinimized((prev) => !prev);
         return;
       }
-      setCurrentId(song.id);
+      startSong(song.id);
     },
-    [currentId]
+    [currentId, startSong]
   );
-
-  const togglePlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused) {
-      audio
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
-  }, []);
 
   const playNext = useCallback(() => {
     if (playlist.length === 0) return;
     const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % playlist.length;
-    setCurrentId(playlist[nextIndex].id);
-  }, [playlist, currentIndex]);
-
-  playNextRef.current = playNext;
+    startSong(playlist[nextIndex].id);
+  }, [playlist, currentIndex, startSong]);
 
   const playPrev = useCallback(() => {
     if (playlist.length === 0) return;
     const prevIndex =
       currentIndex < 0 ? 0 : (currentIndex - 1 + playlist.length) % playlist.length;
-    setCurrentId(playlist[prevIndex].id);
-  }, [playlist, currentIndex]);
+    startSong(playlist[prevIndex].id);
+  }, [playlist, currentIndex, startSong]);
 
   const close = useCallback(() => {
     setCurrentId(null);
+    setPlayerUrl(null);
+    setUrlLoading(false);
+    setUrlError(false);
+    setMinimized(false);
   }, []);
 
-  const seek = useCallback((ratio: number) => {
-    const audio = audioRef.current;
-    if (!audio || !audio.duration || !Number.isFinite(audio.duration)) return;
-    const clamped = Math.min(Math.max(ratio, 0), 1);
-    audio.currentTime = clamped * audio.duration;
-    setCurrentTime(audio.currentTime);
+  const toggleMinimized = useCallback(() => {
+    setMinimized((prev) => !prev);
   }, []);
 
-  const currentSong = playlist.find((s) => s.id === songId) ?? null;
+  const retry = useCallback(() => {
+    setUrlError(false);
+    setUrlLoading(true);
+    setReloadKey((key) => key + 1);
+  }, []);
 
   return (
     <MusicPlayerContext.Provider
@@ -208,17 +140,16 @@ export function MusicPlayerProvider({
         playlist,
         setPlaylist,
         currentSong,
-        isPlaying,
-        currentTime,
-        duration: duration || songDuration,
+        playerUrl,
         urlLoading,
         urlError,
+        minimized,
         playSong,
-        togglePlay,
         playNext,
         playPrev,
         close,
-        seek,
+        toggleMinimized,
+        retry,
       }}
     >
       {children}

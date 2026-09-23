@@ -116,3 +116,38 @@ export interface GameEntry {
   created_at: string;
   updated_at: string;
 }
+
+// ---------- 音乐 ----------
+export interface Playlist {
+  id: string;
+  title: string;
+  cover_url: string;
+  platform: string;
+  platform_url: string;
+  description: string;
+  sort_order: number;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  cover_url: string;
+  bvid: string;
+  cid: number;
+  source_url: string;
+  source_type: string;
+  category_id?: string | null;
+  duration: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** B 站官方外链播放器地址（iframe 内嵌播放用，非音频直链） */
+export interface AudioUrl {
+  url: string;
+}

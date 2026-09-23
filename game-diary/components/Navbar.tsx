@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "视频", href: "/videos", moduleKey: "video_enabled" },
   { label: "文章", href: "/articles", moduleKey: "article_enabled" },
   { label: "游戏库", href: "/games", moduleKey: "equipment_enabled" },
+  { label: "音乐", href: "/music", moduleKey: "music_enabled" },
   { label: "关于我", href: "/about" },
 ];
 

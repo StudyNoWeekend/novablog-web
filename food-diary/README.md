@@ -12,6 +12,7 @@
 | `/articles`、`/articles/[slug]` | 美食日记列表与详情：分类筛选、关键词搜索、人气榜、标签云、评论与浏览量统计 | `article_enabled` |
 | `/recipes` | 菜谱分享：与文章模块同源数据，以大图菜谱卡片呈现，支持分页 | `article_enabled` |
 | `/travels`、`/travels/[id]` | 旅行美食列表与详情：天数/排序筛选、觅食推荐（JSONB）、行程时间线、点赞、评论 | `travel_enabled` |
+| `/music` | 音乐分享：歌曲列表（右下角悬浮播放器，B 站外链 iframe 播放）+ 第三方歌单 | `music_enabled` |
 | `/about` | 关于我：拍立得头像、博主标签、社交链接 | — |
 
 模块开关由 CMS 的 `/public/module-config` 下发：构建时读取一次作为兜底，浏览器端运行时再次获取，隐藏被关闭的导航项并让对应页面显示禁用提示。页脚展示主题版本号与 `theme.json` 中的源码仓库链接（主题来源链接）。
