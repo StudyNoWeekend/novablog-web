@@ -1,0 +1,17 @@
+{
+  "id": "food-diary",
+  "name": "美食日记",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向美食博主与生活记录者的温暖手账风博客主题：美食日记、菜谱分享、旅行美食与关于我",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/food-diary",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html",
+      "/travels/*": "/travel.html"
+    }
+  }
+}
