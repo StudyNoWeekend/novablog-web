@@ -8,6 +8,8 @@ import {
   Category,
   Comment,
   CreateCommentPayload,
+  Equipment,
+  ModuleConfig,
   PaginatedResponse,
   PaginationParams,
   Portfolio,
@@ -200,4 +202,30 @@ export const music = {
   detail: (id: string) => get<Song>(`/api/v1/public/music/songs/${id}`),
   audioUrl: (songId: string) =>
     get<AudioUrl>(`/api/v1/public/music/audio-url/${songId}`),
+};
+
+export const equipments = {
+  list: (params?: PaginationParams & { keyword?: string; brand?: string }) =>
+    get<PaginatedResponse<Equipment>>("/api/v1/public/equipments", params),
+  detail: (id: string) => get<Equipment>(`/api/v1/public/equipments/${id}`),
+};
+
+// 模块开关：任何一处取数失败时回退为全部开启，保证页面可用（主题规范 3.5）
+export const ALL_ENABLED: ModuleConfig = {
+  article_enabled: true,
+  media_enabled: true,
+  music_enabled: true,
+  video_enabled: true,
+  travel_enabled: true,
+  portfolio_enabled: true,
+  equipment_enabled: true,
+  updated_at: "",
+};
+
+export const moduleConfig = {
+  get: () =>
+    get<ModuleConfig>("/api/v1/public/module-config").then((config) => ({
+      ...ALL_ENABLED,
+      ...config,
+    })),
 };

@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const article = await articles.detail(slug).catch(() => null);
   if (!article) return { title: "文章未找到" };
   return {
-    title: `${article.title} - Media Creator Blog`,
+    title: { absolute: `${article.title} - Media Creator Blog` },
     description: article.summary,
     openGraph: {
       title: article.title,

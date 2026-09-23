@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { FileText, Search, Eye, MessageCircle, X, Loader2 } from "lucide-react";
+import { Eye, FileText, Loader2, MessageCircle, PenLine, Search, X } from "lucide-react";
 import { articles, categories, type PaginatedResponse, type Article, type Category } from "@/lib/api";
 import { Pagination } from "@/components/pagination";
 
@@ -81,41 +81,43 @@ export function ArticlesContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-10 lg:py-16">
+    <div className="min-h-screen py-10 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">文章动态</h1>
-            <p className="mt-2 text-muted-foreground">阅读最新文章，探索创作背后的故事</p>
+            <h1 className="font-hand text-3xl text-foreground sm:text-4xl">创作博客</h1>
+            <p className="mt-2 text-muted-foreground">记录拍摄技巧、设备心得与创作思考</p>
           </div>
 
           <form action="/articles" method="GET" className="flex w-full max-w-md items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 name="keyword"
                 defaultValue={keyword}
                 placeholder="搜索文章标题..."
                 aria-label="搜索文章标题"
-                className="w-full rounded-full border border-input bg-card py-2.5 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                className="h-11 w-full rounded-full border border-input bg-card pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
             <button
               type="submit"
-              className="inline-flex h-10 items-center justify-center rounded-full gradient-creator px-5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
             >
               搜索
             </button>
           </form>
         </div>
 
-        {/* Category filter */}
+        {/* 分类筛选 */}
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <Link
             href="/articles"
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
-              !categoryId ? "gradient-creator" : "bg-card text-foreground border border-border hover:bg-muted"
+            className={`cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
+              !categoryId
+                ? "bg-primary text-primary-foreground"
+                : "border border-border bg-card text-foreground hover:border-primary hover:text-primary"
             }`}
           >
             全部
@@ -124,10 +126,10 @@ export function ArticlesContent() {
             <Link
               key={cat.id}
               href={`/articles?category_id=${cat.id}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ""}`}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`cursor-pointer rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
                 categoryId === cat.id
-                  ? "gradient-creator"
-                  : "bg-card text-foreground border border-border hover:bg-muted"
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border bg-card text-foreground hover:border-primary hover:text-primary"
               }`}
             >
               {cat.name}
@@ -135,14 +137,18 @@ export function ArticlesContent() {
           ))}
         </div>
 
-        {/* Active filters */}
+        {/* 当前筛选 */}
         {(keyword || tag || categoryId) && (
           <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-muted-foreground">当前筛选：</span>
             {categoryId && (
               <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-secondary-foreground">
                 分类：{categoryList.find((c) => c.id === categoryId)?.name || categoryId}
-                <Link href={`/articles${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`} className="rounded p-0.5 hover:bg-muted">
+                <Link
+                  href={`/articles${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`}
+                  className="cursor-pointer rounded p-0.5 hover:bg-muted"
+                  aria-label="清除分类筛选"
+                >
                   <X className="h-3 w-3" />
                 </Link>
               </span>
@@ -152,7 +158,8 @@ export function ArticlesContent() {
                 标签：{tag}
                 <Link
                   href={`/articles${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ""}`}
-                  className="rounded p-0.5 hover:bg-muted"
+                  className="cursor-pointer rounded p-0.5 hover:bg-muted"
+                  aria-label="清除标签筛选"
                 >
                   <X className="h-3 w-3" />
                 </Link>
@@ -163,7 +170,8 @@ export function ArticlesContent() {
                 关键词：{keyword}
                 <Link
                   href={`/articles${categoryId ? `?category_id=${categoryId}` : tag ? `?tag=${encodeURIComponent(tag)}` : ""}`}
-                  className="rounded p-0.5 hover:bg-muted"
+                  className="cursor-pointer rounded p-0.5 hover:bg-muted"
+                  aria-label="清除关键词筛选"
                 >
                   <X className="h-3 w-3" />
                 </Link>
@@ -178,12 +186,12 @@ export function ArticlesContent() {
             加载中...
           </div>
         ) : error ? (
-          <div className="mt-10 rounded-2xl bg-card p-12 text-center text-destructive border border-border">
+          <div className="mt-10 rounded-2xl border border-border bg-card p-12 text-center text-destructive">
             {error}
           </div>
         ) : filteredList.length === 0 ? (
-          <div className="mt-10 rounded-2xl bg-card p-12 text-center text-muted-foreground border border-border">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <div className="mt-10 rounded-2xl border border-border bg-card p-12 text-center text-muted-foreground">
+            <PenLine className="mx-auto h-12 w-12 text-muted-foreground/50" />
             <p className="mt-4">暂无文章</p>
           </div>
         ) : (
@@ -192,7 +200,7 @@ export function ArticlesContent() {
               <Link
                 key={article.id}
                 href={`/articles/${article.slug}`}
-                className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm border border-border transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring"
+                className="group card-lift flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="relative aspect-[16/10] overflow-hidden">
                   {article.cover_image ? (
@@ -200,7 +208,7 @@ export function ArticlesContent() {
                       src={article.cover_image}
                       alt={article.title}
                       fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                       unoptimized
                     />
                   ) : (
@@ -218,7 +226,7 @@ export function ArticlesContent() {
                     )}
                     <span className="text-xs text-muted-foreground">{formatDate(article.published_at)}</span>
                   </div>
-                  <h3 className="mt-2 line-clamp-2 text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                  <h3 className="mt-2 line-clamp-2 text-base font-semibold text-foreground transition-colors group-hover:text-primary">
                     {article.title}
                   </h3>
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{article.summary}</p>

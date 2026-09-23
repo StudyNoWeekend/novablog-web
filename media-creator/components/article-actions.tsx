@@ -33,7 +33,7 @@ export function ArticleActions({ slug }: ArticleActionsProps) {
         onClick={handleShare}
         className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {copied ? <Check className="h-4 w-4 text-green-600" /> : <Share2 className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-primary" /> : <Share2 className="h-4 w-4" />}
         {copied ? "已复制链接" : "分享链接"}
       </button>
       <a

@@ -52,7 +52,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
             className={cn(
               "inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               page === p
-                ? "gradient-creator shadow-md"
+                ? "bg-primary text-primary-foreground shadow-md"
                 : "border border-border bg-card text-foreground hover:bg-muted"
             )}
             aria-current={page === p ? "page" : undefined}

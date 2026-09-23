@@ -1,7 +1,15 @@
 import { Suspense } from "react";
 import { ArticlesContent } from "./articles-content";
+import { ModuleDisabled } from "@/components/module-disabled";
+import { moduleConfig, ALL_ENABLED } from "@/lib/api";
 
-export default function ArticlesPage() {
+export const metadata = { title: "博客" };
+
+export default async function ArticlesPage() {
+  const modules = await moduleConfig.get().catch(() => ALL_ENABLED);
+  if (!modules.article_enabled) {
+    return <ModuleDisabled moduleLabel="博客" />;
+  }
   return (
     <Suspense fallback={<ArticlesSkeleton />}>
       <ArticlesContent />
@@ -11,12 +19,12 @@ export default function ArticlesPage() {
 
 function ArticlesSkeleton() {
   return (
-    <div className="min-h-screen bg-background py-10 lg:py-16">
+    <div className="min-h-screen py-10 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="h-10 w-48 animate-pulse rounded-xl bg-muted" />
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-card border border-border p-4">
+            <div key={i} className="rounded-2xl border border-border bg-card p-4">
               <div className="aspect-[16/10] animate-pulse rounded-xl bg-muted" />
               <div className="mt-3 h-5 w-3/4 animate-pulse rounded bg-muted" />
               <div className="mt-2 h-4 w-1/2 animate-pulse rounded bg-muted" />

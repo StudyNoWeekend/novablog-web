@@ -1,11 +1,11 @@
 {
   "id": "media-creator",
-  "name": "明快创作",
-  "version": "0.1.0",
+  "name": "帧记影像",
+  "version": "0.2.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
-  "description": "面向视频观众与社交媒体追随者的明亮活泼风格内容主页",
+  "description": "面向视频创作者的深色影院感内容主页，手写体点缀，展示视频作品、创作博客与装备清单",
   "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/media-creator",
   "screenshots": [],
   "routes": {
