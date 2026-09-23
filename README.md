@@ -9,8 +9,11 @@ NovaBlog CMS 官方主题仓库。每个子目录是一个独立的博客主题�
 | 极客风 | [tech-geek](./tech-geek) | 已上架 v0.3.0 | 面向开发者与硬核技术读者的亮暗双主题技术博客 |
 | 明快创作 | [media-creator](./media-creator) | 已上架 v0.1.0 | 面向视频观众与社交媒体追随者的明亮活泼风格内容主页 |
 | 光影集 | [photo-creator](./photo-creator) | 已上架 v0.1.0 | 面向摄影爱好者与视觉内容消费者的高留白、图片优先作品集博客 |
-| 镜头生活 | [lens-life-template](./lens-life-template) | 已上架 v1.0.0 | 风光、城市、人文与航拍的暗色优雅摄影生活博客 |
-| 漫游世界 | [wanderlust-template](./wanderlust-template) | 开发中 v0.1.0 | 面向旅行爱好者的清新手账风旅行博客：目的地、游记、攻略与装备 |
+| 镜头生活 | [lens-life-template](./lens-life-template) | 已上架 v1.0.4 | 风光、城市、人文与航拍的暗色优雅摄影生活博客 |
+| 漫游世界 | [wanderlust-template](./wanderlust-template) | 已上架 v0.1.0 | 面向旅行爱好者的清新手账风旅行博客：目的地、游记、攻略与装备 |
+| 旋律笔记 | [melody-notes](./melody-notes) | 开发中 v0.1.0 | 面向音乐博主与耳机党的暗色治愈系音乐博客：今日推荐、歌曲榜、歌单与音乐文章 |
+| 游戏日记 | [game-diary](./game-diary) | v0.1.0 | 面向游戏爱好者的暗色霓虹风博客主题：游戏实况视频、攻略文章与游戏库 |
+| 美食日记 | [food-diary](./food-diary) | 开发中 v0.1.0 | 面向美食博主与生活记录者的温暖手账风博客：美食日记、菜谱分享、旅行美食与关于我 |
 
 主题改造清单与准入标准见[《主题包规范》第九章](./docs/theme-spec.md)。
 

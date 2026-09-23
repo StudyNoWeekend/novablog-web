@@ -1,0 +1,16 @@
+{
+  "id": "melody-notes",
+  "name": "旋律笔记",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向音乐博主与耳机党的暗色治愈系音乐博客主题：今日推荐、歌曲榜、歌单与音乐文章",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/melody-notes",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html"
+    }
+  }
+}
