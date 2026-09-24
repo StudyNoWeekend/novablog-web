@@ -1,4 +1,4 @@
-import { Instagram, Mail, Youtube } from "lucide-react";
+import { Github, Instagram, Mail, Youtube } from "lucide-react";
 
 /**
  * 社交图标字形：优先命中常见平台，其余以首字/前缀展示（数据全部来自博主资料接口）。
@@ -13,6 +13,7 @@ export function SocialIconGlyph({
   const p = platform.toLowerCase();
   if (p === "instagram") return <Instagram className={className} strokeWidth={1.5} />;
   if (p === "youtube") return <Youtube className={className} strokeWidth={1.5} />;
+  if (p === "github") return <Github className={className} strokeWidth={1.5} />;
   if (p === "email" || p === "mail") return <Mail className={className} strokeWidth={1.5} />;
   if (p === "weibo" || p === "微博") return <span className="text-xs font-bold">微</span>;
   if (p === "bilibili" || p === "b站") return <span className="text-xs font-bold">B</span>;

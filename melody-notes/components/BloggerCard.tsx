@@ -36,7 +36,8 @@ export function BloggerCard({ profile, stats }: BloggerCardProps) {
           />
         </svg>
       </div>
-      <div className="-mt-9 flex flex-col items-center px-6 pb-6 text-center">
+      {/* relative：叠入头部区域的头像需与定位头部同级绘制，否则会被其背景盖住上半截 */}
+      <div className="relative -mt-9 flex flex-col items-center px-6 pb-6 text-center">
         {profile.avatar ? (
           <img
             src={profile.avatar}

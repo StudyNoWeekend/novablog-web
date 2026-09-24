@@ -1,7 +1,7 @@
 {
   "id": "melody-notes",
   "name": "旋律笔记",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
