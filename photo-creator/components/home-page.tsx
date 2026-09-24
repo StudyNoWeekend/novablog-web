@@ -207,7 +207,7 @@ export function HomePage() {
                   alt={nickname || title}
                   fill
                   unoptimized
-                  className="object-cover grayscale transition-all duration-700 hover:grayscale-0"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
