@@ -3,6 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { MusicPlayerProvider } from "@/components/music-player-provider";
+import { FloatingPlayer } from "@/components/floating-player";
 import { blogger, Blogger } from "@/lib/api";
 
 function timeoutSignal(ms = 3000) {
@@ -44,9 +46,12 @@ export default async function RootLayout({
       <body className="antialiased">
         {/* 部署端注入的运行时配置（同域部署时该文件不存在，静默忽略） */}
         <Script src="/theme-config.js" strategy="beforeInteractive" />
-        <Navbar blogger={data} />
-        <main className="min-h-screen">{children}</main>
-        <Footer blogger={data} />
+        <MusicPlayerProvider>
+          <Navbar blogger={data} />
+          <main className="min-h-screen">{children}</main>
+          <Footer blogger={data} />
+          <FloatingPlayer />
+        </MusicPlayerProvider>
       </body>
     </html>
   );

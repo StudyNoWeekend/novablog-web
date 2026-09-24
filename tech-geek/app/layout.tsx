@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { MusicPlayerProvider } from "@/components/music-player-provider";
+import { FloatingPlayer } from "@/components/floating-player";
 import { blogger, getModuleConfig, Blogger } from "@/lib/api";
 
 const geistSans = Geist({
@@ -80,9 +82,12 @@ export default async function RootLayout({
         {/* 部署端注入的运行时配置（同域部署时该文件不存在，静默忽略） */}
         <Script src="/theme-config.js" strategy="beforeInteractive" />
         <div className="flex min-h-screen flex-col">
-          <Navbar initialModules={modules} initialProfile={profile} />
-          <main className="flex-1">{children}</main>
-          <Footer initialProfile={profile} />
+          <MusicPlayerProvider>
+            <Navbar initialModules={modules} initialProfile={profile} />
+            <main className="flex-1">{children}</main>
+            <Footer initialProfile={profile} />
+            <FloatingPlayer />
+          </MusicPlayerProvider>
         </div>
       </body>
     </html>

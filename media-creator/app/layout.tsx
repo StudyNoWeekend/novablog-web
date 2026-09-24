@@ -4,6 +4,8 @@ import { Geist, Geist_Mono, Ma_Shan_Zheng } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { MusicPlayerProvider } from "@/components/music-player-provider";
+import { FloatingPlayer } from "@/components/floating-player";
 import { blogger } from "@/lib/api";
 
 const geistSans = Geist({
@@ -64,9 +66,12 @@ export default function RootLayout({
       >
         {/* 部署端注入的运行时配置（同域部署时该文件不存在，静默忽略） */}
         <Script src="/theme-config.js" strategy="beforeInteractive" />
-        <Navbar />
-        <main className="flex-1 pt-16">{children}</main>
-        <Footer />
+        <MusicPlayerProvider>
+          <Navbar />
+          <main className="flex-1 pt-16">{children}</main>
+          <Footer />
+          <FloatingPlayer />
+        </MusicPlayerProvider>
       </body>
     </html>
   );

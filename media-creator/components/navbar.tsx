@@ -18,6 +18,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "首页", href: "/" },
   { label: "作品", href: "/videos", moduleKey: "video_enabled" },
+  { label: "音乐", href: "/music", moduleKey: "music_enabled" },
   { label: "关于我", href: "/about" },
   { label: "博客", href: "/articles", moduleKey: "article_enabled" },
   { label: "设备", href: "/gear", moduleKey: "equipment_enabled" },

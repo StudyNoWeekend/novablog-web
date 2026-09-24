@@ -64,12 +64,14 @@ const songs = [
   title: s.title,
   artist: s.artist,
   cover_url: pic(`cover-${i + 1}`, 400, 400),
-  bvid: `BV${(1e8 + i * 7919).toString(36).toUpperCase()}`,
+  // mock 统一指向一个可外链播放的真实 B 站视频，方便本地验收播放/进度/切歌
+  bvid: "BV1GJ411x7h7",
   cid: 1000 + i,
   source_url: "https://www.bilibili.com/",
   source_type: "bilibili",
   category_id: s.cat,
-  duration: s.duration,
+  // 与真实视频时长保持一致，估算进度条才能和视频对得上
+  duration: 213,
   sort_order: i,
   created_at: "2025-04-01T10:00:00Z",
   updated_at: "2025-04-01T10:00:00Z",
@@ -224,8 +226,14 @@ function handleApi(req, url) {
   else if (path === "/public/music/songs") {
     const kwCat = q.get("category_id");
     data = paginate(kwCat ? songs.filter((s) => s.category_id === kwCat) : songs, q);
-  } else if (path.match(/^\/public\/music\/audio-url\/[\w-]+$/))
-    data = { url: "" }; // mock 环境不给音频直链
+  } else if (path.match(/^\/public\/music\/audio-url\/[\w-]+$/)) {
+    const songId = path.split("/").pop();
+    const song = songs.find((s) => s.id === songId) ?? songs[0];
+    // B 站官方外链播放器地址（防盗链拿不到音频直链，mock 同样返回真实格式）
+    data = {
+      url: `https://player.bilibili.com/player.html?bvid=${song.bvid}&autoplay=1&danmaku=0&high_quality=1`,
+    };
+  }
   else if (path === "/public/music/playlists" || path === "/public/playlists")
     data = playlists;
   else if (path === "/public/articles") {

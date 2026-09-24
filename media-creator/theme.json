@@ -1,7 +1,7 @@
 {
   "id": "media-creator",
   "name": "帧记影像",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",

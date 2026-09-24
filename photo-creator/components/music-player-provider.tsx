@@ -9,8 +9,18 @@ import {
   useRef,
   useState,
 } from "react";
-import { getSongPlayerUrl } from "@/lib/api/music";
-import type { Song } from "@/lib/types";
+import { music, type Song } from "@/lib/api";
+
+/** 获取歌曲的 B 站外链播放器地址；失败返回 null（不抛出），由调用方置错误态 */
+async function fetchPlayerUrl(songId: string): Promise<string | null> {
+  try {
+    const res = await music.playerUrl(songId);
+    return res?.url ?? null;
+  } catch (error) {
+    console.error("Failed to fetch song player url:", error);
+    return null;
+  }
+}
 
 export type PlayMode = "sequential" | "random" | "single";
 
@@ -129,7 +139,7 @@ export function MusicPlayerProvider({
     if (!currentId) return;
 
     let cancelled = false;
-    getSongPlayerUrl(currentId).then((url) => {
+    fetchPlayerUrl(currentId).then((url) => {
       if (cancelled) return;
       if (url) {
         setBaseUrl(url);

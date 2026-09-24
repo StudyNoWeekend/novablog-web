@@ -1,7 +1,7 @@
 {
   "id": "photo-creator",
   "name": "光影集",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",

@@ -274,3 +274,13 @@ body {
   background-color: var(--color-surface);
   font-weight: 600;
 }
+
+/* 底部音乐播放器入场动画 */
+@keyframes player-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

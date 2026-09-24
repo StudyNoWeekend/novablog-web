@@ -11,9 +11,10 @@ import type { Blogger } from "@/lib/api";
 const navLinks = [
   { number: "01", label: "作品", href: "/" },
   { number: "02", label: "故事", href: "/portfolios" },
-  { number: "03", label: "日志", href: "/articles" },
-  { number: "04", label: "关于", href: "/#about" },
-  { number: "05", label: "联系", href: "/#contact" },
+  { number: "03", label: "音乐", href: "/music" },
+  { number: "04", label: "日志", href: "/articles" },
+  { number: "05", label: "关于", href: "/#about" },
+  { number: "06", label: "联系", href: "/#contact" },
 ];
 
 interface NavbarProps {
