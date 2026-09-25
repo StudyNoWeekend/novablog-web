@@ -1,0 +1,16 @@
+{
+  "id": "anime-diary",
+  "name": "次元日记",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向二次元博主的粉紫梦幻动漫风博客主题：动漫推荐、游戏心得、插画作品、音乐分享与生活日常",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/anime-diary",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html"
+    }
+  }
+}
