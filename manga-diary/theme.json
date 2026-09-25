@@ -1,0 +1,16 @@
+{
+  "id": "manga-diary",
+  "name": "漫画日记",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向漫画家与绘画创作者的温暖手绘风博客主题：漫画作品、创作动态、绘画随笔与关于我",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/manga-diary",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html"
+    }
+  }
+}

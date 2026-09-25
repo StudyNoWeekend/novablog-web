@@ -14,6 +14,7 @@
 | 旋律笔记 | [melody-notes](./melody-notes) | 6 | 暗色治愈系音乐博客 |
 | 游戏日记 | [game-diary](./game-diary) | 8 | 暗色霓虹风游戏博客 |
 | 美食日记 | [food-diary](./food-diary) | 8 | 温暖手账风美食博客 |
+| 漫画日记 | [manga-diary](./manga-diary) | 8 | 温暖手绘风漫画家博客 |
 | 多媒体日记 | [media-diary](./media-diary) | 7 | 明亮黄奶油风多媒体创作博客 |
 
 每个主题目录内以 `01-home`、`02-articles`、`03-article-detail`… 命名，覆盖首页、全部列表页、详情页（文章/旅行/作品集/视频/器材/游戏库）与关于页等。
