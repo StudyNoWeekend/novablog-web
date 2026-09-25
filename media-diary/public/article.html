@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的文章详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>多媒体日记加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #faf7f0;
+      --panel: #ffffff;
+      --panel-soft: #f3edde;
+      --border: #eee6d4;
+      --border-strong: #e0d5bc;
+      --text: #262117;
+      --text-soft: #57503f;
+      --muted: #8c8370;
+      --accent: #f2b824;
+      --accent-deep: #d99e0b;
+      --accent-subtle: rgba(242, 184, 36, 0.16);
+      --ink: #161310;
+      --danger: #ec6a8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 带 display 样式的元素（如 .reply-banner）被 hidden 时仍需隐藏 */
+    [hidden] { display: none !important; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.85;
+    }
+    .display { letter-spacing: 0.02em; }
+    .shell-header {
+      background: var(--ink);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
+    .brand-logo {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--accent); color: var(--ink);
+    }
+    .shell-header a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .shell-header a:hover { color: var(--accent); }
+    main { max-width: 760px; margin: 0 auto; padding: 44px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    .cat-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 3px 12px;
+      margin-bottom: 14px;
+    }
+    article h1 {
+      font-size: 30px;
+      line-height: 1.35;
+      margin: 0 0 18px;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .meta .tag { color: var(--accent-deep); }
+    .cover { width: 100%; border-radius: 14px; margin-bottom: 32px; }
+    .summary {
+      border-left: 3px solid var(--accent);
+      background: var(--panel-soft);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 18px;
+      margin: 0 0 30px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .content { font-size: 16px; color: var(--text-soft); }
+    .content h2, .content h3, .content h4 { margin: 38px 0 14px; color: var(--text); }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 20px; }
+    .content p { margin: 16px 0; }
+    .content a { color: var(--accent-deep); text-underline-offset: 3px; }
+    .content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      color: var(--accent-deep);
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+    .content pre {
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    .content pre code { background: none; color: var(--text-soft); padding: 0; border: none; }
+    .content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 8px 20px;
+      margin: 22px 0;
+      color: var(--muted);
+    }
+    .content ul, .content ol { margin: 16px 0 16px 24px; }
+    .content li { margin: 8px 0; }
+    .content img { max-width: 100%; border-radius: 14px; }
+    .content hr { border: none; border-top: 1px dashed var(--border-strong); margin: 44px 0; }
+    h2.section { font-size: 24px; margin: 44px 0 18px; }
+    .c-count-badge {
+      background: var(--accent-subtle);
+      color: var(--accent-deep);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 2px 9px;
+      vertical-align: 3px;
+    }
+    .comments-form {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 20px rgba(38, 33, 23, 0.07);
+    }
+    .comments-form .reply-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border: 1px solid rgba(242, 184, 36, 0.35);
+      background: var(--accent-subtle);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .comments-form .reply-banner em { color: var(--accent-deep); font-style: normal; font-weight: 600; }
+    .comments-form .reply-banner button {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 2px 6px;
+    }
+    .comments-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 640px) { .comments-form .row2 { grid-template-columns: 1fr; } }
+    .comments-form input, .comments-form textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 10px 16px;
+    }
+    .comments-form textarea { border-radius: 12px; resize: vertical; min-height: 96px; line-height: 1.7; }
+    .comments-form input:focus, .comments-form textarea:focus { outline: none; border-color: var(--accent); }
+    .field-err { color: var(--danger); font-size: 12px; margin-top: 4px; padding-left: 8px; }
+    .form-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+    .char-count { color: var(--muted); font-size: 12px; }
+    .btn-submit {
+      background: var(--accent);
+      color: var(--ink);
+      border: none;
+      border-radius: 999px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--accent-deep); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .submit-msg { font-size: 13px; margin-top: 10px; }
+    .submit-msg.err { color: var(--danger); }
+    .submit-msg.ok { color: var(--accent-deep); }
+    .comment-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .comment-head { display: flex; align-items: flex-start; gap: 10px; }
+    .comment-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid var(--border); background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); flex-shrink: 0;
+    }
+    .comment-avatar.blogger { border-color: rgba(242, 184, 36, 0.45); background: var(--accent-subtle); color: var(--accent-deep); }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .chip-blogger {
+      display: inline-block; background: var(--accent); color: var(--ink);
+      font-size: 10px; font-weight: 600; border-radius: 999px;
+      padding: 1px 8px; margin-left: 6px; vertical-align: 1px;
+    }
+    .comment-date { color: var(--muted); font-size: 12px; margin-left: 8px; font-weight: 400; }
+    .comment-content { font-size: 14px; color: var(--text-soft); margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+    .comment-reply-btn {
+      background: none; border: none; padding: 0; margin-top: 8px;
+      color: var(--muted); font-size: 12px; cursor: pointer;
+    }
+    .comment-reply-btn:hover { color: var(--accent-deep); }
+    .comment-replies { margin-left: 26px; margin-top: 10px; padding-left: 14px; border-left: 2px solid rgba(242, 184, 36, 0.3); }
+    .comment-replies .comment-card { background: var(--bg); padding: 12px 14px; }
+    .comment-replies .comment-avatar { width: 30px; height: 30px; }
+    .comments-empty { color: var(--muted); text-align: center; font-size: 14px; padding: 40px 0; }
+    .cmt-skeleton {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: cmt-pulse 1.5s ease-in-out infinite;
+    }
+    .sk-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .sk-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+    .sk-bar { height: 12px; border-radius: 4px; background: var(--border); margin-bottom: 8px; }
+    @keyframes cmt-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand display" id="brand-text">
+      <span class="brand-logo" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72c0 .96 1.05 1.55 1.87 1.05l10.7-6.86a1.25 1.25 0 0 0 0-2.1L9.87 4.09C9.05 3.59 8 4.18 8 5.14z"/></svg>
+      </span>
+      <span id="brand-title">多媒体日记</span>
+    </span>
+    <a href="/">← 返回首页</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载多媒体日记…</div>
+    <article id="article" hidden>
+      <span id="a-cat" class="cat-badge" hidden></span>
+      <h1 id="a-title" class="display"></h1>
+      <div class="meta" id="a-meta"></div>
+      <img id="a-cover" class="cover" alt="" hidden />
+      <div id="a-summary" class="summary" hidden></div>
+      <div class="content" id="a-content"></div>
+      <section id="sec-comments" hidden>
+        <h2 class="section display">想说点什么 <span id="c-total" class="c-count-badge" hidden></span></h2>
+        <div class="comments-form">
+          <div id="c-reply-banner" class="reply-banner" hidden>
+            <span>回复 @<em id="c-reply-name"></em></span>
+            <button type="button" id="c-reply-cancel" aria-label="取消回复">×</button>
+          </div>
+          <form id="c-form" novalidate>
+            <div class="row2">
+              <div>
+                <input id="c-nickname" type="text" maxlength="50" placeholder="昵称 *" />
+                <p id="c-err-nickname" class="field-err" hidden></p>
+              </div>
+              <div>
+                <input id="c-website" type="url" maxlength="255" placeholder="网站（选填，https://...）" />
+                <p id="c-err-website" class="field-err" hidden></p>
+              </div>
+            </div>
+            <div>
+              <textarea id="c-content" rows="4" maxlength="2000" placeholder="写下你的想法，或者聊聊最近的创作... *"></textarea>
+              <p id="c-err-content" class="field-err" hidden></p>
+            </div>
+            <p id="c-submit-msg" class="submit-msg" hidden></p>
+            <div class="form-foot">
+              <span id="c-count-chars" class="char-count">0 / 2000</span>
+              <button id="c-submit" type="submit" class="btn-submit">发布评论</button>
+            </div>
+          </form>
+        </div>
+        <div id="c-list"></div>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-title");
+            if (brand && blogTitle) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 slug：/articles/{slug} | /articles/{slug}.html | /articles/{slug}/
+      function parseSlug() {
+        var m = location.pathname.match(/\/articles\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/articles\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码（如 /articles/%zz）：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#|mailto:)/i.test(u)) return u;
+        return "#";
+      }
+
+      // ===== 富文本（HTML）内容白名单净化：CMS 后台为富文本编辑器，正文可能是 HTML =====
+      var ALLOWED_TAGS = {
+        A:1, P:1, BR:1, HR:1, SPAN:1, DIV:1, SECTION:1, ARTICLE:1,
+        H1:1, H2:1, H3:1, H4:1, H5:1, H6:1,
+        UL:1, OL:1, LI:1, BLOCKQUOTE:1,
+        STRONG:1, B:1, EM:1, I:1, U:1, S:1, DEL:1, INS:1, SUP:1, SUB:1, MARK:1,
+        CODE:1, PRE:1, KBD:1,
+        IMG:1, FIGURE:1, FIGCAPTION:1, PICTURE:1, SOURCE:1,
+        TABLE:1, THEAD:1, TBODY:1, TFOOT:1, TR:1, TH:1, TD:1, CAPTION:1, COL:1, COLGROUP:1
+      };
+      var BLOCKED_TAGS = {
+        SCRIPT:1, STYLE:1, IFRAME:1, FRAME:1, FRAMESET:1, OBJECT:1, EMBED:1,
+        LINK:1, META:1, BASE:1, FORM:1, INPUT:1, BUTTON:1, SELECT:1,
+        TEXTAREA:1, VIDEO:1, AUDIO:1, CANVAS:1, SVG:1, MATH:1,
+        TEMPLATE:1, SLOT:1, APPLET:1, NOSCRIPT:1
+      };
+
+      function sanitizeNode(node) {
+        var children = Array.prototype.slice.call(node.childNodes);
+        children.forEach(function (child) {
+          if (child.nodeType === 8) { child.parentNode.removeChild(child); return; } // 注释
+          if (child.nodeType !== 1) return; // 文本节点保留
+          var tag = child.tagName;
+          if (BLOCKED_TAGS[tag]) { child.parentNode.removeChild(child); return; }
+          if (!ALLOWED_TAGS[tag]) {
+            // 未知标签：清洗子树后展开（unwrap），保留文本内容
+            sanitizeNode(child);
+            while (child.firstChild) node.insertBefore(child.firstChild, child);
+            node.removeChild(child);
+            return;
+          }
+          // 仅保留安全属性
+          var attrs = Array.prototype.slice.call(child.attributes);
+          attrs.forEach(function (attr) {
+            var n = attr.name.toLowerCase();
+            var ok = (tag === "IMG" && (n === "src" || n === "alt" || n === "title" || n === "width" || n === "height")) ||
+                     (tag === "A" && (n === "href" || n === "title")) ||
+                     (tag === "COL" && n === "span") ||
+                     (tag === "COLGROUP" && n === "span") ||
+                     (tag === "TD" && n === "colspan") || (tag === "TD" && n === "rowspan") ||
+                     (tag === "TH" && n === "colspan") || (tag === "TH" && n === "rowspan");
+            if (!ok) child.removeAttribute(attr.name);
+          });
+          if (tag === "IMG") {
+            var src = safeUrl(child.getAttribute("src"));
+            if (!src || src === "#") { child.parentNode.removeChild(child); return; }
+            child.setAttribute("src", src);
+            child.setAttribute("loading", "lazy");
+            child.setAttribute("alt", child.getAttribute("alt") || "");
+          }
+          if (tag === "A") {
+            var href = safeUrl(child.getAttribute("href"));
+            if (href === "#") child.removeAttribute("href");
+            else { child.setAttribute("href", href); child.setAttribute("target", "_blank"); child.setAttribute("rel", "noopener noreferrer"); }
+          }
+          if (tag === "SOURCE") {
+            var ssrc = safeUrl(child.getAttribute("src"));
+            if (!ssrc || ssrc === "#") { child.parentNode.removeChild(child); return; }
+            child.setAttribute("src", ssrc);
+          }
+          sanitizeNode(child);
+        });
+      }
+
+      //富文本检测：包含块级 HTML 标签即按 HTML 净化渲染，否则按 Markdown 渲染
+      function looksLikeHtml(src) {
+        return /<\/?(p|div|h[1-6]|ul|ol|li|table|blockquote|pre|img|br|section|article|figure|span|strong|em|a)\b[^>]*>/i.test(src);
+      }
+
+      function renderRichOrMarkdown(src) {
+        if (looksLikeHtml(src)) {
+          var doc = new DOMParser().parseFromString(src, "text/html");
+          sanitizeNode(doc.body);
+          return doc.body.innerHTML;
+        }
+        return renderMarkdown(src);
+      }
+
+      function formatDate(dateStr) {
+        var d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+      }
+
+      // 轻量 Markdown 渲染（先整体转义防 XSS，再按行解析常用块级/行内语法）
+      function renderMarkdown(src) {
+        var lines = escapeHtml(src).split(/\r?\n/);
+        var out = [], i = 0, inCode = false, codeBuf = [], listType = null;
+
+        function closeList() {
+          if (listType) { out.push("</" + listType + ">"); listType = null; }
+        }
+        function inline(s) {
+          s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+          s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, src) {
+            return '<img src="' + safeUrl(src) + '" alt="' + alt + '" />';
+          });
+          s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, text, href) {
+            return '<a href="' + safeUrl(href) + '" target="_blank" rel="noopener">' + text + "</a>";
+          });
+          s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+          s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+          return s;
+        }
+
+        while (i < lines.length) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            if (inCode) {
+              out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+              codeBuf = []; inCode = false;
+            } else { closeList(); inCode = true; }
+            i++; continue;
+          }
+          if (inCode) { codeBuf.push(line); i++; continue; }
+
+          var h = line.match(/^(#{1,4})\s+(.*)$/);
+          if (h) {
+            closeList();
+            var lv = h[1].length;
+            out.push("<h" + lv + ">" + inline(h[2]) + "</h" + lv + ">");
+            i++; continue;
+          }
+          if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { closeList(); out.push("<hr/>"); i++; continue; }
+          if (/^\s*&gt;\s?/.test(line)) {
+            closeList();
+            var quote = [];
+            while (i < lines.length && /^\s*&gt;\s?/.test(lines[i])) {
+              quote.push(lines[i].replace(/^\s*&gt;\s?/, "")); i++;
+            }
+            out.push("<blockquote><p>" + inline(quote.join(" ")) + "</p></blockquote>");
+            continue;
+          }
+          if (/^\s*[-*+]\s+/.test(line)) {
+            if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
+            out.push("<li>" + inline(line.replace(/^\s*[-*+]\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*\d+\.\s+/.test(line)) {
+            if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+            out.push("<li>" + inline(line.replace(/^\s*\d+\.\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*$/.test(line)) { closeList(); i++; continue; }
+
+          var para = [];
+          while (i < lines.length && !/^\s*$/.test(lines[i]) &&
+                 !/^(#{1,4})\s|^```|^\s*[-*+]\s|^\s*\d+\.\s|^\s*&gt;/.test(lines[i])) {
+            para.push(lines[i]); i++;
+          }
+          if (para.length) { closeList(); out.push("<p>" + inline(para.join("<br/>")) + "</p>"); }
+          else { i++; }
+        }
+        closeList();
+        if (inCode && codeBuf.length) out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+        return out.join("\n");
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(a) {
+        document.title = blogTitle ? (a.title || "多媒体日记") + " | " + blogTitle : (a.title || "多媒体日记");
+        el("a-title").textContent = a.title || "无标题";
+        if (a.category_name) {
+          el("a-cat").textContent = a.category_name;
+          el("a-cat").hidden = false;
+        }
+        var meta = [];
+        var date = formatDate(a.published_at || a.created_at);
+        if (date) meta.push(escapeHtml(date));
+        if (a.view_count !== undefined) meta.push(escapeHtml(a.view_count) + " 次阅读");
+        if (a.comment_count !== undefined) meta.push(escapeHtml(a.comment_count) + " 条评论");
+        if (Array.isArray(a.tag_names) && a.tag_names.length) {
+          a.tag_names.forEach(function (t) { meta.push('<span class="tag"># ' + escapeHtml(t) + "</span>"); });
+        }
+        el("a-meta").innerHTML = meta.join(" ");
+        if (a.cover_image) {
+          var c = el("a-cover");
+          c.src = safeUrl(a.cover_image);
+          c.hidden = false;
+        }
+        if (a.summary) {
+          el("a-summary").textContent = a.summary;
+          el("a-summary").hidden = false;
+        }
+        el("a-content").innerHTML = renderRichOrMarkdown(a.content || "");
+        el("status").hidden = true;
+        el("article").hidden = false;
+        // 浏览计数：与站点预渲染页的客户端上报行为保持一致（仅上报一次，不阻塞渲染）
+        if (a.slug) {
+          fetch(apiBase + "/public/articles/" + encodeURIComponent(a.slug) + "/view", { method: "POST" })
+            .catch(function () { /* 静默失败 */ });
+        }
+        // 评论区：与文章后台 is_comment 开关保持一致（预渲染页同规则）
+        if (a.is_comment && a.id) { initComments(a.id); }
+      }
+
+      // ===== 评论模块（与站点预渲染页 components/Comments.tsx 行为对齐）=====
+      var COMMENT_TARGET_TYPE = "article";
+      var commentTargetId = "";
+      var replyTo = null; // { id: string, nickname: string }
+      var submitting = false;
+
+      var USER_ICON_SVG =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
+      function initComments(targetId) {
+        commentTargetId = String(targetId);
+        el("sec-comments").hidden = false;
+        renderCommentSkeleton();
+        bindCommentForm();
+        fetchComments();
+      }
+
+      function renderCommentSkeleton() {
+        var card =
+          '<div class="cmt-skeleton"><div class="sk-row"><span class="sk-avatar"></span>' +
+          '<span class="sk-bar" style="width:30%;margin:0"></span></div>' +
+          '<div class="sk-bar" style="width:100%"></div><div class="sk-bar" style="width:66%"></div></div>';
+        var html = "";
+        for (var i = 0; i < 3; i++) html += card;
+        el("c-list").innerHTML = html;
+        el("c-total").hidden = true;
+      }
+
+      function fetchComments() {
+        var query =
+          "target_type=" + encodeURIComponent(COMMENT_TARGET_TYPE) +
+          "&target_id=" + encodeURIComponent(commentTargetId) +
+          "&page=1&page_size=100";
+        return fetch(apiBase + "/public/comments?" + query, { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            var list = res && res.code === 0 && res.data && Array.isArray(res.data.list) ? res.data.list : [];
+            renderCommentList(list);
+          })
+          .catch(function () { renderCommentList([]); });
+      }
+
+      // 两级回复树：parent_id 指向的父评论存在则挂入其 replies，否则作为根评论
+      function buildCommentTree(list) {
+        var nodeMap = {};
+        var roots = [];
+        list.forEach(function (c) { nodeMap[c.id] = { c: c, replies: [] }; });
+        list.forEach(function (c) {
+          var node = nodeMap[c.id];
+          if (!node) return;
+          if (c.parent_id && nodeMap[c.parent_id]) nodeMap[c.parent_id].replies.push(node);
+          else roots.push(node);
+        });
+        return roots;
+      }
+
+      function commentCardHTML(node, isReply) {
+        var c = node.c;
+        var chip = c.is_blogger ? '<span class="chip-blogger">博主</span>' : "";
+        var date = formatDate(c.created_at || "");
+        var replyBtn = isReply ? "" :
+          '<button type="button" class="comment-reply-btn" data-reply-id="' + escapeHtml(c.id || "") +
+          '" data-reply-nick="' + escapeHtml(c.nickname || "") + '">回复</button>';
+        return (
+          '<div class="comment-card"><div class="comment-head">' +
+          '<span class="comment-avatar' + (c.is_blogger ? " blogger" : "") + '">' + USER_ICON_SVG + "</span>" +
+          '<div class="comment-body"><div>' +
+          '<span class="comment-name">' + escapeHtml(c.nickname || "") + "</span>" + chip +
+          (date ? '<span class="comment-date">' + escapeHtml(date) + "</span>" : "") +
+          "</div>" +
+          (c.content ? '<p class="comment-content">' + escapeHtml(c.content) + "</p>" : "") +
+          replyBtn +
+          "</div></div></div>"
+        );
+      }
+
+      function renderCommentList(list) {
+        var total = el("c-total");
+        if (list.length > 0) { total.textContent = String(list.length); total.hidden = false; }
+        else { total.hidden = true; }
+
+        var tree = buildCommentTree(list);
+        var box = el("c-list");
+        if (tree.length === 0) {
+          box.innerHTML = '<p class="comments-empty">还没有评论，来抢沙发吧～</p>';
+          return;
+        }
+        box.innerHTML = tree.map(function (node) {
+          var html = commentCardHTML(node, false);
+          if (node.replies.length) {
+            html += '<div class="comment-replies">' +
+              node.replies.map(function (r) { return commentCardHTML(r, true); }).join("") +
+              "</div>";
+          }
+          return html;
+        }).join("");
+      }
+
+      function setReplyTo(id, nickname) {
+        if (id) {
+          replyTo = { id: id, nickname: nickname || "" };
+          el("c-reply-name").textContent = nickname || "";
+          el("c-reply-banner").hidden = false;
+        } else {
+          replyTo = null;
+          el("c-reply-banner").hidden = true;
+        }
+      }
+
+      function setSubmitMsg(msg, kind) {
+        var node = el("c-submit-msg");
+        if (!msg) { node.hidden = true; node.textContent = ""; return; }
+        node.textContent = msg;
+        node.className = "submit-msg " + (kind || "");
+        node.hidden = false;
+      }
+
+      function setFieldError(id, msg) {
+        var node = el(id);
+        if (!msg) { node.hidden = true; node.textContent = ""; return; }
+        node.textContent = msg;
+        node.hidden = false;
+      }
+
+      function bindCommentForm() {
+        el("c-content").addEventListener("input", function () {
+          el("c-count-chars").textContent = this.value.trim().length + " / 2000";
+        });
+
+        el("c-reply-cancel").addEventListener("click", function () { setReplyTo(null); });
+
+        // 列表内「回复」按钮：事件委托
+        el("c-list").addEventListener("click", function (e) {
+          var btn = e.target.closest ? e.target.closest(".comment-reply-btn") : null;
+          if (!btn) return;
+          setReplyTo(btn.getAttribute("data-reply-id"), btn.getAttribute("data-reply-nick"));
+        });
+
+        el("c-form").addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          if (submitting) return;
+
+          var nickname = el("c-nickname").value.trim();
+          var website = el("c-website").value.trim();
+          var content = el("c-content").value.trim();
+
+          // 与预渲染页一致的逐字段校验（昵称 1-50 / 网址格式 / 内容 1-2000）
+          var errors = {};
+          if (!nickname) errors.nickname = "请填写昵称";
+          else if (nickname.length > 50) errors.nickname = "昵称不能超过 50 字符";
+          if (website && !/^https?:\/\/[\w.-]+(:\d+)?(\/[\w\-./?%&=]*)?$/i.test(website)) {
+            errors.website = "请输入有效的网址（以 http(s):// 开头）";
+          }
+          if (!content) errors.content = "请填写评论内容";
+          else if (content.length > 2000) errors.content = "评论内容不能超过 2000 字符";
+          setFieldError("c-err-nickname", errors.nickname);
+          setFieldError("c-err-website", errors.website);
+          setFieldError("c-err-content", errors.content);
+          if (errors.nickname || errors.website || errors.content) return;
+
+          submitting = true;
+          var btn = el("c-submit");
+          btn.disabled = true;
+          btn.textContent = "发布中...";
+          setSubmitMsg("", "");
+
+          var payload = {
+            target_type: COMMENT_TARGET_TYPE,
+            target_id: commentTargetId,
+            nickname: nickname,
+            content: content
+          };
+          if (replyTo) payload.parent_id = replyTo.id;
+          if (website) payload.website = website;
+
+          fetch(apiBase + "/public/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (res && res.code === 0) {
+                el("c-content").value = "";
+                el("c-count-chars").textContent = "0 / 2000";
+                setReplyTo(null);
+                setSubmitMsg("评论已提交，感谢你的留言！", "ok");
+                return fetchComments();
+              }
+              setSubmitMsg((res && res.msg) || "评论发布失败，请稍后再试", "err");
+            })
+            .catch(function () { setSubmitMsg("评论发布失败，请稍后再试", "err"); })
+            .then(function () {
+              submitting = false;
+              btn.disabled = false;
+              btn.textContent = "发布评论";
+            });
+        });
+      }
+
+      var slug = parseSlug();
+      if (!slug) { showError("无效的文章地址"); return; }
+
+      fetch(siteRoot + "/api/v1/public/articles/" + encodeURIComponent(slug), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "文章不存在或已下架"); }
+        })
+        .catch(function () { showError("文章加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+import { Github, Instagram, Mail, Rss, Youtube } from "lucide-react";
+
+/**
+ * 社交图标字形：优先命中常见平台，其余以首字/前缀展示（数据全部来自博主资料接口）。
+ */
+export function SocialIconGlyph({
+  platform,
+  className = "h-4 w-4",
+}: {
+  platform: string;
+  className?: string;
+}) {
+  const p = platform.toLowerCase();
+  if (p === "instagram") return <Instagram className={className} strokeWidth={1.5} />;
+  if (p === "youtube") return <Youtube className={className} strokeWidth={1.5} />;
+  if (p === "github") return <Github className={className} strokeWidth={1.5} />;
+  if (p === "rss") return <Rss className={className} strokeWidth={1.5} />;
+  if (p === "email" || p === "mail") return <Mail className={className} strokeWidth={1.5} />;
+  if (p === "weibo" || p === "微博") return <span className="text-xs font-bold">微</span>;
+  if (p === "bilibili" || p === "b站") return <span className="text-xs font-bold">B</span>;
+  if (p === "xiaohongshu" || p === "小红书") return <span className="text-xs font-bold">红</span>;
+  if (p === "douyin" || p === "抖音") return <span className="text-xs font-bold">抖</span>;
+  if (p === "tiktok") return <span className="text-xs font-bold">TT</span>;
+  if (p === "twitter" || p === "x") return <span className="text-xs font-bold">X</span>;
+  return <span className="text-[10px] font-bold uppercase">{platform.slice(0, 2)}</span>;
+}
+
+export function SocialIconLink({
+  platform,
+  url,
+  size = "md",
+  variant = "light",
+}: {
+  platform: string;
+  url: string;
+  size?: "md" | "lg";
+  /** light：奶油底上的图标；dark：深墨底（导航/页脚）上的图标 */
+  variant?: "light" | "dark";
+}) {
+  const p = platform.toLowerCase();
+  const isMail = p === "email" || p === "mail";
+  const href = isMail && !url.startsWith("mailto:") ? `mailto:${url}` : url;
+  const dim = size === "lg" ? "h-10 w-10" : "h-8 w-8";
+  const iconDim = size === "lg" ? "h-4.5 w-4.5" : "h-4 w-4";
+  const tone =
+    variant === "dark"
+      ? "text-white/60 hover:bg-white/10 hover:text-accent"
+      : "text-text-muted hover:bg-accent hover:text-white";
+
+  return (
+    <a
+      href={href}
+      target={isMail ? undefined : "_blank"}
+      rel={isMail ? undefined : "noopener noreferrer"}
+      aria-label={platform}
+      className={`flex ${dim} cursor-pointer items-center justify-center rounded-full transition-colors duration-200 ${tone}`}
+    >
+      <SocialIconGlyph platform={platform} className={iconDim} />
+    </a>
+  );
+}
+
+export function SocialIcons({
+  links,
+  size = "md",
+  variant = "light",
+}: {
+  links: { platform: string; url: string; sort_order?: number; name?: string }[];
+  size?: "md" | "lg";
+  variant?: "light" | "dark";
+}) {
+  const sorted = [...links].sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+  );
+  return (
+    <div className="flex items-center gap-1.5">
+      {sorted.map((link) => (
+        <SocialIconLink
+          key={`${link.platform}-${link.sort_order ?? 0}`}
+          platform={link.name || link.platform}
+          url={link.url}
+          size={size}
+          variant={variant}
+        />
+      ))}
+    </div>
+  );
+}

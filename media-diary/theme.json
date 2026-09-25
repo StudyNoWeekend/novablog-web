@@ -1,0 +1,16 @@
+{
+  "id": "media-diary",
+  "name": "多媒体日记",
+  "version": "0.1.0",
+  "engine": "next-static",
+  "api_compat": "v1",
+  "author": "novablog",
+  "description": "面向多媒体运营博主与内容创作者的明亮黄奶油风主题：视频作品、图文专栏、音乐分享与关于我",
+  "homepage": "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/media-diary",
+  "screenshots": [],
+  "routes": {
+    "fallback": {
+      "/articles/*": "/article.html"
+    }
+  }
+}
