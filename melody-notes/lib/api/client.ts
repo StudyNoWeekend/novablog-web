@@ -69,3 +69,17 @@ export async function apiFetch<T>(
     clearTimeout(timeoutId);
   }
 }
+
+/**
+ * 解析后端返回的文件相对路径为可访问 URL（菜谱步骤图、书籍/游戏封面等）：
+ * http(s) 开头的完整 URL 原样返回；其余拼接「API 站点根 origin + /files/ + 路径」。
+ */
+export function getFileUrl(path: string): string {
+  const raw = String(path || "").trim();
+  if (!raw) return "";
+  // 完整 URL / 协议相对 / 站点绝对路径 / 锚点：原样返回
+  if (/^(https?:\/\/|\/\/|\/|#)/i.test(raw)) {
+    return raw;
+  }
+  return `${getSiteRoot()}/files/${raw.replace(/^\/+/, "")}`;
+}

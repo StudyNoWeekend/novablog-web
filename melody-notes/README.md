@@ -12,8 +12,14 @@
 | `/articles` | 文章列表：搜索、分类筛选、分页 + 侧栏（热门文章/分类） |
 | `/articles/[slug]` | 文章详情（构建期 SSG 预渲染，未预渲染的由 `public/article.html` 壳页面兜底） |
 | `/about` | 关于我（博主资料 + 文章/歌曲/歌单统计 + 社交链接） |
+| `/open-source`、`/open-source/[id]` | 开源作品列表与详情，渲染 Markdown README、仓库与主页外链（`open_source_enabled`） |
+| `/recipes`、`/recipes/[id]` | 美食菜谱列表与详情，含难度筛选、食材清单与编号步骤图（`recipe_enabled`） |
+| `/books`、`/books/[id]` | 读书书架列表与详情，含阅读状态筛选、星级与 Markdown 书评（`book_enabled`） |
+| `/games`、`/games/[id]` | 游戏库列表与详情，含游玩状态筛选、评分（x/10）与短评（`game_enabled`） |
+| `/fitness` | 健身训练记录列表，含训练类型筛选（仅列表页，`fitness_enabled`） |
+| `/tech-stack` | 技术栈列表，含熟练度筛选与 4 档进度展示（仅列表页，`tech_stack_enabled`） |
 
-导航与页面展示由后端「模块开关配置」（`/api/v1/public/module-config`）驱动：关闭音乐模块会隐藏音乐推荐/歌单入口与相关板块，关闭文章模块会隐藏文章入口与相关板块。
+导航与页面展示由后端「模块开关配置」（`/api/v1/public/module-config`）驱动：关闭音乐模块会隐藏音乐推荐/歌单入口与相关板块，关闭文章模块会隐藏文章入口与相关板块。六个新模块（开源作品/美食菜谱/读书书架/游戏库/健身训练/技术栈）的开关为 `open_source_enabled`、`recipe_enabled`、`book_enabled`、`game_enabled`、`fitness_enabled`、`tech_stack_enabled`，入口统一收纳在导航「更多」下拉（桌面端）与移动端「更多功能」小节中，随开关过滤；页脚同步展示对应链接。
 
 音乐播放：全局 `MusicPlayerProvider` 挂在根布局，任意页面点击歌曲后由右下角悬浮播放器（可最小化）接管，播放源走 `GET /api/v1/public/music/audio-url/{id}` 获取 B 站官方外链播放器地址，以 `<iframe>` 内嵌播放（B 站防盗链，不支持音频直链；播放控制在 iframe 内完成，仅支持手动切歌）。
 
@@ -21,7 +27,7 @@
 
 ## 对接的公开接口
 
-与 lens-life-template 一致的数据层（`lib/api/*`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`（列表/发表）、`music`（songs/audio-url/playlists）、`module-config`。统一走 `lib/api/client.ts` 三级回退（theme-config.js 注入 → 环境变量 → 同域相对路径），全部取数函数失败时回退空数据。
+与 lens-life-template 一致的数据层（`lib/api/*`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`（列表/发表）、`music`（songs/audio-url/playlists）、`open-sources`（列表/详情）、`recipes`（列表/详情）、`books`（列表/详情）、`games`（列表/详情）、`fitness`（仅列表）、`tech-stacks`（仅列表）、`module-config`。统一走 `lib/api/client.ts` 三级回退（theme-config.js 注入 → 环境变量 → 同域相对路径），全部取数函数失败时回退空数据。
 
 ## 本地开发
 

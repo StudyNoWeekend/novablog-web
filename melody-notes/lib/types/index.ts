@@ -24,6 +24,12 @@ export interface Paginated<T> {
   total_pages: number;
 }
 
+// 带失败标记的分页结果：failed=true 表示请求失败（list 回退为空数组），
+// 列表页据此展示「错误重试」态，与「暂无内容」空态区分
+export interface ListResult<T> extends Paginated<T> {
+  failed?: boolean;
+}
+
 // ---------- 模块开关配置 ----------
 export interface ModuleConfig {
   article_enabled: boolean;
@@ -33,6 +39,12 @@ export interface ModuleConfig {
   travel_enabled: boolean;
   portfolio_enabled: boolean;
   equipment_enabled: boolean;
+  open_source_enabled: boolean;
+  recipe_enabled: boolean;
+  book_enabled: boolean;
+  game_enabled: boolean;
+  fitness_enabled: boolean;
+  tech_stack_enabled: boolean;
   updated_at: string;
 }
 
@@ -133,6 +145,132 @@ export interface Playlist {
   description: string;
   sort_order: number;
   enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 开源作品 ----------
+export interface OpenSource {
+  id: string;
+  name: string;
+  repo_url: string;
+  summary: string;
+  language: string;
+  topics: string; // 逗号分隔的主题标签字符串
+  stars: number;
+  homepage: string;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpenSourceDetail extends OpenSource {
+  readme: string; // Markdown 原文
+  readme_updated_at: string;
+}
+
+// ---------- 美食菜谱 ----------
+export interface Recipe {
+  id: string;
+  title: string;
+  cover: string;
+  summary: string;
+  difficulty: number; // 1=简单 2=中等 3=困难
+  minutes: number; // 耗时（分钟）
+  servings: number; // 份量
+  tags: string; // 逗号分隔的标签字符串
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecipeIngredient {
+  name: string;
+  amount: string;
+}
+
+export interface RecipeStep {
+  text: string;
+  image: string; // 相对路径；展示前需拼接 API 站点根 + /files/（见 client.ts getFileUrl）
+}
+
+export interface RecipeDetail extends Recipe {
+  ingredients: RecipeIngredient[];
+  steps: RecipeStep[];
+}
+
+// ---------- 读书书架 ----------
+export type ReadingStatus = "want" | "reading" | "done";
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  rating: number; // 0-5 星
+  reading_status: ReadingStatus;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookDetail extends Book {
+  review: string; // Markdown 书评
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+// ---------- 游戏库 ----------
+export type GamePlayStatus = "want" | "playing" | "played";
+
+export interface Game {
+  id: string;
+  title: string;
+  cover: string;
+  platform: string;
+  genre: string;
+  play_status: GamePlayStatus;
+  play_hours: number; // 游玩时长（小时）
+  rating: number; // 0-10 分
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameDetail extends Game {
+  short_review: string;
+}
+
+// ---------- 健身训练 ----------
+export type FitnessType = "strength" | "cardio" | "stretch";
+
+export interface FitnessRecord {
+  id: string;
+  date: string;
+  title: string;
+  type: FitnessType;
+  duration_min: number; // 时长（分钟）
+  calories: number; // 千卡
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 技术栈 ----------
+export interface TechStack {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  level: number; // 1=了解 2=熟悉 3=熟练 4=精通
+  description: string;
+  status: number;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
