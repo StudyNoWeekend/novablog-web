@@ -53,6 +53,18 @@ export interface ModuleConfig {
   travel_enabled: boolean;
   portfolio_enabled: boolean;
   equipment_enabled: boolean;
+  /** 开源作品模块开关 */
+  open_source_enabled: boolean;
+  /** 美食菜谱模块开关 */
+  recipe_enabled: boolean;
+  /** 读书书架模块开关 */
+  book_enabled: boolean;
+  /** 游戏库模块开关 */
+  game_enabled: boolean;
+  /** 健身训练模块开关 */
+  fitness_enabled: boolean;
+  /** 技术栈模块开关 */
+  tech_stack_enabled: boolean;
   updated_at: string;
 }
 
@@ -230,4 +242,132 @@ export interface Song {
 /** B 站官方外链播放器地址（iframe 内嵌播放用，非音频直链） */
 export interface AudioUrl {
   url: string;
+}
+
+/** 开源作品（GET /open-sources） */
+export interface OpenSource {
+  id: string;
+  name: string;
+  repo_url: string;
+  summary: string;
+  language: string;
+  /** 逗号分隔的话题标签，如 "go,cli,tools" */
+  topics: string;
+  stars: number;
+  homepage: string;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpenSourceDetail extends OpenSource {
+  /** README 原文（Markdown） */
+  readme: string;
+  readme_updated_at?: string;
+}
+
+/** 美食菜谱（GET /recipes） */
+export interface Recipe {
+  id: string;
+  title: string;
+  cover: string;
+  summary: string;
+  /** 难度：1=简单 2=中等 3=困难 */
+  difficulty: number;
+  /** 烹饪耗时（分钟） */
+  minutes: number;
+  servings: number;
+  /** 逗号分隔的标签 */
+  tags: string;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecipeDetail extends Recipe {
+  ingredients: { name: string; amount: string }[];
+  /** image 为相对路径时需拼「站点根 /files/」前缀展示 */
+  steps: { text: string; image: string }[];
+}
+
+/** 读书书架（GET /books） */
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  /** 评分 0-5 星 */
+  rating: number;
+  /** 阅读状态：want=想读 reading=在读 done=读完 */
+  reading_status: string;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookDetail extends Book {
+  /** 书评（Markdown） */
+  review: string;
+  started_at?: string;
+  finished_at?: string;
+}
+
+/** 游戏库（GET /games） */
+export interface Game {
+  id: string;
+  title: string;
+  cover: string;
+  platform: string;
+  genre: string;
+  /** 游玩状态：want=想玩 playing=在玩 played=玩过 */
+  play_status: string;
+  /** 累计游玩时长（小时） */
+  play_hours: number;
+  /** 评分 0-10 */
+  rating: number;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameDetail extends Game {
+  /** 简评（Markdown） */
+  short_review: string;
+}
+
+/** 健身训练记录（GET /fitness，仅列表无详情） */
+export interface FitnessRecord {
+  id: string;
+  /** 训练日期，如 "2026-09-28" */
+  date: string;
+  title: string;
+  /** 训练类型：strength=力量 cardio=有氧 stretch=拉伸 */
+  type: string;
+  /** 时长（分钟） */
+  duration_min: number;
+  /** 消耗（千卡） */
+  calories: number;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 技术栈（GET /tech-stacks，仅列表无详情） */
+export interface TechStack {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  /** 熟练度：1=了解 2=熟悉 3=熟练 4=精通 */
+  level: number;
+  description: string;
+  status: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 }

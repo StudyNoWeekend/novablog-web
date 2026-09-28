@@ -4,16 +4,22 @@
 
 ## 页面结构
 
-| 路由 | 说明 |
-|------|------|
-| `/` | 首页：手写标题 Hero（博主大图）+ 精选作品 + 关于我 / 最新动态 / 我的装备三栏 |
-| `/videos` | 作品：视频卡片网格，支持关键词搜索 |
-| `/articles`、`/articles/[slug]` | 博客：分类筛选列表与详情，未预渲染的详情由 `public/article.html` 深色壳页面兜底 |
-| `/about` | 关于我：头像、简介、创作方向与社交平台 |
-| `/gear` | 设备：器材卡片网格 |
-| `/contact` | 联系：邮箱、坐标与社交平台 |
+| 路由 | 说明 | 模块开关 |
+|------|------|------|
+| `/` | 首页：手写标题 Hero（博主大图）+ 精选作品 + 关于我 / 最新动态 / 我的装备三栏 | — |
+| `/videos` | 作品：视频卡片网格，支持关键词搜索 | `video_enabled` |
+| `/articles`、`/articles/[slug]` | 博客：分类筛选列表与详情，未预渲染的详情由 `public/article.html` 深色壳页面兜底 | `article_enabled` |
+| `/about` | 关于我：头像、简介、创作方向与社交平台 | — |
+| `/gear` | 设备：器材卡片网格 | `equipment_enabled` |
+| `/contact` | 联系：邮箱、坐标与社交平台 | — |
+| `/open-source`、`/open-source/[id]` | 开源作品列表与详情（语言/话题标签/Star 数 + README 渲染 + 仓库/主页外链） | `open_source_enabled` |
+| `/recipes`、`/recipes/[id]` | 美食菜谱列表与详情（难度/耗时/份量 + 食材清单 + 编号步骤配图） | `recipe_enabled` |
+| `/books`、`/books/[id]` | 读书书架列表与详情（星级/阅读状态徽标 + 书评渲染 + 起止阅读时间） | `book_enabled` |
+| `/games`、`/games/[id]` | 游戏库列表与详情（平台/类型/游玩状态/评分(x/10)/时长 + 简评渲染） | `game_enabled` |
+| `/fitness` | 健身训练记录列表（日期/类型徽标/时长/千卡） | `fitness_enabled` |
+| `/tech-stack` | 技术栈展示（图标/分类/四档熟练度分段条） | `tech_stack_enabled` |
 
-导航与页面展示由后端「模块开关配置」（`/public/module-config`）驱动：视频 / 博客 / 设备模块关闭时自动隐藏入口并显示占位页。页脚含主题来源链接（`theme.json` homepage）。
+导航与页面展示由后端「模块开关配置」（`/public/module-config`）驱动：视频 / 博客 / 设备模块关闭时自动隐藏入口并显示占位页。六个新内容模块（开源作品/美食菜谱/读书书架/游戏库/健身训练/技术栈）收纳在导航「更多」下拉组（移动端为「更多功能」小节）中，随各自模块开关过滤，六个全关时整个下拉不渲染。页脚含主题来源链接（`theme.json` homepage）。
 
 ## 对接的后端模块
 

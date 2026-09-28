@@ -14,6 +14,12 @@ const NAV_ITEMS: { label: string; href: string; moduleKey?: keyof ModuleConfig }
   { label: "关于我", href: "/about" },
   { label: "博客", href: "/articles", moduleKey: "article_enabled" },
   { label: "设备", href: "/gear", moduleKey: "equipment_enabled" },
+  { label: "开源作品", href: "/open-source", moduleKey: "open_source_enabled" },
+  { label: "美食菜谱", href: "/recipes", moduleKey: "recipe_enabled" },
+  { label: "读书书架", href: "/books", moduleKey: "book_enabled" },
+  { label: "游戏库", href: "/games", moduleKey: "game_enabled" },
+  { label: "健身训练", href: "/fitness", moduleKey: "fitness_enabled" },
+  { label: "技术栈", href: "/tech-stack", moduleKey: "tech_stack_enabled" },
   { label: "联系", href: "/contact" },
 ];
 

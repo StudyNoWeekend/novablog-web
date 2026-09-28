@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的开源作品详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>开源作品加载中 | FrameWithMe</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #0e1218;
+      --panel: #151b24;
+      --border: #232d3b;
+      --text: #eef2f8;
+      --muted: #94a0b0;
+      --accent: #7285f7;
+      --accent-soft: rgba(114, 133, 247, 0.12);
+      --danger: #f0566a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    .shell-header {
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .shell-header a { color: var(--accent); text-decoration: none; }
+    .shell-header a:hover { text-decoration: underline; }
+    .brand { color: var(--text); }
+    .brand::before { content: "◉ "; color: var(--accent); }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+    .status {
+      color: var(--muted);
+      padding: 48px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent); }
+    article h1 {
+      font-size: 30px;
+      line-height: 1.3;
+      margin: 8px 0 16px;
+      letter-spacing: -0.02em;
+    }
+    .summary { color: var(--muted); margin: 0 0 20px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+    .tag {
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .tag.plain { background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
+    .links { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 32px; }
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .links a:hover { border-color: var(--accent); color: var(--accent); }
+    .content { font-size: 16px; }
+    .content h2, .content h3, .content h4 { margin: 32px 0 12px; letter-spacing: -0.01em; }
+    .content h2 { font-size: 24px; }
+    .content h3 { font-size: 20px; }
+    .content p { margin: 14px 0; }
+    .content a { color: var(--accent); }
+    .content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.9em;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .content pre {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    .content pre code { background: none; color: inherit; padding: 0; }
+    .content blockquote {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 10px 16px;
+      margin: 18px 0;
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+    }
+    .content ul, .content ol { margin: 14px 0 14px 24px; }
+    .content li { margin: 6px 0; }
+    .content img { max-width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand" id="brand">FrameWithMe</span>
+    <a href="/">← 返回首页</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载开源作品…</div>
+    <article id="project" hidden>
+      <h1 id="p-name"></h1>
+      <p class="summary" id="p-summary" hidden></p>
+      <div class="tags" id="p-tags"></div>
+      <div class="links" id="p-links"></div>
+      <h2>README</h2>
+      <div class="content" id="p-readme"></div>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+
+      // 从 URL 解析 id：/open-source/{id} | /open-source/{id}.html | /open-source/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/open-source\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/open-source\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码（如 /open-source/%zz）：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#|mailto:)/i.test(u)) return u;
+        return "#";
+      }
+
+      // 轻量 Markdown 渲染（先整体转义防 XSS，再按行解析常用块级/行内语法）
+      function renderMarkdown(src) {
+        var lines = escapeHtml(src).split(/\r?\n/);
+        var out = [], i = 0, inCode = false, codeBuf = [], listType = null;
+
+        function closeList() {
+          if (listType) { out.push("</" + listType + ">"); listType = null; }
+        }
+        function inline(s) {
+          s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+          s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, src) {
+            return '<img src="' + safeUrl(src) + '" alt="' + alt + '" />';
+          });
+          s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, text, href) {
+            return '<a href="' + safeUrl(href) + '" target="_blank" rel="noopener">' + text + "</a>";
+          });
+          s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+          s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+          return s;
+        }
+
+        while (i < lines.length) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            if (inCode) {
+              out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+              codeBuf = []; inCode = false;
+            } else { closeList(); inCode = true; }
+            i++; continue;
+          }
+          if (inCode) { codeBuf.push(line); i++; continue; }
+
+          var h = line.match(/^(#{1,4})\s+(.*)$/);
+          if (h) {
+            closeList();
+            var lv = h[1].length;
+            out.push("<h" + lv + ">" + inline(h[2]) + "</h" + lv + ">");
+            i++; continue;
+          }
+          if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { closeList(); out.push("<hr/>"); i++; continue; }
+          if (/^\s*&gt;\s?/.test(line)) {
+            closeList();
+            var quote = [];
+            while (i < lines.length && /^\s*&gt;\s?/.test(lines[i])) {
+              quote.push(lines[i].replace(/^\s*&gt;\s?/, "")); i++;
+            }
+            out.push("<blockquote><p>" + inline(quote.join(" ")) + "</p></blockquote>");
+            continue;
+          }
+          if (/^\s*[-*+]\s+/.test(line)) {
+            if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
+            out.push("<li>" + inline(line.replace(/^\s*[-*+]\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*\d+\.\s+/.test(line)) {
+            if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+            out.push("<li>" + inline(line.replace(/^\s*\d+\.\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*$/.test(line)) { closeList(); i++; continue; }
+
+          var para = [];
+          while (i < lines.length && !/^\s*$/.test(lines[i]) &&
+                 !/^(#{1,4})\s|^```|^\s*[-*+]\s|^\s*\d+\.\s|^\s*&gt;/.test(lines[i])) {
+            para.push(lines[i]); i++;
+          }
+          if (para.length) { closeList(); out.push("<p>" + inline(para.join("<br/>")) + "</p>"); }
+          else { i++; }
+        }
+        closeList();
+        if (inCode && codeBuf.length) out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+        return out.join("\n");
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(p) {
+        var brand = el("brand").textContent || "FrameWithMe";
+        document.title = (p.name || "开源作品") + " | " + brand;
+        el("p-name").textContent = p.name || "无标题";
+
+        if (p.summary) {
+          el("p-summary").textContent = p.summary;
+          el("p-summary").hidden = false;
+        }
+
+        // 语言 + 话题标签 + Star 数
+        var tagsHtml = "";
+        if (p.language) tagsHtml += '<span class="tag">' + escapeHtml(p.language) + "</span>";
+        String(p.topics || "").split(",").forEach(function (topic) {
+          topic = topic.trim();
+          if (topic) tagsHtml += '<span class="tag plain">#' + escapeHtml(topic) + "</span>";
+        });
+        if (Number(p.stars) > 0) tagsHtml += '<span class="tag plain">★ ' + escapeHtml(p.stars) + " stars</span>";
+        if (tagsHtml) el("p-tags").innerHTML = tagsHtml;
+
+        // 仓库与主页外链（safeUrl 仅放行 http(s)///#）
+        var linksHtml = "";
+        if (p.repo_url) {
+          linksHtml += '<a href="' + escapeHtml(safeUrl(p.repo_url)) + '" target="_blank" rel="noopener">' +
+            escapeHtml("仓库 ↗") + "</a>";
+        }
+        if (p.homepage) {
+          linksHtml += '<a href="' + escapeHtml(safeUrl(p.homepage)) + '" target="_blank" rel="noopener">' +
+            escapeHtml("主页 ↗") + "</a>";
+        }
+        if (linksHtml) {
+          el("p-links").innerHTML = linksHtml;
+        }
+
+        el("p-readme").innerHTML = renderMarkdown(p.readme || "_该项目暂无 README_");
+        el("status").hidden = true;
+        el("project").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的开源作品地址"); return; }
+
+      // 品牌名取博主配置，失败时保持静态回退值
+      fetch(siteRoot + "/api/v1/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.blog_title) {
+            el("brand").textContent = res.data.blog_title;
+          }
+        })
+        .catch(function () {});
+
+      // 模块开关预检查：开源作品模块关闭时不请求详情（失败按开启处理）
+      fetch(siteRoot + "/api/v1/public/module-config", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.open_source_enabled === false) {
+            showError("开源作品模块未开启");
+            return null;
+          }
+          return fetch(siteRoot + "/api/v1/public/open-sources/" + encodeURIComponent(id), {
+            headers: { Accept: "application/json" }
+          }).then(function (r) { return r.json(); });
+        })
+        .then(function (res) {
+          if (!res) return;
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "项目不存在或已下架"); }
+        })
+        .catch(function () { showError("开源作品加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

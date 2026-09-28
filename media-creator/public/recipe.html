@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的菜谱详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>菜谱加载中 | FrameWithMe</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #0e1218;
+      --panel: #151b24;
+      --border: #232d3b;
+      --text: #eef2f8;
+      --muted: #94a0b0;
+      --accent: #7285f7;
+      --accent-soft: rgba(114, 133, 247, 0.12);
+      --danger: #f0566a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+    }
+    .shell-header {
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .shell-header a { color: var(--accent); text-decoration: none; }
+    .shell-header a:hover { text-decoration: underline; }
+    .brand { color: var(--text); }
+    .brand::before { content: "◉ "; color: var(--accent); }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+    .status {
+      color: var(--muted);
+      padding: 48px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent); }
+    .cover { width: 100%; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 28px; }
+    article h1 {
+      font-size: 30px;
+      line-height: 1.3;
+      margin: 8px 0 16px;
+      letter-spacing: -0.02em;
+    }
+    .summary { color: var(--muted); margin: 0 0 20px; }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .meta .tag {
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .meta .tag.plain { background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
+    section { margin-bottom: 36px; }
+    section > h2 { font-size: 22px; letter-spacing: -0.01em; margin-bottom: 16px; }
+    .ingredients { list-style: none; display: grid; gap: 8px; }
+    .ingredients li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .ingredients .amount { color: var(--muted); flex-shrink: 0; }
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 24px; }
+    .steps li { display: flex; gap: 16px; }
+    .steps .no {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .steps .body { flex: 1; min-width: 0; }
+    .steps .body img {
+      width: 100%;
+      max-width: 576px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand" id="brand">FrameWithMe</span>
+    <a href="/">← 返回首页</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载菜谱…</div>
+    <article id="recipe" hidden>
+      <img id="r-cover" class="cover" alt="" hidden />
+      <h1 id="r-title"></h1>
+      <p class="summary" id="r-summary" hidden></p>
+      <div class="meta" id="r-meta"></div>
+      <section id="r-ingredients" hidden>
+        <h2>食材清单</h2>
+        <ul class="ingredients" id="r-ingredient-list"></ul>
+      </section>
+      <section id="r-steps" hidden>
+        <h2>制作步骤</h2>
+        <ol class="steps" id="r-step-list"></ol>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+
+      // 从 URL 解析 id：/recipes/{id} | /recipes/{id}.html | /recipes/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/recipes\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/recipes\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码（如 /recipes/%zz）：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#|mailto:)/i.test(u)) return u;
+        return "#";
+      }
+
+      // 步骤配图相对路径：拼「站点根 /files/」前缀（与主站 resolveFileUrl 行为一致）
+      function fileUrl(path) {
+        var value = String(path || "").trim();
+        if (!value) return "";
+        if (/^(https?:\/\/|\/|data:)/i.test(value)) return value;
+        return siteRoot + "/files/" + value.replace(/^\.\//, "");
+      }
+
+      // 难度映射：1=简单 2=中等 3=困难
+      var DIFFICULTY = { 1: "简单", 2: "中等", 3: "困难" };
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(r) {
+        var brand = el("brand").textContent || "FrameWithMe";
+        document.title = (r.title || "菜谱") + " | " + brand;
+
+        if (r.cover) {
+          var c = el("r-cover");
+          c.src = safeUrl(r.cover);
+          c.hidden = false;
+        }
+        el("r-title").textContent = r.title || "无标题";
+
+        if (r.summary) {
+          el("r-summary").textContent = r.summary;
+          el("r-summary").hidden = false;
+        }
+
+        // 难度 / 耗时 / 份量 / 标签
+        var meta = [];
+        if (DIFFICULTY[r.difficulty]) {
+          meta.push('<span class="tag">' + escapeHtml(DIFFICULTY[r.difficulty]) + "</span>");
+        }
+        if (Number(r.minutes) > 0) meta.push("<span>" + escapeHtml(r.minutes) + " 分钟</span>");
+        if (Number(r.servings) > 0) meta.push("<span>" + escapeHtml(r.servings) + " 人份</span>");
+        String(r.tags || "").split(",").forEach(function (tag) {
+          tag = tag.trim();
+          if (tag) meta.push('<span class="tag plain">#' + escapeHtml(tag) + "</span>");
+        });
+        if (meta.length) el("r-meta").innerHTML = meta.join(" ");
+
+        // 食材清单
+        var ingredients = Array.isArray(r.ingredients) ? r.ingredients : [];
+        if (ingredients.length) {
+          var ingHtml = "";
+          ingredients.forEach(function (item) {
+            ingHtml += "<li><span>" + escapeHtml(item && item.name || "") + "</span>" +
+              '<span class="amount">' + escapeHtml(item && item.amount || "") + "</span></li>";
+          });
+          el("r-ingredient-list").innerHTML = ingHtml;
+          el("r-ingredients").hidden = false;
+        }
+
+        // 编号步骤（含配图）
+        var steps = Array.isArray(r.steps) ? r.steps : [];
+        if (steps.length) {
+          var stepHtml = "";
+          steps.forEach(function (step, i) {
+            var img = "";
+            var src = fileUrl(step && step.image);
+            if (src) {
+              img = '<img src="' + escapeHtml(src) + '" alt="步骤 ' + (i + 1) + '" loading="lazy" />';
+            }
+            stepHtml += "<li><span class=\"no\">" + (i + 1) + "</span>" +
+              '<div class="body"><p>' + escapeHtml(step && step.text || "") + "</p>" + img + "</div></li>";
+          });
+          el("r-step-list").innerHTML = stepHtml;
+          el("r-steps").hidden = false;
+        }
+
+        el("status").hidden = true;
+        el("recipe").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的菜谱地址"); return; }
+
+      // 品牌名取博主配置，失败时保持静态回退值
+      fetch(siteRoot + "/api/v1/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.blog_title) {
+            el("brand").textContent = res.data.blog_title;
+          }
+        })
+        .catch(function () {});
+
+      // 模块开关预检查：菜谱模块关闭时不请求详情（失败按开启处理）
+      fetch(siteRoot + "/api/v1/public/module-config", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.recipe_enabled === false) {
+            showError("美食菜谱模块未开启");
+            return null;
+          }
+          return fetch(siteRoot + "/api/v1/public/recipes/" + encodeURIComponent(id), {
+            headers: { Accept: "application/json" }
+          }).then(function (r) { return r.json(); });
+        })
+        .then(function (res) {
+          if (!res) return;
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "菜谱不存在或已下架"); }
+        })
+        .catch(function () { showError("菜谱加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

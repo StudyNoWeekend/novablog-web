@@ -1,7 +1,7 @@
 {
   "id": "media-creator",
   "name": "帧记影像",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
@@ -10,7 +10,11 @@
   "screenshots": [],
   "routes": {
     "fallback": {
-      "/articles/*": "/article.html"
+      "/articles/*": "/article.html",
+      "/open-source/*": "/open-source-detail.html",
+      "/recipes/*": "/recipe.html",
+      "/books/*": "/book.html",
+      "/games/*": "/game.html"
     }
   }
 }
