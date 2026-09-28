@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的菜谱详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>菜谱加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #fdfcff;
+      --panel: #ffffff;
+      --border: rgba(60, 53, 84, 0.12);
+      --text: #3c3554;
+      --muted: #8f89a8;
+      --accent: #f078a1;
+      --accent-deep: #e75c8d;
+      --night: #2f2847;
+      --danger: #e05656;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.8;
+    }
+    .kuaile { font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+    .shell-header {
+      background: var(--night);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      color: #fff;
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand .heart { color: var(--accent); }
+    .shell-header a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; }
+    .shell-header a:hover { color: var(--accent); }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    h1 {
+      font-size: 30px;
+      line-height: 1.4;
+      margin: 12px 0 20px;
+    }
+    .cover { width: 100%; border-radius: 14px; margin-bottom: 28px; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--accent);
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .tag {
+      font-size: 12px;
+      border: 1px solid rgba(240,120,161,0.3);
+      background: rgba(240,120,161,0.08);
+      color: var(--accent-deep);
+      border-radius: 999px;
+      padding: 1px 10px;
+      text-decoration: none;
+    }
+    .summary {
+      border-left: 4px solid var(--accent);
+      background: rgba(240,120,161,0.06);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 18px;
+      margin: 0 0 28px;
+      color: #59527a;
+      font-style: italic;
+    }
+    h2.section {
+      font-size: 22px;
+      margin: 40px 0 18px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+    }
+    .ingredients { list-style: none; display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 640px) { .ingredients { grid-template-columns: 1fr 1fr; } }
+    .ingredients li {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 9px 16px; font-size: 14px;
+    }
+    .ingredients .amount { color: var(--muted); white-space: nowrap; }
+    .steps { list-style: none; }
+    .steps li { display: flex; gap: 16px; margin-bottom: 28px; }
+    .step-no {
+      flex: none; width: 32px; height: 32px; border-radius: 999px;
+      background: rgba(240,120,161,0.12); color: var(--accent-deep);
+      font-size: 14px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-body { flex: 1; min-width: 0; }
+    .step-text { white-space: pre-wrap; font-size: 15px; color: var(--text); }
+    .step-img { width: 100%; border-radius: 12px; margin-top: 14px; display: block; }
+    .shell-footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand kuaile"><span id="brand-text"></span><span class="heart">♥</span></span>
+    <a href="/recipes">← 菜谱列表</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载菜谱…</div>
+    <article id="recipe" hidden>
+      <img id="r-cover" class="cover" alt="" hidden />
+      <span id="r-difficulty" class="badge" hidden></span>
+      <h1 id="r-title" class="kuaile"></h1>
+      <div class="meta" id="r-meta"></div>
+      <div class="tags" id="r-tags" hidden></div>
+      <blockquote id="r-summary" class="summary" hidden></blockquote>
+      <section id="sec-ingredients" hidden>
+        <h2 class="section kuaile">食材清单</h2>
+        <ul id="r-ingredients" class="ingredients"></ul>
+      </section>
+      <section id="sec-steps" hidden>
+        <h2 class="section kuaile">制作步骤</h2>
+        <ol id="r-steps" class="steps"></ol>
+      </section>
+    </article>
+  </main>
+  <footer class="shell-footer">二次元，让生活更有趣</footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-text");
+            if (brand) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 id：/recipes/{id} | /recipes/{id}.html | /recipes/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/recipes\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/recipes\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // 相对路径文件 → API 站点根 + /files/ + 路径（任务规范：菜谱步骤图等）
+      function fileUrl(path) {
+        var raw = String(path || "").trim();
+        if (!raw) return "";
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(raw)) return raw;
+        return siteRoot + "/files/" + raw.replace(/^\/+/, "");
+      }
+
+      var DIFFICULTY_LABELS = { 1: "简单", 2: "中等", 3: "困难" };
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = escapeHtml(msg) + ' · <a href="/recipes">返回菜谱列表</a>';
+      }
+
+      function render(p) {
+        var title = p.title || "美食菜谱";
+        document.title = blogTitle ? title + " | " + blogTitle : title;
+        el("r-title").textContent = title;
+
+        var cover = el("r-cover");
+        var coverUrl = fileUrl(p.cover);
+        if (coverUrl && safeUrl(coverUrl) !== "#") {
+          cover.src = coverUrl;
+          cover.hidden = false;
+        }
+
+        var diff = DIFFICULTY_LABELS[p.difficulty];
+        if (diff) {
+          el("r-difficulty").textContent = diff;
+          el("r-difficulty").hidden = false;
+        }
+
+        var meta = [];
+        if (p.minutes > 0) meta.push("⏱ " + p.minutes + " 分钟");
+        if (p.servings > 0) meta.push("🍚 " + p.servings + " 人份");
+        if (meta.length) el("r-meta").textContent = meta.join(" · ");
+
+        var tagsHtml = "";
+        String(p.tags || "").split(",").forEach(function (t) {
+          t = t.trim();
+          if (!t) return;
+          tagsHtml += '<a class="tag" href="/recipes?keyword=' + encodeURIComponent(t) + '">#' + escapeHtml(t) + "</a>";
+        });
+        if (tagsHtml) { el("r-tags").innerHTML = tagsHtml; el("r-tags").hidden = false; }
+
+        if (p.summary) {
+          el("r-summary").textContent = p.summary;
+          el("r-summary").hidden = false;
+        }
+
+        var ingredients = Array.isArray(p.ingredients) ? p.ingredients : [];
+        if (ingredients.length) {
+          var itemsHtml = "";
+          ingredients.forEach(function (item) {
+            itemsHtml += "<li><span>" + escapeHtml(item.name || "") + "</span>" +
+              (item.amount ? '<span class="amount">' + escapeHtml(item.amount) + "</span>" : "") +
+              "</li>";
+          });
+          el("r-ingredients").innerHTML = itemsHtml;
+          el("sec-ingredients").hidden = false;
+        }
+
+        var steps = Array.isArray(p.steps) ? p.steps : [];
+        if (steps.length) {
+          var stepsHtml = "";
+          steps.forEach(function (step, index) {
+            var img = step.image ? fileUrl(step.image) : "";
+            stepsHtml += '<li><span class="step-no">' + (index + 1) + "</span>" +
+              '<div class="step-body"><p class="step-text">' + escapeHtml(step.text || "") + "</p>" +
+              (img && safeUrl(img) !== "#"
+                ? '<img class="step-img" src="' + safeUrl(img) + '" alt="步骤 ' + (index + 1) + '" loading="lazy" />'
+                : "") +
+              "</div></li>";
+          });
+          el("r-steps").innerHTML = stepsHtml;
+          el("sec-steps").hidden = false;
+        }
+
+        el("status").hidden = true;
+        el("recipe").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的菜谱地址"); return; }
+
+      fetch(apiBase + "/public/recipes/" + encodeURIComponent(id), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "菜谱不存在或已下架"); }
+        })
+        .catch(function () { showError("菜谱加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>
