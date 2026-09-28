@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的开源作品由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>开源作品加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #fdf8f0;
+      --panel: #ffffff;
+      --panel-soft: #f7efe1;
+      --highlight: #fbf3e4;
+      --border: #efe3d0;
+      --border-strong: #e2d2b8;
+      --text: #3d2b1f;
+      --text-soft: #5d4a38;
+      --muted: #8a7361;
+      --subtle: #b39c86;
+      --accent: #f09b3c;
+      --accent-deep: #de8725;
+      --accent-subtle: rgba(240, 155, 60, 0.14);
+      --danger: #e2695e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.85;
+    }
+    .display { font-family: "ZCOOL KuaiLe", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; letter-spacing: 0.02em; }
+    .hand { font-family: "Caveat", "Segoe Script", cursive; }
+    .shell-header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(253, 248, 240, 0.92);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .brand { color: var(--text); font-weight: 600; }
+    .brand em { color: var(--accent-deep); font-style: normal; }
+    .shell-header a { color: var(--muted); text-decoration: none; }
+    .shell-header a:hover { color: var(--accent-deep); }
+    main { max-width: 760px; margin: 0 auto; padding: 44px 24px 96px; }
+    .status { color: var(--muted); padding: 64px 0; text-align: center; }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    h1 { font-size: 30px; line-height: 1.35; }
+    .head-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .stars { color: var(--muted); font-size: 14px; white-space: nowrap; }
+    .stars b { color: var(--accent-deep); font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .chip { border-radius: 999px; padding: 3px 12px; font-size: 12px; }
+    .chip.lang { background: var(--accent-subtle); color: var(--accent-deep); font-weight: 600; }
+    .chip.topic { background: var(--panel-soft); color: var(--muted); }
+    blockquote.summary {
+      border-left: 3px solid var(--accent);
+      background: var(--highlight);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 18px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .links a {
+      display: inline-flex; align-items: center; gap: 8px;
+      border-radius: 999px; padding: 10px 20px; font-size: 14px;
+      text-decoration: none; transition: opacity .2s ease, background-color .2s ease;
+    }
+    .links a:hover { opacity: .9; }
+    .links .primary { background: var(--accent); color: #fff; font-weight: 600; }
+    .links .primary:hover { background: var(--accent-deep); }
+    .links .ghost { border: 1px solid var(--border); background: var(--panel); color: var(--text-soft); }
+    .links .ghost:hover { border-color: var(--accent); color: var(--accent-deep); }
+    h2.section { font-size: 24px; margin: 44px 0 18px; padding-top: 32px; border-top: 1px dashed var(--border-strong); }
+    /* README（Markdown）正文样式，与站点 .prose-content 对齐 */
+    .md { color: var(--text-soft); font-size: 16px; line-height: 1.85; word-break: break-word; }
+    .md h1, .md h2, .md h3, .md h4, .md h5, .md h6 {
+      color: var(--text); font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-weight: 400; margin: 2rem 0 1rem; line-height: 1.35;
+    }
+    .md h1 { font-size: 1.5rem; } .md h2 { font-size: 1.3rem; } .md h3 { font-size: 1.15rem; }
+    .md p { margin-bottom: 1.1rem; }
+    .md a { color: var(--accent-deep); text-decoration: underline; text-underline-offset: 3px; }
+    .md a:hover { color: var(--accent); }
+    .md ul, .md ol { margin: 0 0 1.1rem; padding-left: 1.5rem; }
+    .md ul { list-style: disc; } .md ol { list-style: decimal; }
+    .md li { margin-bottom: .4rem; }
+    .md blockquote {
+      border-left: 3px solid var(--accent); margin: 1.2rem 0;
+      padding: .4rem 0 .4rem 1.1rem; color: var(--muted); font-style: italic;
+    }
+    .md code { background: var(--panel-soft); border-radius: 4px; font-size: .9em; padding: .15rem .4rem; }
+    .md pre { background: var(--panel-soft); border-radius: 10px; margin: 0 0 1.1rem; overflow-x: auto; padding: 1rem 1.2rem; }
+    .md pre code { background: none; padding: 0; }
+    .md img { border-radius: 14px; height: auto; margin: 1rem 0; max-width: 100%; }
+    .md hr { border: none; border-top: 1px dashed var(--border-strong); margin: 1.8rem 0; }
+    .md table { border-collapse: collapse; margin-bottom: 1.1rem; width: 100%; }
+    .md th, .md td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: left; }
+    .md th { background: var(--panel-soft); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand display" id="brand-text"></span>
+    <a href="/open-source">← 开源作品列表</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载开源作品…</div>
+    <article id="project" hidden>
+      <div class="head-row">
+        <h1 id="p-name" class="display"></h1>
+        <span id="p-stars" class="stars" hidden><b>★</b> <span id="p-star-count"></span> Stars</span>
+      </div>
+      <div id="p-chips" class="chips"></div>
+      <blockquote id="p-summary" class="summary" hidden></blockquote>
+      <div id="p-links" class="links"></div>
+      <section id="sec-readme" hidden>
+        <h2 class="section display">README</h2>
+        <div id="p-readme" class="md"></div>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-text");
+            if (brand) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 id：/open-source/{id} | /open-source/{id}.html | /open-source/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/open-source\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/open-source\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // ===== 极简 Markdown 渲染：先整体 HTML 转义再替换标记（防 XSS）=====
+      function inlineMd(s) {
+        // 行内代码
+        s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+        // 图片
+        s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, alt, src) {
+          var u = safeUrl(src);
+          return u === "#" ? "" : '<img src="' + u + '" alt="' + alt + '" loading="lazy" />';
+        });
+        // 链接
+        s = s.replace(/\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, t, href) {
+          var u = safeUrl(href);
+          if (u === "#") return t;
+          return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + t + "</a>";
+        });
+        // 粗体 / 斜体
+        s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+        return s;
+      }
+
+      function renderMarkdown(src) {
+        var text = escapeHtml(String(src || "")).replace(/\r\n/g, "\n");
+        var lines = text.split("\n");
+        var html = "";
+        var para = [];
+        var listType = null;
+        var inCode = false;
+
+        function flushPara() {
+          if (para.length) { html += "<p>" + para.map(inlineMd).join("<br>") + "</p>"; para = []; }
+        }
+        function closeList() {
+          if (listType) { html += "</" + listType + ">"; listType = null; }
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            // 围栏代码块开/关
+            if (inCode) { html += "</code></pre>"; inCode = false; }
+            else { flushPara(); closeList(); html += "<pre><code>"; inCode = true; }
+            continue;
+          }
+          if (inCode) { html += line + "\n"; continue; }
+
+          if (!line.trim()) { flushPara(); closeList(); continue; }
+
+          var hm = line.match(/^(#{1,6})\s+(.*)$/);
+          if (hm) {
+            flushPara(); closeList();
+            var level = hm[1].length;
+            html += "<h" + level + ">" + inlineMd(hm[2]) + "</h" + level + ">";
+            continue;
+          }
+          if (/^(-{3,}|\*{3,})$/.test(line.trim())) { flushPara(); closeList(); html += "<hr>"; continue; }
+          if (/^&gt;\s?/.test(line)) {
+            flushPara(); closeList();
+            html += "<blockquote>" + inlineMd(line.replace(/^&gt;\s?/, "")) + "</blockquote>";
+            continue;
+          }
+          var ul = line.match(/^\s*[-*+]\s+(.*)$/);
+          if (ul) {
+            flushPara();
+            if (listType !== "ul") { closeList(); html += "<ul>"; listType = "ul"; }
+            html += "<li>" + inlineMd(ul[1]) + "</li>";
+            continue;
+          }
+          var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+          if (ol) {
+            flushPara();
+            if (listType !== "ol") { closeList(); html += "<ol>"; listType = "ol"; }
+            html += "<li>" + inlineMd(ol[1]) + "</li>";
+            continue;
+          }
+          closeList();
+          para.push(line);
+        }
+        if (inCode) html += "</code></pre>";
+        flushPara();
+        closeList();
+        return html;
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/open-source">返回开源作品列表</a>';
+      }
+
+      function chip(text, cls) {
+        return '<span class="chip ' + cls + '">' + escapeHtml(text) + "</span>";
+      }
+
+      function render(p) {
+        var name = p.name || "开源作品";
+        document.title = blogTitle ? name + " | " + blogTitle : name;
+        el("p-name").textContent = name;
+
+        if (p.stars > 0) {
+          el("p-star-count").textContent = String(p.stars);
+          el("p-stars").hidden = false;
+        }
+
+        var chips = "";
+        if (p.language) chips += chip(p.language, "lang");
+        String(p.topics || "").split(",").forEach(function (t) {
+          t = t.trim();
+          if (t) chips += chip(t, "topic");
+        });
+        if (chips) el("p-chips").innerHTML = chips;
+
+        if (p.summary) {
+          el("p-summary").textContent = p.summary;
+          el("p-summary").hidden = false;
+        }
+
+        var links = "";
+        if (p.repo_url && safeUrl(p.repo_url) !== "#") {
+          links += '<a class="primary" href="' + safeUrl(p.repo_url) + '" target="_blank" rel="noopener noreferrer">仓库地址</a>';
+        }
+        if (p.homepage && safeUrl(p.homepage) !== "#") {
+          links += '<a class="ghost" href="' + safeUrl(p.homepage) + '" target="_blank" rel="noopener noreferrer">项目主页</a>';
+        }
+        if (links) el("p-links").innerHTML = links;
+
+        if (p.readme && String(p.readme).trim()) {
+          el("sec-readme").hidden = false;
+          el("p-readme").innerHTML = renderMarkdown(p.readme);
+        }
+
+        el("status").hidden = true;
+        el("project").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的开源作品地址"); return; }
+
+      fetch(apiBase + "/public/open-sources/" + encodeURIComponent(id), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "开源作品不存在或已下架"); }
+        })
+        .catch(function () { showError("开源作品加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

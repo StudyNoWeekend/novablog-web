@@ -2,7 +2,7 @@
 
 温暖手账风格的 novablog 前端主题模板：奶油底色、蜜糖橙点缀、手写字体与拍立得相框，面向美食博主与生活记录者。
 
-当前版本 **v0.1.0**，发布 tag 为 `food-diary-v0.1.0`。
+当前版本 **v0.4.0**，发布 tag 为 `food-diary-v0.4.0`。
 
 ## 功能模块
 
@@ -10,12 +10,17 @@
 |---|---|---|
 | `/` | 首页：主视觉（拍立得照片堆）、热门分类磁贴、最新美食日记（含关于我侧栏卡片）、旅行横幅 | — |
 | `/articles`、`/articles/[slug]` | 美食日记列表与详情：分类筛选、关键词搜索、人气榜、标签云、评论与浏览量统计 | `article_enabled` |
-| `/recipes` | 菜谱分享：与文章模块同源数据，以大图菜谱卡片呈现，支持分页 | `article_enabled` |
+| `/recipes`、`/recipes/[id]` | 菜谱分享列表与详情：难度筛选、关键词搜索、食材清单与编号步骤图 | `recipe_enabled` |
 | `/travels`、`/travels/[id]` | 旅行美食列表与详情：天数/排序筛选、觅食推荐（JSONB）、行程时间线、点赞、评论 | `travel_enabled` |
 | `/music` | 音乐分享：歌曲列表（右下角悬浮播放器，B 站外链 iframe 播放）+ 第三方歌单 | `music_enabled` |
+| `/open-source`、`/open-source/[id]` | 开源作品列表与详情，渲染 Markdown README、仓库与主页外链 | `open_source_enabled` |
+| `/books`、`/books/[id]` | 读书书架列表与详情，含阅读状态筛选、星级与 Markdown 书评 | `book_enabled` |
+| `/games`、`/games/[id]` | 游戏库列表与详情，含游玩状态筛选、评分（x/10）与短评 | `game_enabled` |
+| `/fitness` | 健身训练记录列表，含训练类型筛选（仅列表页） | `fitness_enabled` |
+| `/tech-stack` | 技术栈列表，含熟练度筛选与 4 档进度展示（仅列表页） | `tech_stack_enabled` |
 | `/about` | 关于我：拍立得头像、博主标签、社交链接 | — |
 
-模块开关由 CMS 的 `/public/module-config` 下发：构建时读取一次作为兜底，浏览器端运行时再次获取，隐藏被关闭的导航项并让对应页面显示禁用提示。页脚展示主题版本号与 `theme.json` 中的源码仓库链接（主题来源链接）。
+模块开关由 CMS 的 `/public/module-config` 下发：构建时读取一次作为兜底，浏览器端运行时再次获取，隐藏被关闭的导航项并让对应页面显示禁用提示。六个新模块入口统一收纳在导航「更多」下拉与移动端「更多功能」小节中，随开关过滤；页脚同步展示对应链接。页脚展示主题版本号与 `theme.json` 中的源码仓库链接（主题来源链接）。
 
 ## 本地开发
 
