@@ -115,6 +115,12 @@ export function HomeContent() {
           travel_enabled: true,
           portfolio_enabled: true,
           equipment_enabled: true,
+          open_source_enabled: true,
+          recipe_enabled: true,
+          book_enabled: true,
+          game_enabled: true,
+          fitness_enabled: true,
+          tech_stack_enabled: true,
           updated_at: "",
         };
 
