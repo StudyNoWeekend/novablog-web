@@ -4,16 +4,27 @@ import {
   Article,
   ArticleDetail,
   AudioUrl,
+  Book,
+  BookDetail,
   Blogger,
   Category,
   Comment,
   CreateCommentPayload,
+  FitnessRecord,
+  Game,
+  GameDetail,
+  ModuleConfig,
+  OpenSource,
+  OpenSourceDetail,
   PaginatedResponse,
   PaginationParams,
   Portfolio,
   PortfolioDetail,
+  Recipe,
+  RecipeDetail,
   Song,
   Tag,
+  TechStack,
   TravelGuide,
   TravelGuideDetail,
   Video,
@@ -208,3 +219,84 @@ export const music = {
   playerUrl: (songId: string) =>
     get<AudioUrl>(`/api/v1/public/music/audio-url/${songId}`),
 };
+
+export const openSources = {
+  list: (params?: PaginationParams & { keyword?: string }) =>
+    get<PaginatedResponse<OpenSource>>("/api/v1/public/open-sources", params),
+  detail: (id: string) => get<OpenSourceDetail>(`/api/v1/public/open-sources/${id}`),
+};
+
+export const recipes = {
+  list: (params?: PaginationParams & { keyword?: string; difficulty?: number }) =>
+    get<PaginatedResponse<Recipe>>("/api/v1/public/recipes", params),
+  detail: (id: string) => get<RecipeDetail>(`/api/v1/public/recipes/${id}`),
+};
+
+export const books = {
+  list: (params?: PaginationParams & { keyword?: string; reading_status?: string }) =>
+    get<PaginatedResponse<Book>>("/api/v1/public/books", params),
+  detail: (id: string) => get<BookDetail>(`/api/v1/public/books/${id}`),
+};
+
+export const games = {
+  list: (params?: PaginationParams & {
+    keyword?: string;
+    platform?: string;
+    genre?: string;
+    play_status?: string;
+  }) => get<PaginatedResponse<Game>>("/api/v1/public/games", params),
+  detail: (id: string) => get<GameDetail>(`/api/v1/public/games/${id}`),
+};
+
+export const fitness = {
+  // 健身训练仅列表接口（无详情）
+  list: (params?: PaginationParams & { keyword?: string; type?: string }) =>
+    get<PaginatedResponse<FitnessRecord>>("/api/v1/public/fitness", params),
+};
+
+export const techStacks = {
+  // 技术栈仅列表接口（无详情）
+  list: (params?: PaginationParams & { keyword?: string; category?: string; level?: number }) =>
+    get<PaginatedResponse<TechStack>>("/api/v1/public/tech-stacks", params),
+};
+
+/**
+ * 将后端返回的文件路径解析为可访问 URL：
+ * 完整 URL（http/https）、站点绝对路径、data: 直接返回；相对路径拼「站点根 /files/」前缀
+ */
+export function resolveFileUrl(path?: string | null): string {
+  const value = String(path ?? "").trim();
+  if (!value) return "";
+  if (/^(https?:\/\/|\/|#|data:)/i.test(value)) return value;
+  return `${getBaseUrl()}/files/${value.replace(/^\.\//, "")}`;
+}
+
+export const ALL_ENABLED_MODULE_CONFIG: ModuleConfig = {
+  article_enabled: true,
+  media_enabled: true,
+  music_enabled: true,
+  video_enabled: true,
+  travel_enabled: true,
+  portfolio_enabled: true,
+  equipment_enabled: true,
+  open_source_enabled: true,
+  recipe_enabled: true,
+  book_enabled: true,
+  game_enabled: true,
+  fitness_enabled: true,
+  tech_stack_enabled: true,
+};
+
+/**
+ * 模块开关配置。失败时回退为全部开启，保证页面可用；
+ * 服务端（详情页构建期门禁）与客户端（导航/页脚运行时重取、列表页门禁）均可安全调用。
+ */
+export async function getModuleConfig(): Promise<ModuleConfig> {
+  try {
+    const config = await get<ModuleConfig>("/api/v1/public/module-config");
+    return { ...ALL_ENABLED_MODULE_CONFIG, ...config };
+  } catch (error) {
+    console.error("Failed to fetch module config:", error);
+    return ALL_ENABLED_MODULE_CONFIG;
+  }
+}

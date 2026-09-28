@@ -1,16 +1,46 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SocialLinks } from "./social-links";
-import type { Blogger } from "@/lib/api";
+import {
+  ALL_ENABLED_MODULE_CONFIG,
+  getModuleConfig,
+  type Blogger,
+  type ModuleConfig,
+} from "@/lib/api";
 import themeInfo from "@/theme.json";
 
 interface FooterProps {
   blogger: Blogger | null;
 }
 
+/** 页脚扩展链接：带 moduleKey 的项随模块开关过滤（构建期兜底全开） */
+const FOOTER_LINKS: { href: string; label: string; moduleKey: keyof ModuleConfig }[] = [
+  { href: "/open-source", label: "开源作品", moduleKey: "open_source_enabled" },
+  { href: "/recipes", label: "美食菜谱", moduleKey: "recipe_enabled" },
+  { href: "/books", label: "读书书架", moduleKey: "book_enabled" },
+  { href: "/games", label: "游戏库", moduleKey: "game_enabled" },
+  { href: "/fitness", label: "健身训练", moduleKey: "fitness_enabled" },
+  { href: "/tech-stack", label: "技术栈", moduleKey: "tech_stack_enabled" },
+];
+
 export function Footer({ blogger }: FooterProps) {
+  const [modules, setModules] = useState<ModuleConfig>(ALL_ENABLED_MODULE_CONFIG);
   const title = blogger?.blog_title?.trim() || "摄影作品集";
+
+  // 运行时重新获取模块开关，覆盖构建期兜底值（静态导出双保险，失败回退全开）
+  useEffect(() => {
+    let cancelled = false;
+    getModuleConfig().then((config) => {
+      if (!cancelled) setModules(config);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const footerLinks = FOOTER_LINKS.filter((link) => modules[link.moduleKey]);
 
   const emailLink = blogger?.social_links?.find((link) =>
     ["mail", "email"].includes(link.platform.toLowerCase())
@@ -61,6 +91,23 @@ export function Footer({ blogger }: FooterProps) {
           </div>
 
           {socialLinks.length > 0 && <SocialLinks links={socialLinks} />}
+
+          {footerLinks.length > 0 && (
+            <nav
+              className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4"
+              aria-label="页脚导航"
+            >
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer rounded-md text-xs tracking-[0.15em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {themeInfo.homepage && (
             <p className="pt-8 text-xs text-muted-foreground">

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的游戏详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>游戏加载中 | Photo Creator</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #fdfdfc;
+      --border: #e8e6e1;
+      --text: #1c1b1a;
+      --muted: #8a8781;
+      --accent: #a67c2e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.8;
+    }
+    .shell-header {
+      padding: 20px 32px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      letter-spacing: 0.12em;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .brand { color: var(--text); font-weight: 600; }
+    .shell-header a { color: var(--muted); text-decoration: none; }
+    .shell-header a:hover { color: var(--text); }
+    main { max-width: 720px; margin: 0 auto; padding: 48px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+    .status.error a { color: var(--text); }
+    .cover { width: 100%; border-radius: 12px; margin-bottom: 32px; }
+    article h1 {
+      font-size: 30px;
+      line-height: 1.35;
+      margin: 0 0 12px;
+      letter-spacing: -0.01em;
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; font-size: 13px; }
+    .meta span {
+      padding: 2px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .meta .rating { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+    .section-title { font-size: 18px; font-weight: 600; margin: 32px 0 16px; }
+    .content { font-size: 16px; }
+    .content h2, .content h3, .content h4 { margin: 40px 0 14px; font-weight: 600; }
+    .content h2 { font-size: 22px; }
+    .content h3 { font-size: 19px; }
+    .content p { margin: 16px 0; }
+    .content a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+    .content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: #f1efeb;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .content pre {
+      background: #1c1b1a;
+      color: #f5f4f2;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    .content pre code { background: none; color: inherit; padding: 0; }
+    .content blockquote {
+      border-left: 2px solid var(--text);
+      padding: 8px 20px;
+      margin: 22px 0;
+      color: var(--muted);
+    }
+    .content ul, .content ol { margin: 16px 0 16px 24px; }
+    .content li { margin: 8px 0; }
+    .content img { max-width: 100%; }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 44px 0; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand">Photo Creator</span>
+    <a href="/">← Back</a>
+  </header>
+  <main>
+    <div id="status" class="status">Loading…</div>
+    <article id="game" hidden>
+      <img id="g-cover" class="cover" alt="" hidden />
+      <span class="badge" id="g-status" hidden></span>
+      <h1 id="g-title"></h1>
+      <div class="meta" id="g-meta"></div>
+      <h2 class="section-title">游戏简评</h2>
+      <div class="content" id="g-review"></div>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+
+      // 从 URL 解析 id：/games/{id} | /games/{id}.html | /games/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/games\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/games\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码（如 /games/%zz）：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // URL 仅放行 http(s)、站点相对路径与页内锚点
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // 轻量 Markdown 渲染（先整体转义防 XSS，再按行解析常用块级/行内语法）
+      function renderMarkdown(src) {
+        var lines = escapeHtml(src).split(/\r?\n/);
+        var out = [], i = 0, inCode = false, codeBuf = [], listType = null;
+
+        function closeList() {
+          if (listType) { out.push("</" + listType + ">"); listType = null; }
+        }
+        function inline(s) {
+          s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+          s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function (_, alt, src) {
+            return '<img src="' + safeUrl(src) + '" alt="' + alt + '" />';
+          });
+          s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, text, href) {
+            return '<a href="' + safeUrl(href) + '" target="_blank" rel="noopener">' + text + "</a>";
+          });
+          s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+          s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+          return s;
+        }
+
+        while (i < lines.length) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            if (inCode) {
+              out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+              codeBuf = []; inCode = false;
+            } else { closeList(); inCode = true; }
+            i++; continue;
+          }
+          if (inCode) { codeBuf.push(line); i++; continue; }
+
+          var h = line.match(/^(#{1,4})\s+(.*)$/);
+          if (h) {
+            closeList();
+            var lv = h[1].length;
+            out.push("<h" + lv + ">" + inline(h[2]) + "</h" + lv + ">");
+            i++; continue;
+          }
+          if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { closeList(); out.push("<hr/>"); i++; continue; }
+          if (/^\s*&gt;\s?/.test(line)) {
+            closeList();
+            var quote = [];
+            while (i < lines.length && /^\s*&gt;\s?/.test(lines[i])) {
+              quote.push(lines[i].replace(/^\s*&gt;\s?/, "")); i++;
+            }
+            out.push("<blockquote><p>" + inline(quote.join(" ")) + "</p></blockquote>");
+            continue;
+          }
+          if (/^\s*[-*+]\s+/.test(line)) {
+            if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
+            out.push("<li>" + inline(line.replace(/^\s*[-*+]\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*\d+\.\s+/.test(line)) {
+            if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+            out.push("<li>" + inline(line.replace(/^\s*\d+\.\s+/, "")) + "</li>");
+            i++; continue;
+          }
+          if (/^\s*$/.test(line)) { closeList(); i++; continue; }
+
+          var para = [];
+          while (i < lines.length && !/^\s*$/.test(lines[i]) &&
+                 !/^(#{1,4})\s|^```|^\s*[-*+]\s|^\s*\d+\.\s|^\s*&gt;/.test(lines[i])) {
+            para.push(lines[i]); i++;
+          }
+          if (para.length) { closeList(); out.push("<p>" + inline(para.join("<br/>")) + "</p>"); }
+          else { i++; }
+        }
+        closeList();
+        if (inCode && codeBuf.length) out.push("<pre><code>" + codeBuf.join("\n") + "</code></pre>");
+        return out.join("\n");
+      }
+
+      // 游玩状态映射：want=想玩 playing=在玩 played=玩过
+      var PLAY_STATUS = { want: "想玩", playing: "在玩", played: "玩过" };
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/">返回首页</a>';
+      }
+
+      function render(g) {
+        document.title = (g.title || "游戏") + " | Photo Creator";
+
+        if (g.cover) {
+          var c = el("g-cover");
+          c.src = safeUrl(g.cover);
+          c.hidden = false;
+        }
+        if (PLAY_STATUS[g.play_status]) {
+          var badge = el("g-status");
+          badge.textContent = PLAY_STATUS[g.play_status];
+          badge.hidden = false;
+        }
+        el("g-title").textContent = g.title || "无标题";
+
+        // 平台 / 类型 / 时长 / 评分(x/10)
+        var meta = [];
+        if (g.platform) meta.push("<span>" + escapeHtml(g.platform) + "</span>");
+        if (g.genre) meta.push("<span>" + escapeHtml(g.genre) + "</span>");
+        if (Number(g.play_hours) > 0) meta.push("<span>" + escapeHtml(g.play_hours) + " 小时</span>");
+        if (Number(g.rating) > 0) meta.push('<span class="rating">★ ' + escapeHtml(g.rating) + " / 10</span>");
+        if (meta.length) el("g-meta").innerHTML = meta.join(" ");
+
+        el("g-review").innerHTML = renderMarkdown(g.short_review || "_暂无简评_");
+        el("status").hidden = true;
+        el("game").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的游戏地址"); return; }
+
+      // 模块开关预检查：游戏库模块关闭时不请求详情（失败按开启处理）
+      fetch(siteRoot + "/api/v1/public/module-config", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data && res.data.game_enabled === false) {
+            showError("游戏库模块未开启");
+            return null;
+          }
+          return fetch(siteRoot + "/api/v1/public/games/" + encodeURIComponent(id), {
+            headers: { Accept: "application/json" }
+          }).then(function (r) { return r.json(); });
+        })
+        .then(function (res) {
+          if (!res) return;
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "游戏不存在或已下架"); }
+        })
+        .catch(function () { showError("游戏加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>
