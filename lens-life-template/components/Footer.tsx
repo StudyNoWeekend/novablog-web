@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Instagram, Mail, MapPin } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
+import { filterMoreItems } from "@/components/more-nav-items";
 import themeInfo from "@/theme.json";
 
 interface FooterProps {
@@ -12,6 +14,23 @@ interface FooterProps {
 }
 
 const DEFAULT_EMAIL = "";
+
+const ALL_ENABLED: ModuleConfig = {
+  article_enabled: true,
+  media_enabled: true,
+  music_enabled: true,
+  video_enabled: true,
+  travel_enabled: true,
+  portfolio_enabled: true,
+  equipment_enabled: true,
+  open_source_enabled: true,
+  recipe_enabled: true,
+  book_enabled: true,
+  game_enabled: true,
+  fitness_enabled: true,
+  tech_stack_enabled: true,
+  updated_at: "",
+};
 
 function SocialIcon({ platform, url }: { platform: string; url: string }) {
   const p = platform.toLowerCase();
@@ -41,6 +60,8 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
 
 export function Footer({ profile: serverProfile }: FooterProps) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
+  // 模块开关：取到前为 null（「更多」链接全量平铺），取到后按开关过滤
+  const [modules, setModules] = useState<ModuleConfig | null>(null);
 
   // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
   useEffect(() => {
@@ -54,6 +75,21 @@ export function Footer({ profile: serverProfile }: FooterProps) {
       });
     return () => { cancelled = true; };
   }, []);
+
+  // 客户端获取模块开关配置（失败时保持 null，链接全量平铺展示）
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<ModuleConfig>("/public/module-config")
+      .then((config) => {
+        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+      })
+      .catch(() => {
+        // 静默失败
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  const moreFooterItems = filterMoreItems(modules);
 
   const socialLinks = profile?.social_links?.length
     ? profile.social_links.map((s) => ({
@@ -123,6 +159,25 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             </div>
           )}
         </div>
+
+        {/* 「更多功能」链接：随模块开关过滤 */}
+        {moreFooterItems.length > 0 && (
+          <nav
+            aria-label="更多功能"
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-border pt-6"
+          >
+            {moreFooterItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm text-text-muted transition-colors duration-200 ease-out hover:text-accent"
+              >
+                <item.icon className="h-4 w-4" strokeWidth={1.5} />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {themeInfo.homepage && (
           <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-subtle">
