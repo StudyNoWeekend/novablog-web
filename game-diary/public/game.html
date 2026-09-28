@@ -62,32 +62,62 @@
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid var(--border);
-      margin-bottom: 32px;
       background: linear-gradient(135deg, #221a44 0%, #171233 60%, #0d0b1a 100%);
+      margin-bottom: 32px;
     }
     .cover img { width: 100%; height: 100%; object-fit: cover; }
-    .cover .shade {
+    .cover .ph {
       position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(11, 10, 20, 0.85), rgba(11, 10, 20, 0.1) 55%, rgba(11, 10, 20, 0.25));
+      display: flex; align-items: center; justify-content: center;
+      color: var(--subtle); font-size: 14px;
     }
-    .cover .title-block { position: absolute; left: 24px; right: 24px; bottom: 20px; }
-    .brand-chip {
+    .cover img + .ph { display: none; }
+    .badges { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .badge.play {
       display: inline-block;
       background: linear-gradient(120deg, #8b5cf6 0%, #ec4899 100%);
       color: #fff; font-size: 12px; font-weight: 700;
-      border-radius: 999px; padding: 3px 12px; margin-bottom: 10px;
+      border-radius: 999px; padding: 3px 12px;
+      box-shadow: 0 0 24px rgba(139, 92, 246, 0.35);
+    }
+    .badge.rating {
+      display: inline-block; background: rgba(139, 92, 246, 0.14); color: var(--accent);
+      font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 12px;
     }
     h1.g-title { font-size: 32px; line-height: 1.3; font-weight: 800; }
-    .desc {
-      color: #ded9f2;
-      font-size: 16px;
-      white-space: pre-line;
+    .facts {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+      color: var(--muted); font-size: 14px; margin-top: 12px;
     }
-    .meta-row {
-      display: flex; align-items: center; gap: 8px;
-      margin-top: 28px; font-size: 14px; color: var(--muted);
+    .facts .platform {
+      border: 1px solid var(--border); background: var(--panel);
+      border-radius: 999px; padding: 3px 12px; font-size: 12px;
     }
-    .meta-row svg { width: 16px; height: 16px; stroke: var(--subtle); }
+    h2.section { font-size: 24px; margin: 44px 0 18px; padding-top: 32px; border-top: 1px solid var(--border); font-weight: 800; }
+    /* 短评（Markdown）正文样式，与站点 .prose-content 对齐 */
+    .md { color: #ded9f2; font-size: 16px; line-height: 1.8; word-break: break-word; }
+    .md h1, .md h2, .md h3, .md h4, .md h5, .md h6 {
+      color: var(--text); font-weight: 800; margin: 2rem 0 1rem; line-height: 1.3;
+    }
+    .md h1 { font-size: 1.5rem; } .md h2 { font-size: 1.3rem; } .md h3 { font-size: 1.15rem; }
+    .md p { margin-bottom: 1.1rem; }
+    .md a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .md a:hover { color: var(--accent-2); }
+    .md ul, .md ol { margin: 0 0 1.1rem; padding-left: 1.5rem; }
+    .md ul { list-style: disc; } .md ol { list-style: decimal; }
+    .md li { margin-bottom: .4rem; }
+    .md blockquote {
+      border-left: 3px solid var(--accent); margin: 1.2rem 0;
+      padding: .4rem 0 .4rem 1.1rem; color: var(--muted); font-style: italic;
+    }
+    .md code { background: var(--panel); border-radius: 4px; font-size: .9em; padding: .15rem .4rem; }
+    .md pre { background: var(--panel); border-radius: 8px; margin: 0 0 1.1rem; overflow-x: auto; padding: 1rem 1.2rem; }
+    .md pre code { background: none; padding: 0; }
+    .md img { border-radius: 8px; height: auto; margin: 1rem 0; max-width: 100%; }
+    .md hr { border: none; border-top: 1px solid var(--border); margin: 1.8rem 0; }
+    .md table { border-collapse: collapse; margin-bottom: 1.1rem; width: 100%; }
+    .md th, .md td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: left; }
+    .md th { background: var(--panel); font-weight: 700; }
     .actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -135,21 +165,20 @@
   <main>
     <div id="status" class="status">正在加载游戏信息…</div>
     <article id="game" hidden>
-      <div class="cover" id="g-cover-wrap">
+      <div class="cover">
         <img id="g-cover" alt="" hidden />
-        <div class="shade"></div>
-        <div class="title-block">
-          <span id="g-brand" class="brand-chip" hidden></span>
-          <h1 id="g-title" class="g-title"></h1>
-        </div>
+        <div class="ph">暂无封面</div>
       </div>
-      <p id="g-desc" class="desc"></p>
-      <div class="meta-row" id="g-meta" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"/><path d="M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4"/>
-        </svg>
-        <span>开发 / 发行：<span id="g-meta-brand"></span></span>
+      <div id="g-badges" class="badges" hidden>
+        <span id="g-status" class="badge play" hidden></span>
+        <span id="g-rating" class="badge rating" hidden></span>
       </div>
+      <h1 id="g-title" class="g-title"></h1>
+      <div id="g-facts" class="facts" hidden></div>
+      <section id="sec-review" hidden>
+        <h2 class="section">短评</h2>
+        <div id="g-review" class="md"></div>
+      </section>
       <div class="actions">
         <a id="g-search" class="btn btn-primary" href="#">查找相关攻略文章</a>
         <a class="btn btn-ghost" href="/games">浏览全部游戏</a>
@@ -198,6 +227,7 @@
         try {
           return decodeURIComponent(m[1]);
         } catch (e) {
+          // 非法百分号编码：按无效地址处理，避免页面卡在加载态
           return "";
         }
       }
@@ -209,11 +239,102 @@
           .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
       }
 
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
       function safeUrl(u) {
         u = String(u || "").trim();
-        if (/^(https?:\/\/|\/|#|mailto:)/i.test(u)) return u;
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
         return "#";
       }
+
+      // 封面为相对路径：非 http(s) 开头时拼接「站点根 + /files/ + 路径」
+      function fileUrl(u) {
+        u = String(u || "").trim();
+        if (!u) return "";
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return safeUrl(u);
+        return siteRoot + "/files/" + u.replace(/^\/+/, "");
+      }
+
+      // ===== 极简 Markdown 渲染：先整体 HTML 转义再替换标记（防 XSS）=====
+      function inlineMd(s) {
+        s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+        s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, alt, src) {
+          var u = safeUrl(src);
+          return u === "#" ? "" : '<img src="' + u + '" alt="' + alt + '" loading="lazy" />';
+        });
+        s = s.replace(/\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, t, href) {
+          var u = safeUrl(href);
+          if (u === "#") return t;
+          return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + t + "</a>";
+        });
+        s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+        return s;
+      }
+
+      function renderMarkdown(src) {
+        var text = escapeHtml(String(src || "")).replace(/\r\n/g, "\n");
+        var lines = text.split("\n");
+        var html = "";
+        var para = [];
+        var listType = null;
+        var inCode = false;
+
+        function flushPara() {
+          if (para.length) { html += "<p>" + para.map(inlineMd).join("<br>") + "</p>"; para = []; }
+        }
+        function closeList() {
+          if (listType) { html += "</" + listType + ">"; listType = null; }
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            // 围栏代码块开/关
+            if (inCode) { html += "</code></pre>"; inCode = false; }
+            else { flushPara(); closeList(); html += "<pre><code>"; inCode = true; }
+            continue;
+          }
+          if (inCode) { html += line + "\n"; continue; }
+
+          if (!line.trim()) { flushPara(); closeList(); continue; }
+
+          var hm = line.match(/^(#{1,6})\s+(.*)$/);
+          if (hm) {
+            flushPara(); closeList();
+            var level = hm[1].length;
+            html += "<h" + level + ">" + inlineMd(hm[2]) + "</h" + level + ">";
+            continue;
+          }
+          if (/^(-{3,}|\*{3,})$/.test(line.trim())) { flushPara(); closeList(); html += "<hr>"; continue; }
+          if (/^&gt;\s?/.test(line)) {
+            flushPara(); closeList();
+            html += "<blockquote>" + inlineMd(line.replace(/^&gt;\s?/, "")) + "</blockquote>";
+            continue;
+          }
+          var ul = line.match(/^\s*[-*+]\s+(.*)$/);
+          if (ul) {
+            flushPara();
+            if (listType !== "ul") { closeList(); html += "<ul>"; listType = "ul"; }
+            html += "<li>" + inlineMd(ul[1]) + "</li>";
+            continue;
+          }
+          var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+          if (ol) {
+            flushPara();
+            if (listType !== "ol") { closeList(); html += "<ol>"; listType = "ol"; }
+            html += "<li>" + inlineMd(ol[1]) + "</li>";
+            continue;
+          }
+          closeList();
+          para.push(line);
+        }
+        if (inCode) html += "</code></pre>";
+        flushPara();
+        closeList();
+        return html;
+      }
+
+      var PLAY_STATUS_LABELS = { want: "想玩", playing: "在玩", played: "玩过" };
 
       function showError(msg) {
         var s = el("status");
@@ -222,30 +343,46 @@
       }
 
       function render(g) {
-        var name = g.name || "未命名游戏";
+        var name = g.title || "未命名游戏";
         document.title = blogTitle ? name + " | " + blogTitle : name;
         el("g-title").textContent = name;
 
-        if (g.image_url) {
+        if (g.cover) {
           var img = el("g-cover");
-          img.src = safeUrl(g.image_url);
+          img.src = fileUrl(g.cover);
           img.hidden = false;
-        } else {
-          el("g-cover-wrap").style.aspectRatio = "auto";
         }
 
-        if (g.brand) {
-          var chip = el("g-brand");
-          chip.textContent = g.brand;
-          chip.hidden = false;
-          el("g-meta").hidden = false;
-          el("g-meta-brand").textContent = g.brand;
+        var hasBadge = false;
+        var statusLabel = PLAY_STATUS_LABELS[g.play_status];
+        if (statusLabel) {
+          el("g-status").textContent = statusLabel;
+          el("g-status").hidden = false;
+          hasBadge = true;
+        }
+        if (g.rating > 0) {
+          el("g-rating").textContent = "评分 " + g.rating + " / 10";
+          el("g-rating").hidden = false;
+          hasBadge = true;
+        }
+        if (hasBadge) el("g-badges").hidden = false;
+
+        var facts = [];
+        if (g.platform) facts.push('<span class="platform">' + escapeHtml(g.platform) + "</span>");
+        if (g.genre) facts.push(escapeHtml(g.genre));
+        if (g.play_hours > 0) facts.push("已游玩 " + escapeHtml(g.play_hours) + " 小时");
+        if (facts.length) {
+          el("g-facts").innerHTML = facts.join("<span>·</span>");
+          el("g-facts").hidden = false;
         }
 
-        el("g-desc").textContent = g.description || "暂无游戏介绍。";
+        if (g.short_review && String(g.short_review).trim()) {
+          el("sec-review").hidden = false;
+          el("g-review").innerHTML = renderMarkdown(g.short_review);
+        }
 
         var search = el("g-search");
-        search.href = "/articles?keyword=" + encodeURIComponent(g.name || "");
+        search.href = "/articles?keyword=" + encodeURIComponent(g.title || "");
 
         el("status").hidden = true;
         el("game").hidden = false;
@@ -254,7 +391,7 @@
       var gameId = parseId();
       if (!gameId) { showError("无效的游戏地址"); return; }
 
-      fetch(apiBase + "/public/equipments/" + encodeURIComponent(gameId), {
+      fetch(apiBase + "/public/games/" + encodeURIComponent(gameId), {
         headers: { Accept: "application/json" }
       })
         .then(function (r) { return r.json(); })

@@ -8,7 +8,7 @@ export const metadata = { title: "游戏库" };
 
 export default async function GamesPage() {
   const config = await getModuleConfig();
-  if (!config.equipment_enabled) {
+  if (!config.game_enabled) {
     return <ModuleDisabled moduleLabel="游戏库" />;
   }
 
@@ -21,7 +21,7 @@ export default async function GamesPage() {
             游戏<span className="text-gradient">库</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-text-muted md:text-lg">
-            博主收藏的游戏作品与简评，正在游玩 / 已通关 / 白金纪念
+            博主收藏的游戏作品与简评，正在游玩 / 已通关 / 想玩清单
           </p>
 
           {/* Keyword Search（纯 HTML GET 表单，静态托管可用） */}
@@ -53,16 +53,16 @@ export default async function GamesPage() {
         </div>
       </section>
 
-      {/* Game List（客户端按 searchParams 取数渲染） */}
+      {/* Filters + Game List（客户端按 searchParams 取数渲染） */}
       <Suspense
         fallback={
           <section className="flex-1 py-12 md:py-16">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="aspect-[16/13] animate-pulse rounded-radius-md bg-surface"
+                    className="aspect-[16/9] animate-pulse rounded-radius-md bg-surface"
                   />
                 ))}
               </div>

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Building2, Search } from "lucide-react";
+import { ArrowLeft, Search, Timer } from "lucide-react";
 import { getGameById, getGames } from "@/lib/api/games";
 import { getModuleConfig } from "@/lib/api/module-config";
+import { GameCard, PLAY_STATUS_LABELS } from "@/components/GameCard";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
 
 interface PageProps {
@@ -28,20 +30,16 @@ export async function generateMetadata({ params }: PageProps) {
     return { title: "游戏未找到" };
   }
   const game = await getGameById(id);
-
-  if (!game) {
-    return { title: "游戏未找到" };
-  }
-
+  if (!game) return { title: "游戏未找到" };
   return {
-    title: game.name,
-    description: game.description,
+    title: game.title,
+    description: game.genre || game.platform || undefined,
   };
 }
 
 export default async function GameDetailPage({ params }: PageProps) {
   const config = await getModuleConfig();
-  if (!config.equipment_enabled) {
+  if (!config.game_enabled) {
     return <ModuleDisabled moduleLabel="游戏库" />;
   }
 
@@ -50,10 +48,15 @@ export default async function GameDetailPage({ params }: PageProps) {
     notFound();
   }
   const game = await getGameById(id);
-
   if (!game) {
     notFound();
   }
+
+  const statusLabel = PLAY_STATUS_LABELS[game.play_status];
+
+  const moreGames = (await getGames({ page: 1, page_size: 100 })).list
+    .filter((item) => item.id !== game.id)
+    .slice(0, 3);
 
   return (
     <div className="flex flex-1 flex-col bg-background">
@@ -68,72 +71,98 @@ export default async function GameDetailPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:px-8 md:py-10">
-        {/* Cover */}
-        {game.image_url ? (
-          <div className="relative aspect-[21/9] overflow-hidden rounded-radius-lg shadow-card">
+      {/* Hero cover */}
+      <header className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="relative aspect-[21/9] overflow-hidden rounded-radius-lg border border-border bg-surface-elevated shadow-card">
+          {game.cover ? (
             <Image
-              src={game.image_url}
-              alt={game.name}
+              src={game.cover}
+              alt={game.title}
               fill
               priority
               sizes="(max-width: 768px) 100vw, 1024px"
               className="object-cover"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-              {game.brand && (
-                <span className="mb-3 inline-block rounded-full bg-gradient-theme px-3 py-1 text-xs font-bold text-white">
-                  {game.brand}
-                </span>
-              )}
-              <h1 className="max-w-3xl font-heading text-2xl font-black leading-tight text-white md:text-4xl">
-                {game.name}
-              </h1>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-text-subtle">
+              <span className="text-sm">暂无封面</span>
             </div>
-          </div>
-        ) : (
-          <header>
-            {game.brand && (
-              <span className="mb-3 inline-block rounded-full bg-accent-subtle px-3 py-1 text-xs font-semibold text-accent-hover">
-                {game.brand}
-              </span>
-            )}
-            <h1 className="font-heading text-3xl font-black leading-tight text-text-primary md:text-4xl">
-              {game.name}
-            </h1>
-          </header>
+          )}
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:px-8 md:py-10">
+        {/* 状态徽标 + 评分 */}
+        <div className="flex flex-wrap items-center gap-3">
+          {statusLabel && (
+            <span className="rounded-full bg-gradient-theme px-3 py-1 text-xs font-bold text-white shadow-glow">
+              {statusLabel}
+            </span>
+          )}
+          {game.rating > 0 && (
+            <span className="rounded-full bg-accent-subtle px-3 py-1 text-xs font-bold text-accent-hover">
+              评分 {game.rating} / 10
+            </span>
+          )}
+        </div>
+
+        <h1 className="mt-3 font-heading text-3xl font-black leading-tight text-text-primary md:text-4xl">
+          {game.title}
+        </h1>
+
+        {/* 平台 / 类型 / 时长 */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
+          {game.platform && (
+            <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs">
+              {game.platform}
+            </span>
+          )}
+          {game.genre && <span>{game.genre}</span>}
+          {game.play_hours > 0 && (
+            <span className="flex items-center gap-1.5">
+              <Timer className="h-4 w-4 text-text-subtle" strokeWidth={1.5} />
+              已游玩 {game.play_hours} 小时
+            </span>
+          )}
+        </div>
+
+        {/* 短评（Markdown 渲染，纯文本亦可） */}
+        {game.short_review && (
+          <article className="mt-10 border-t border-border pt-10">
+            <h2 className="mb-6 font-heading text-2xl font-black text-text-primary">
+              短评
+            </h2>
+            <MarkdownRenderer content={game.short_review} />
+          </article>
         )}
 
-        {/* Description */}
-        <div className="mx-auto w-full max-w-3xl py-10">
-          {game.description ? (
-            <p className="whitespace-pre-line text-base leading-loose text-text-secondary">
-              {game.description}
-            </p>
-          ) : (
-            <p className="text-sm text-text-subtle">暂无游戏介绍。</p>
-          )}
-
-          {/* Meta */}
-          {game.brand && (
-            <div className="mt-8 flex items-center gap-2 text-sm text-text-muted">
-              <Building2 className="h-4 w-4 text-text-subtle" strokeWidth={1.5} />
-              开发 / 发行：{game.brand}
-            </div>
-          )}
-
-          {/* Related articles entry */}
-          <Link
-            href={`/articles?keyword=${encodeURIComponent(game.name)}`}
-            className="mt-10 flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-theme text-sm font-bold text-white shadow-glow transition-opacity duration-200 ease-out hover:opacity-90"
-          >
-            <Search className="h-4 w-4" strokeWidth={1.8} />
-            查找「{game.name}」相关攻略文章
-          </Link>
-        </div>
+        {/* Related articles entry */}
+        <Link
+          href={`/articles?keyword=${encodeURIComponent(game.title)}`}
+          className="mt-10 flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-theme text-sm font-bold text-white shadow-glow transition-opacity duration-200 ease-out hover:opacity-90"
+        >
+          <Search className="h-4 w-4" strokeWidth={1.8} />
+          查找「{game.title}」相关攻略文章
+        </Link>
       </div>
+
+      {/* 更多游戏 */}
+      {moreGames.length > 0 && (
+        <section className="border-t border-border bg-background-soft py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="mb-8 font-heading text-2xl font-black text-text-primary">
+              更多游戏
+            </h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {moreGames.map((item) => (
+                <GameCard key={item.id} game={item} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

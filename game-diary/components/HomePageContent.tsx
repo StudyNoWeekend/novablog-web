@@ -23,6 +23,12 @@ const ALL_ENABLED: ModuleConfig = {
   travel_enabled: true,
   portfolio_enabled: true,
   equipment_enabled: true,
+  open_source_enabled: true,
+  recipe_enabled: true,
+  book_enabled: true,
+  game_enabled: true,
+  fitness_enabled: true,
+  tech_stack_enabled: true,
   updated_at: "",
 };
 
@@ -153,7 +159,7 @@ export function HomePageContent() {
       )}
 
       {/* Game Categories + About */}
-      {!loading && (showCategories || moduleConfig.equipment_enabled) && (
+      {!loading && (showCategories || moduleConfig.game_enabled) && (
         <section className="bg-background py-14 md:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-8">
@@ -218,7 +224,7 @@ export function HomePageContent() {
                   stats={{
                     articles: articleTotal,
                     videos: moduleConfig.video_enabled ? videoTotal : 0,
-                    games: moduleConfig.equipment_enabled ? gameTotal : 0,
+                    games: moduleConfig.game_enabled ? gameTotal : 0,
                   }}
                 />
               </div>
