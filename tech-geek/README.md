@@ -4,21 +4,27 @@
 
 ## 页面结构
 
-| 路由 | 说明 |
-|------|------|
-| `/` | 首页：Hero（问候语 + 数据统计）+ 最新文章列表 + 侧边栏（博主卡片/热门标签/分类目录/写作激励卡） |
-| `/articles` | 文章列表：搜索、分类筛选、标签筛选、分页 |
-| `/articles/[slug]` | 文章详情（构建期 SSG 预渲染，未预渲染的由 `public/article.html` 壳页面兜底） |
-| `/categories` | 分类目录 |
-| `/tags` | 标签云 |
-| `/travels`、`/travels/[id]` | 旅行攻略列表与详情 |
-| `/portfolio`、`/portfolio/[id]` | 作品集画廊与详情 |
-| `/videos`、`/videos/[id]` | 视频列表与详情 |
-| `/gear` | 器材推荐列表 |
-| `/about` | 关于我（博主资料 + 社交链接） |
-| `/music` | 音乐播放器 |
+| 路由 | 说明 | 模块开关 |
+|------|------|------|
+| `/` | 首页：Hero（问候语 + 数据统计）+ 最新文章列表 + 侧边栏（博主卡片/热门标签/分类目录/写作激励卡） | — |
+| `/articles` | 文章列表：搜索、分类筛选、标签筛选、分页 | `article_enabled` |
+| `/articles/[slug]` | 文章详情（构建期 SSG 预渲染，未预渲染的由 `public/article.html` 壳页面兜底） | `article_enabled` |
+| `/categories` | 分类目录 | `article_enabled` |
+| `/tags` | 标签云 | `article_enabled` |
+| `/travels`、`/travels/[id]` | 旅行攻略列表与详情 | `travel_enabled` |
+| `/portfolio`、`/portfolio/[id]` | 作品集画廊与详情 | `portfolio_enabled` |
+| `/videos`、`/videos/[id]` | 视频列表与详情 | `video_enabled` |
+| `/gear` | 器材推荐列表 | `equipment_enabled` |
+| `/about` | 关于我（博主资料 + 社交链接） | — |
+| `/music` | 音乐播放器 | `music_enabled` |
+| `/open-source`、`/open-source/[id]` | 开源作品列表与详情（语言/话题标签/Star 数 + README 渲染 + 仓库/主页外链） | `open_source_enabled` |
+| `/recipes`、`/recipes/[id]` | 美食菜谱列表与详情（难度/耗时/份量 + 食材清单 + 编号步骤配图） | `recipe_enabled` |
+| `/books`、`/books/[id]` | 读书书架列表与详情（星级/阅读状态徽标 + 书评渲染 + 起止阅读时间） | `book_enabled` |
+| `/games`、`/games/[id]` | 游戏库列表与详情（平台/类型/游玩状态/评分(x/10)/时长 + 简评渲染） | `game_enabled` |
+| `/fitness` | 健身训练记录列表（日期/类型徽标/时长/千卡） | `fitness_enabled` |
+| `/tech-stack` | 技术栈展示（图标/分类/四档熟练度分段条） | `tech_stack_enabled` |
 
-导航与页面展示由后端「模块开关配置」（`/api/v1/public/module-config`）驱动：关闭文章模块会隐藏文章/分类/标签入口，关闭旅行模块会隐藏旅行入口，关闭作品集模块会隐藏作品集入口，关闭视频模块会隐藏视频入口，关闭器材模块会隐藏器材入口，关闭音乐模块会隐藏音乐入口。
+导航与页面展示由后端「模块开关配置」（`/api/v1/public/module-config`）驱动：关闭文章模块会隐藏文章/分类/标签入口，关闭旅行模块会隐藏旅行入口，关闭作品集模块会隐藏作品集入口，关闭视频模块会隐藏视频入口，关闭器材模块会隐藏器材入口，关闭音乐模块会隐藏音乐入口。六个新内容模块（开源作品/美食菜谱/读书书架/游戏库/健身训练/技术栈）收纳在导航「更多」下拉组（移动端为「更多功能」小节）中，随各自模块开关过滤，六个全关时整个下拉不渲染。
 
 ## 主题切换
 
