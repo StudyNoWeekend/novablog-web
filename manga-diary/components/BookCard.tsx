@@ -1,0 +1,79 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { Star } from "lucide-react";
+import { CatFace } from "@/components/ComicDoodle";
+import { getFileUrl } from "@/lib/api/client";
+import type { Book } from "@/lib/types";
+
+interface BookCardProps {
+  book: Book;
+}
+
+/** 阅读状态 → 徽标文案 */
+export const READING_STATUS_LABELS: Record<string, string> = {
+  want: "想读",
+  reading: "在读",
+  done: "读完",
+};
+
+/** 书籍卡片：竖版封面 + 阅读状态徽标 + 书名 + 作者 + 星级 */
+export function BookCard({ book }: BookCardProps) {
+  const statusLabel = READING_STATUS_LABELS[book.reading_status];
+  // 0-5 星，取整用于实心星展示
+  const filledStars = Math.max(0, Math.min(5, Math.round(book.rating)));
+
+  return (
+    <Link
+      href={`/books/${book.id}`}
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-radius-md border border-border bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover"
+    >
+      {/* 封面（书籍竖版比例） */}
+      <div className="relative aspect-[2/3] overflow-hidden bg-background-soft">
+        {book.cover ? (
+          <Image
+            src={getFileUrl(book.cover)}
+            alt={book.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <CatFace className="h-10 w-10 text-text-subtle" />
+          </div>
+        )}
+        {statusLabel && (
+          <span className="absolute left-3 top-3 rounded-full bg-ink/85 px-2.5 py-1 text-[11px] font-medium text-accent backdrop-blur-sm">
+            {statusLabel}
+          </span>
+        )}
+      </div>
+
+      {/* 信息 */}
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 font-display text-base leading-snug text-text-primary transition-colors duration-200 ease-out group-hover:text-accent-hover">
+          《{book.title}》
+        </h3>
+        {book.author && (
+          <p className="mt-1.5 truncate text-sm text-text-muted">{book.author}</p>
+        )}
+        {book.rating > 0 && (
+          <div className="mt-2 flex items-center gap-0.5" aria-label={`评分 ${book.rating} 星`}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3.5 w-3.5 ${
+                  i < filledStars ? "fill-accent text-accent" : "text-text-subtle"
+                }`}
+                strokeWidth={1.5}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}

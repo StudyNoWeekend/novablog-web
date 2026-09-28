@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的书籍详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>书籍加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #f6f2e9;
+      --panel: #fffdf7;
+      --border: #e6dfcd;
+      --border-strong: #d6ccb2;
+      --text: #2a251c;
+      --text-soft: #57503f;
+      --muted: #8a8171;
+      --subtle: #b3a891;
+      --accent: #f2c037;
+      --accent-deep: #e0ab1f;
+      --accent-subtle: rgba(242, 192, 55, 0.2);
+      --ink: #211d16;
+      --danger: #e05c4b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.85;
+    }
+    .display {
+      font-family: "ZCOOL KuaiLe", ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0.02em;
+    }
+    .shell-header {
+      background: var(--ink);
+      color: #f3efe4;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .brand { color: #fff; font-weight: 600; }
+    .brand em { color: var(--accent); font-style: normal; }
+    .shell-header a { color: rgba(243, 239, 228, 0.7); text-decoration: none; }
+    .shell-header a:hover { color: var(--accent); }
+    main { max-width: 820px; margin: 0 auto; padding: 44px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    .book-layout { display: flex; gap: 32px; align-items: flex-start; }
+    @media (max-width: 640px) { .book-layout { flex-direction: column; } }
+    .cover { width: 200px; flex-shrink: 0; }
+    @media (max-width: 640px) { .cover { width: 160px; } }
+    .cover img { width: 100%; border-radius: 14px; border: 2px solid var(--ink); display: block; }
+    .cover .ph { width: 100%; aspect-ratio: 2/3; background: var(--panel); border: 2px dashed var(--border-strong); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; color: var(--subtle); font-size: 13px; }
+    .info { flex: 1; min-width: 0; }
+    .status-badge {
+      display: inline-block; background: var(--accent); color: var(--ink);
+      font-size: 12px; font-weight: 600; border-radius: 999px;
+      padding: 3px 12px; margin-bottom: 12px;
+    }
+    h1 { font-size: 30px; line-height: 1.4; }
+    .author { color: var(--muted); margin-top: 10px; }
+    .stars { color: var(--accent-deep); letter-spacing: 2px; margin-top: 12px; }
+    .stars .score { color: var(--muted); font-size: 13px; letter-spacing: 0; margin-left: 8px; }
+    .dates { color: var(--muted); font-size: 13px; margin-top: 14px; }
+    .dates p { margin: 0; }
+    h2.section { font-size: 24px; margin: 44px 0 18px; padding-top: 32px; border-top: 1px dashed var(--border-strong); }
+    .empty-tip { color: var(--muted); font-size: 14px; }
+    /* 书评（Markdown）正文样式，与站点 .prose-content 对齐 */
+    .md { color: var(--text-soft); font-size: 16px; line-height: 1.85; word-break: break-word; }
+    .md h1, .md h2, .md h3, .md h4, .md h5, .md h6 {
+      color: var(--text); font-weight: 600; margin: 2rem 0 1rem; line-height: 1.3;
+    }
+    .md h1 { font-size: 1.5rem; } .md h2 { font-size: 1.3rem; } .md h3 { font-size: 1.15rem; }
+    .md p { margin-bottom: 1.1rem; }
+    .md a { color: var(--accent-deep); text-decoration: underline; text-underline-offset: 2px; }
+    .md ul, .md ol { margin: 0 0 1.1rem; padding-left: 1.5rem; }
+    .md ul { list-style: disc; } .md ol { list-style: decimal; }
+    .md li { margin-bottom: .4rem; }
+    .md blockquote {
+      border-left: 3px solid var(--accent); margin: 1.2rem 0;
+      padding: .4rem 0 .4rem 1.1rem; color: var(--muted); font-style: italic;
+    }
+    .md code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: .9em; padding: .15rem .4rem; }
+    .md pre { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin: 0 0 1.1rem; overflow-x: auto; padding: 1rem 1.2rem; }
+    .md pre code { background: none; border: none; padding: 0; }
+    .md img { border-radius: 10px; height: auto; margin: 1rem 0; max-width: 100%; }
+    .md hr { border: none; border-top: 1px dashed var(--border-strong); margin: 1.8rem 0; }
+    .md table { border-collapse: collapse; margin-bottom: 1.1rem; width: 100%; }
+    .md th, .md td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: left; }
+    .md th { background: var(--bg); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand display" id="brand-text"></span>
+    <a href="/books">← 返回书架</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载书籍…</div>
+    <article id="book" hidden>
+      <div class="book-layout">
+        <div class="cover">
+          <img id="b-cover" alt="" hidden />
+          <div id="b-cover-ph" class="ph">暂无封面</div>
+        </div>
+        <div class="info">
+          <span id="b-status" class="status-badge" hidden></span>
+          <h1 id="b-title" class="display"></h1>
+          <p id="b-author" class="author" hidden></p>
+          <div id="b-stars" class="stars" hidden></div>
+          <div id="b-dates" class="dates" hidden></div>
+        </div>
+      </div>
+      <section id="sec-review" hidden>
+        <h2 class="section display">书评</h2>
+        <div id="b-review" class="md"></div>
+      </section>
+      <p id="b-review-empty" class="empty-tip" hidden>暂无书评</p>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-text");
+            if (brand) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 id：/books/{id} | /books/{id}.html | /books/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/books\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/books\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // ===== 极简 Markdown 渲染：先整体 HTML 转义再替换标记（防 XSS）=====
+      function inlineMd(s) {
+        s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+        s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, alt, src) {
+          var u = safeUrl(src);
+          return u === "#" ? "" : '<img src="' + u + '" alt="' + alt + '" loading="lazy" />';
+        });
+        s = s.replace(/\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g, function (m, t, href) {
+          var u = safeUrl(href);
+          if (u === "#") return t;
+          return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + t + "</a>";
+        });
+        s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        s = s.replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+        return s;
+      }
+
+      function renderMarkdown(src) {
+        var text = escapeHtml(String(src || "")).replace(/\r\n/g, "\n");
+        var lines = text.split("\n");
+        var html = "";
+        var para = [];
+        var listType = null;
+        var inCode = false;
+
+        function flushPara() {
+          if (para.length) { html += "<p>" + para.map(inlineMd).join("<br>") + "</p>"; para = []; }
+        }
+        function closeList() {
+          if (listType) { html += "</" + listType + ">"; listType = null; }
+        }
+
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (/^```/.test(line)) {
+            if (inCode) { html += "</code></pre>"; inCode = false; }
+            else { flushPara(); closeList(); html += "<pre><code>"; inCode = true; }
+            continue;
+          }
+          if (inCode) { html += line + "\n"; continue; }
+
+          if (!line.trim()) { flushPara(); closeList(); continue; }
+
+          var hm = line.match(/^(#{1,6})\s+(.*)$/);
+          if (hm) {
+            flushPara(); closeList();
+            var level = hm[1].length;
+            html += "<h" + level + ">" + inlineMd(hm[2]) + "</h" + level + ">";
+            continue;
+          }
+          if (/^(-{3,}|\*{3,})$/.test(line.trim())) { flushPara(); closeList(); html += "<hr>"; continue; }
+          if (/^&gt;\s?/.test(line)) {
+            flushPara(); closeList();
+            html += "<blockquote>" + inlineMd(line.replace(/^&gt;\s?/, "")) + "</blockquote>";
+            continue;
+          }
+          var ul = line.match(/^\s*[-*+]\s+(.*)$/);
+          if (ul) {
+            flushPara();
+            if (listType !== "ul") { closeList(); html += "<ul>"; listType = "ul"; }
+            html += "<li>" + inlineMd(ul[1]) + "</li>";
+            continue;
+          }
+          var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
+          if (ol) {
+            flushPara();
+            if (listType !== "ol") { closeList(); html += "<ol>"; listType = "ol"; }
+            html += "<li>" + inlineMd(ol[1]) + "</li>";
+            continue;
+          }
+          closeList();
+          para.push(line);
+        }
+        if (inCode) html += "</code></pre>";
+        flushPara();
+        closeList();
+        return html;
+      }
+
+      var READING_STATUS_LABELS = { want: "想读", reading: "在读", done: "读完" };
+
+      function starsHtml(value) {
+        var n = Math.max(0, Math.min(5, Math.round(Number(value) || 0)));
+        var out = "";
+        for (var i = 1; i <= 5; i++) out += i <= n ? "★" : "☆";
+        return out;
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "";
+        var d = new Date(dateStr);
+        if (isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric" });
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/books">返回书架</a>';
+      }
+
+      function render(b) {
+        var title = b.title || "书籍";
+        document.title = blogTitle ? title + " | " + blogTitle : title;
+        el("b-title").textContent = title;
+
+        if (b.cover) {
+          var c = el("b-cover");
+          c.src = safeUrl(b.cover);
+          c.hidden = false;
+          el("b-cover-ph").style.display = "none";
+        }
+
+        var statusLabel = READING_STATUS_LABELS[b.reading_status];
+        if (statusLabel) {
+          el("b-status").textContent = statusLabel;
+          el("b-status").hidden = false;
+        }
+
+        if (b.author) {
+          el("b-author").textContent = b.author;
+          el("b-author").hidden = false;
+        }
+
+        if (b.rating > 0) {
+          el("b-stars").innerHTML = starsHtml(b.rating) +
+            '<span class="score">' + escapeHtml(b.rating) + " / 5</span>";
+          el("b-stars").hidden = false;
+        }
+
+        var startedAt = formatDate(b.started_at);
+        var finishedAt = formatDate(b.finished_at);
+        var dates = "";
+        if (startedAt) dates += "<p>开始阅读：" + escapeHtml(startedAt) + "</p>";
+        if (finishedAt) dates += "<p>读完于：" + escapeHtml(finishedAt) + "</p>";
+        if (dates) {
+          el("b-dates").innerHTML = dates;
+          el("b-dates").hidden = false;
+        }
+
+        if (b.review && String(b.review).trim()) {
+          el("sec-review").hidden = false;
+          el("b-review").innerHTML = renderMarkdown(b.review);
+        } else {
+          el("b-review-empty").hidden = false;
+        }
+
+        el("status").hidden = true;
+        el("book").hidden = false;
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的书籍地址"); return; }
+
+      fetch(apiBase + "/public/books/" + encodeURIComponent(id), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "书籍不存在或已下架"); }
+        })
+        .catch(function () { showError("书籍加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>
