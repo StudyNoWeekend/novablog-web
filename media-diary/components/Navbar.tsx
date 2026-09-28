@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Play, X } from "lucide-react";
+import { ChevronDown, Menu, Play, X } from "lucide-react";
 import type { ModuleConfig } from "@/lib/types";
 import type { BloggerProfile } from "@/lib/api/blogger";
 import { apiFetch } from "@/lib/api/client";
 import { SocialIcons } from "@/components/SocialIcons";
+import { filterMoreItems } from "@/components/more-nav-items";
 
 interface NavItem {
   label: string;
@@ -16,12 +17,17 @@ interface NavItem {
   moduleKey?: keyof ModuleConfig;
 }
 
+/** 主导航固定项（「更多」下拉插入在末尾固定项之前） */
 const NAV_ITEMS: NavItem[] = [
   { label: "首页", href: "/" },
-  { label: "关于我", href: "/about" },
   { label: "作品展示", href: "/works", moduleKey: "video_enabled" },
   { label: "内容专栏", href: "/articles", moduleKey: "article_enabled" },
   { label: "音乐", href: "/music", moduleKey: "music_enabled" },
+];
+
+/** 主导航末尾固定项（置于「更多」下拉之后） */
+const TAIL_NAV_ITEMS: NavItem[] = [
+  { label: "关于我", href: "/about" },
   { label: "合作联系", href: "/contact" },
 ];
 
@@ -33,6 +39,12 @@ const ALL_ENABLED: ModuleConfig = {
   travel_enabled: true,
   portfolio_enabled: true,
   equipment_enabled: true,
+  open_source_enabled: true,
+  recipe_enabled: true,
+  book_enabled: true,
+  game_enabled: true,
+  fitness_enabled: true,
+  tech_stack_enabled: true,
   updated_at: "",
 };
 
@@ -43,6 +55,9 @@ interface NavbarProps {
 export function Navbar({ modules: serverModules }: NavbarProps) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // 「更多」下拉开合状态
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   const [runtimeModules, setRuntimeModules] = useState<ModuleConfig | null>(null);
   const [profile, setProfile] = useState<BloggerProfile | null>(null);
 
@@ -87,9 +102,44 @@ export function Navbar({ modules: serverModules }: NavbarProps) {
   const navItems = NAV_ITEMS.filter(
     (item) => !item.moduleKey || modules[item.moduleKey]
   );
+  const tailNavItems = TAIL_NAV_ITEMS.filter(
+    (item) => !item.moduleKey || modules[item.moduleKey]
+  );
+  // 「更多」下拉子项：随模块开关过滤，六个全关时整个下拉不渲染
+  const moreItems = filterMoreItems(modules);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
+
+  const isActivePath = (href: string) =>
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  // 当前路径命中任一子项时，「更多」触发器高亮
+  const isMoreActive = moreItems.some((item) => isActivePath(item.href));
+
+  // 「更多」下拉：点击面板外部 / Escape 关闭
+  useEffect(() => {
+    if (!isMoreOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMoreOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMoreOpen]);
+
+  // 路由跳转后自动关闭下拉与移动端菜单
+  useEffect(() => {
+    setIsMoreOpen(false);
+    setIsMenuOpen(false);
+  }, [pathname]);
 
   return (
     <>
@@ -123,10 +173,81 @@ export function Navbar({ modules: serverModules }: NavbarProps) {
           {/* Desktop Navigation：当前项黄色下划线（对应 UI 图导航态） */}
           <div className="hidden items-center gap-1 lg:flex">
             {navItems.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+              const isActive = isActivePath(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`relative cursor-pointer px-3.5 py-3 text-sm transition-colors duration-200 ease-out ${
+                    isActive
+                      ? "font-medium text-accent"
+                      : "text-white/75 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-1.5 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-accent" />
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* 「更多」下拉（子项随模块开关过滤，全关时不渲染） */}
+            {moreItems.length > 0 && (
+              <div className="relative" ref={moreRef}>
+                <button
+                  type="button"
+                  aria-haspopup="menu"
+                  aria-expanded={isMoreOpen}
+                  onClick={() => setIsMoreOpen((prev) => !prev)}
+                  className={`relative flex min-h-11 cursor-pointer items-center gap-1 rounded-lg px-3.5 py-3 text-sm transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    isMoreActive || isMoreOpen
+                      ? "font-medium text-accent"
+                      : "text-white/75 hover:text-white"
+                  }`}
+                >
+                  更多
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                      isMoreOpen ? "rotate-180" : ""
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                  {isMoreActive && (
+                    <span className="absolute bottom-1.5 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-accent" />
+                  )}
+                </button>
+
+                {/* 下拉面板：右对齐于触发器 */}
+                {isMoreOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-1 w-44 overflow-hidden rounded-xl border border-border bg-background/95 py-1.5 shadow-card-hover backdrop-blur-md"
+                  >
+                    {moreItems.map((item) => {
+                      const isActive = isActivePath(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          onClick={() => setIsMoreOpen(false)}
+                          className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 px-4 text-sm transition-colors duration-200 ease-out hover:bg-surface-highlight hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
+                            isActive ? "text-accent-hover" : "text-text-secondary"
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {tailNavItems.map((item) => {
+              const isActive = isActivePath(item.href);
               return (
                 <Link
                   key={item.href}
@@ -176,15 +297,12 @@ export function Navbar({ modules: serverModules }: NavbarProps) {
         {/* Mobile Navigation */}
         <div
           className={`overflow-hidden border-t border-white/10 bg-ink transition-all duration-300 ease-out lg:hidden ${
-            isMenuOpen ? "max-h-[28rem] opacity-100" : "max-h-0 opacity-0"
+            isMenuOpen ? "max-h-[42rem] opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <div className="flex flex-col px-4 py-3">
             {navItems.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+              const isActive = isActivePath(item.href);
               return (
                 <Link
                   key={item.href}
@@ -200,6 +318,51 @@ export function Navbar({ modules: serverModules }: NavbarProps) {
                 </Link>
               );
             })}
+            {tailNavItems.map((item) => {
+              const isActive = isActivePath(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenu}
+                  className={`cursor-pointer rounded-lg px-3 py-3 text-base transition-colors duration-200 ease-out ${
+                    isActive
+                      ? "bg-accent/15 text-accent"
+                      : "text-white/75 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {/* 「更多功能」小节：六个新模块入口平铺，随模块开关过滤 */}
+            {moreItems.length > 0 && (
+              <div className="mt-2 border-t border-white/10 pt-3">
+                <p className="px-3 pb-1.5 text-xs font-medium uppercase tracking-widest text-white/40">
+                  更多功能
+                </p>
+                {moreItems.map((item) => {
+                  const isActive = isActivePath(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMenu}
+                      className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-lg px-3 text-base transition-colors duration-200 ease-out ${
+                        isActive
+                          ? "bg-accent/15 text-accent"
+                          : "text-white/75 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
             {/* 移动端社交图标（导航内收起时可见） */}
             {profile?.social_links && profile.social_links.length > 0 && (
               <div className="mt-2 border-t border-white/10 px-3 pt-3">
