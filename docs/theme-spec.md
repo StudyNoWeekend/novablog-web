@@ -181,7 +181,9 @@ export async function generateStaticParams() {
 
 ### 3.5 数据契约
 
-主题只允许消费 CMS 公开只读接口（免鉴权，前缀 `/api/v1/public`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`、`travels`、`portfolios`、`videos`、`equipments`、`music`、`module-config`。响应统一 wrapper `{code, data, msg, trace_id}`，`code=0` 为成功。媒体资源使用返回的完整 URL，主题不感知存储细节。
+主题只允许消费 CMS 公开只读接口（免鉴权，前缀 `/api/v1/public`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`、`travels`、`portfolios`、`videos`、`equipments`、`music`、`open-sources`（开源作品，列表/详情）、`recipes`（美食菜谱，列表/详情）、`books`（读书书架，列表/详情）、`games`（游戏库，列表/详情）、`fitness`（健身训练，仅列表）、`tech-stacks`（技术栈，仅列表）、`module-config`。响应统一 wrapper `{code, data, msg, trace_id}`，`code=0` 为成功。媒体资源使用返回的完整 URL，主题不感知存储细节。
+
+`module-config` 在原有 7 个布尔开关（`article/media/music/video/travel/portfolio/equipment_enabled`）之外新增 6 个：`open_source_enabled`、`recipe_enabled`、`book_enabled`、`game_enabled`、`fitness_enabled`、`tech_stack_enabled`。开关只管展示：关闭时对应导航项隐藏、页面渲染「模块未开启」提示（复用主题现有 ModuleDisabled 类组件，没有就按主题风格新建）。
 
 **API 层必须容错**：每个取数函数 catch 异常后回退空数据/`null`（参考 `lens-life-template/lib/api/*`），保证任何一处后端不可达都不会让 `pnpm build` 失败——构建期失败只允许降级（少预渲染几个页面），不允许中断。
 

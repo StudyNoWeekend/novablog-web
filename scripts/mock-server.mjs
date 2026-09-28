@@ -1,7 +1,8 @@
 /**
  * NovaBlog 通用本地视觉验收 mock API（仅开发调试，不进入制品）。
  * 覆盖全部主题消费的公开接口：博主、模块开关、分类/标签、文章、旅行、
- * 作品集、视频、音乐歌曲/第三方歌单、器材（game-diary 的游戏库复用该接口）、评论。
+ * 作品集、视频、音乐歌曲/第三方歌单、器材（game-diary 的游戏库复用该接口）、评论、
+ * 开源作品、美食菜谱、读书书架、游戏库、健身训练、技术栈。
  * 用法：node scripts/mock-server.mjs（默认端口 8222）
  */
 import http from "node:http";
@@ -249,6 +250,305 @@ const equipments = [
   { id: "e8", name: "Gerber 户外刀具套装", brand: "Gerber", description: "露营徒步的小工具，用上的时候会觉得真值。", image_url: img("gear-gerber", 600, 450), sort_order: 7, days_ago: 72 },
 ].map(({ days_ago, ...e }) => ({ ...e, created_at: daysAgo(days_ago), updated_at: daysAgo(days_ago) }));
 
+const openSourceReadme = (name, summary, install, license) => `# ${name}
+
+> ${summary}
+
+## 特性
+
+- 开箱即用，默认配置就能覆盖大部分场景
+- 文档与示例齐全，常见问题都有对应说明
+- 持续维护，Issue 平均 48 小时内响应
+
+## 快速开始
+
+\`\`\`bash
+${install}
+\`\`\`
+
+## 项目信息
+
+| 指标 | 说明 |
+| --- | --- |
+| 开源协议 | ${license} |
+| 贡献指南 | 见仓库 CONTRIBUTING.md |
+| 问题反馈 | GitHub Issues |
+
+如果这个项目对你有帮助，欢迎点一个 Star 支持一下。`;
+
+const openSourceSeeds = [
+  { id: "o1", name: "nova-ui", repo_url: "https://github.com/nova/nova-ui", summary: "一套中性风格的 React 组件库，为内容型站点而生。", language: "TypeScript", topics: "react,ui,typescript", stars: 12400, homepage: "https://nova-ui.example.com", install: "pnpm add @nova/ui", license: "MIT", days_ago: 6 },
+  { id: "o2", name: "md-diary", repo_url: "https://github.com/nova/md-diary", summary: "把一个 Markdown 文件夹变成可以翻阅的静态日记本。", language: "Go", topics: "markdown,static-site,cli", stars: 3820, homepage: "", install: "go install github.com/nova/md-diary@latest", license: "MIT", days_ago: 13 },
+  { id: "o3", name: "hue-crafter", repo_url: "https://github.com/nova/hue-crafter", summary: "命令行配色工具，给终端和主题生成和谐色板。", language: "Rust", topics: "cli,color,terminal", stars: 5210, homepage: "https://hue-crafter.example.com", install: "cargo install hue-crafter", license: "Apache-2.0", days_ago: 21 },
+  { id: "o4", name: "weekly-captain", repo_url: "https://github.com/nova/weekly-captain", summary: "从 git 提交记录自动生成周报的命令行小工具。", language: "TypeScript", topics: "cli,git,productivity", stars: 2680, homepage: "", install: "npm i -g weekly-captain", license: "MIT", days_ago: 28 },
+  { id: "o5", name: "rss-hub-lite", repo_url: "https://github.com/nova/rss-hub-lite", summary: "轻量 RSS 生成器，把不提供订阅的页面变成 feed。", language: "Python", topics: "rss,scraper,python", stars: 7340, homepage: "", install: "pip install rss-hub-lite", license: "BSD-3-Clause", days_ago: 35 },
+  { id: "o6", name: "qrcode-art", repo_url: "https://github.com/nova/qrcode-art", summary: "把二维码画成艺术字与像素画的小玩具。", language: "JavaScript", topics: "qrcode,canvas,fun", stars: 9460, homepage: "https://qrcode-art.example.com", install: "npm i qrcode-art", license: "MIT", days_ago: 44 },
+  { id: "o7", name: "commit-lint-emoji", repo_url: "https://github.com/nova/commit-lint-emoji", summary: "gitmoji 风格的提交信息校验与 changelog 生成。", language: "TypeScript", topics: "git,gitmoji,changelog", stars: 1580, homepage: "", install: "pnpm add -D commit-lint-emoji", license: "MIT", days_ago: 52 },
+  { id: "o8", name: "walk-note", repo_url: "https://github.com/nova/walk-note", summary: "记录城市漫步轨迹并生成手账风小卡的 iOS 应用。", language: "Swift", topics: "ios,swift,citywalk", stars: 990, homepage: "https://walk-note.example.com", install: "git clone https://github.com/nova/walk-note && open walk-note.xcodeproj", license: "GPL-3.0", days_ago: 61 },
+];
+
+const openSourceList = openSourceSeeds.map(({ install, license, days_ago, ...o }, i) => ({
+  ...o,
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
+const openSourceDetails = Object.fromEntries(
+  openSourceSeeds.map((o) => [o.id, { readme: openSourceReadme(o.name, o.summary, o.install, o.license), readme_updated_at: daysAgo(o.days_ago) }])
+);
+
+const recipeSeeds = [
+  { id: "r1", title: "一锅到底的番茄牛腩", summary: "炖足九十分钟，汤汁浓到可以拌三碗米饭。", difficulty: 2, minutes: 120, servings: 4, tags: "家常菜,炖菜,下饭", days_ago: 4 },
+  { id: "r2", title: "十分钟葱油拌面", summary: "一把小葱一碗面，深夜食堂的最低门槛。", difficulty: 1, minutes: 10, servings: 1, tags: "面食,快手,一人食", days_ago: 9 },
+  { id: "r3", title: "巴斯克芝士蛋糕", summary: "失败三次换来的稳定配方，搅拌匀就能进烤箱。", difficulty: 2, minutes: 65, servings: 6, tags: "烘焙,甜点,下午茶", days_ago: 15 },
+  { id: "r4", title: "舒芙蕾厚松饼", summary: "成败全在翻拌手法，值得为之早起一小时。", difficulty: 3, minutes: 40, servings: 2, tags: "早餐,甜点,手作", days_ago: 22 },
+  { id: "r5", title: "日式咖喱鸡", summary: "搭一碗米饭就是完整晚餐，隔夜热更入味。", difficulty: 1, minutes: 45, servings: 3, tags: "家常菜,咖喱,晚餐", days_ago: 30 },
+  { id: "r6", title: "蒜香黄油虾", summary: "整头蒜加半块黄油，下酒下饭两相宜。", difficulty: 2, minutes: 20, servings: 2, tags: "海鲜,快手,下酒菜", days_ago: 38 },
+  { id: "r7", title: "低卡鸡胸沙拉碗", summary: "健身日的固定午餐，腌十分钟煎八分钟。", difficulty: 1, minutes: 25, servings: 1, tags: "轻食,健身餐,低卡", days_ago: 45 },
+];
+
+const recipeList = recipeSeeds.map(({ days_ago, ...r }, i) => ({
+  ...r,
+  cover: img(`recipe-${r.id}`, 1200, 800),
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
+const recipeDetails = {
+  r1: {
+    ingredients: [
+      { name: "牛腩", amount: "500g" },
+      { name: "番茄", amount: "3 个（约 400g）" },
+      { name: "洋葱", amount: "半个" },
+      { name: "冰糖", amount: "10g" },
+      { name: "生抽", amount: "2 勺" },
+      { name: "姜片、料酒", amount: "适量" },
+    ],
+    steps: [
+      { text: "牛腩切块冷水下锅，加姜片和料酒焯水，撇净浮沫捞出。", image: img("recipe-r1-step1", 800, 600) },
+      { text: "热油炒化冰糖，下牛腩翻炒上色，加洋葱块爆香。", image: img("recipe-r1-step2", 800, 600) },
+      { text: "番茄去皮切块下锅炒出沙，加热水没过食材，转小火炖 90 分钟。", image: img("recipe-r1-step3", 800, 600) },
+      { text: "大火收汁，加盐调味，撒葱花出锅。", image: img("recipe-r1-step4", 800, 600) },
+    ],
+  },
+  r2: {
+    ingredients: [
+      { name: "手擀面", amount: "1 份（约 150g）" },
+      { name: "小葱", amount: "4 根" },
+      { name: "生抽", amount: "2 勺" },
+      { name: "老抽", amount: "半勺" },
+      { name: "白糖", amount: "1 小勺" },
+      { name: "食用油", amount: "3 勺" },
+    ],
+    steps: [
+      { text: "小葱切段冷油下锅，小火慢炸到焦黄酥脆。", image: img("recipe-r2-step1", 800, 600) },
+      { text: "碗中调入生抽、老抽和白糖，搅匀成酱汁。", image: img("recipe-r2-step2", 800, 600) },
+      { text: "面条煮到八分熟捞出，过一遍凉水更筋道。", image: img("recipe-r2-step3", 800, 600) },
+      { text: "淋上酱汁和葱油，趁热拌匀即可开吃。", image: img("recipe-r2-step4", 800, 600) },
+    ],
+  },
+  r3: {
+    ingredients: [
+      { name: "奶油芝士", amount: "250g" },
+      { name: "细砂糖", amount: "60g" },
+      { name: "鸡蛋", amount: "2 个" },
+      { name: "淡奶油", amount: "150g" },
+      { name: "玉米淀粉", amount: "10g" },
+    ],
+    steps: [
+      { text: "奶油芝士室温软化后加糖，搅打至顺滑无颗粒。", image: img("recipe-r3-step1", 800, 600) },
+      { text: "分次加入鸡蛋搅匀，再倒入淡奶油和玉米淀粉拌匀。", image: img("recipe-r3-step2", 800, 600) },
+      { text: "面糊过筛，倒入垫了油纸的六寸模具。", image: img("recipe-r3-step3", 800, 600) },
+      { text: "230℃ 烤 25 分钟，出炉冷藏四小时后再脱模。", image: img("recipe-r3-step4", 800, 600) },
+    ],
+  },
+  r4: {
+    ingredients: [
+      { name: "鸡蛋", amount: "3 个" },
+      { name: "低筋面粉", amount: "40g" },
+      { name: "牛奶", amount: "30g" },
+      { name: "细砂糖", amount: "30g" },
+      { name: "泡打粉", amount: "2g" },
+    ],
+    steps: [
+      { text: "蛋黄蛋白分离，蛋黄加牛奶拌匀后筛入面粉。", image: img("recipe-r4-step1", 800, 600) },
+      { text: "蛋白分三次加糖，打到提起有小尖角的硬性发泡。", image: img("recipe-r4-step2", 800, 600) },
+      { text: "蛋白糊分两次翻拌进蛋黄糊，动作要轻要快。", image: img("recipe-r4-step3", 800, 600) },
+      { text: "小火加盖每面煎四分钟，中途翻面防止塌陷。", image: img("recipe-r4-step4", 800, 600) },
+    ],
+  },
+  r5: {
+    ingredients: [
+      { name: "鸡腿肉", amount: "300g" },
+      { name: "土豆", amount: "1 个" },
+      { name: "胡萝卜", amount: "半根" },
+      { name: "洋葱", amount: "半个" },
+      { name: "日式咖喱块", amount: "3 块" },
+    ],
+    steps: [
+      { text: "鸡腿肉切块焯水，土豆和胡萝卜滚刀切块。", image: img("recipe-r5-step1", 800, 600) },
+      { text: "少油炒香洋葱，下鸡肉块炒至表面变色。", image: img("recipe-r5-step2", 800, 600) },
+      { text: "加土豆、胡萝卜和热水，中火煮 15 分钟。", image: img("recipe-r5-step3", 800, 600) },
+      { text: "关火放咖喱块搅到化开，再小火煮到浓稠。", image: img("recipe-r5-step4", 800, 600) },
+    ],
+  },
+  r6: {
+    ingredients: [
+      { name: "鲜虾", amount: "300g" },
+      { name: "黄油", amount: "30g" },
+      { name: "大蒜", amount: "1 整头" },
+      { name: "小米辣", amount: "2 个" },
+      { name: "欧芹碎", amount: "少许" },
+    ],
+    steps: [
+      { text: "鲜虾开背去虾线，用厨房纸吸干表面水分。", image: img("recipe-r6-step1", 800, 600) },
+      { text: "黄油小火融化，下蒜末和小米辣慢慢煸香。", image: img("recipe-r6-step2", 800, 600) },
+      { text: "转大火下虾，煎到两面变红再翻面煎一分钟。", image: img("recipe-r6-step3", 800, 600) },
+      { text: "撒盐和欧芹碎，颠锅几下即可出锅。", image: img("recipe-r6-step4", 800, 600) },
+    ],
+  },
+  r7: {
+    ingredients: [
+      { name: "鸡胸肉", amount: "1 块（约 150g）" },
+      { name: "生菜", amount: "适量" },
+      { name: "圣女果", amount: "6 颗" },
+      { name: "玉米粒", amount: "半碗" },
+      { name: "油醋汁", amount: "2 勺" },
+    ],
+    steps: [
+      { text: "鸡胸肉用盐、黑胡椒和少许油腌十分钟。", image: img("recipe-r7-step1", 800, 600) },
+      { text: "平底锅少油煎到两面金黄，静置三分钟后切块。", image: img("recipe-r7-step2", 800, 600) },
+      { text: "生菜撕碎、圣女果对半切，和玉米粒一起装碗。", image: img("recipe-r7-step3", 800, 600) },
+      { text: "摆上鸡肉块，淋油醋汁拌匀即可。", image: img("recipe-r7-step4", 800, 600) },
+    ],
+  },
+};
+
+const bookSeeds = [
+  { id: "b1", title: "置身事内", author: "兰小欢", rating: 4.5, reading_status: "done", days_ago: 12 },
+  { id: "b2", title: "长安的荔枝", author: "马伯庸", rating: 4, reading_status: "done", days_ago: 25 },
+  { id: "b3", title: "芯片战争", author: "克里斯·米勒", rating: 4, reading_status: "reading", days_ago: 40 },
+  { id: "b4", title: "我与地坛", author: "史铁生", rating: 5, reading_status: "done", days_ago: 58 },
+  { id: "b5", title: "纳瓦尔宝典", author: "埃里克·乔根森", rating: 3.5, reading_status: "reading", days_ago: 75 },
+  { id: "b6", title: "克拉克森的农场", author: "杰瑞米·克拉克森", rating: 0, reading_status: "want", days_ago: 90 },
+  { id: "b7", title: "翦商", author: "李硕", rating: 0, reading_status: "want", days_ago: 100 },
+];
+
+const bookList = bookSeeds.map(({ days_ago, ...b }, i) => ({
+  ...b,
+  cover: img(`book-${b.id}`, 600, 800),
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
+const bookDetails = {
+  b1: {
+    review: `## 一句话推荐
+
+把政府与经济的运行逻辑，讲成每个普通人都能读懂的身边事。
+
+## 印象最深的点
+
+- 地方政府「既当裁判员又当运动员」的双重角色
+- 土地财政从何而来、往何处去的完整脉络
+
+看完再看财经新闻，很多标题背后的动机一下子就通了。`,
+    started_at: daysAgo(96),
+    finished_at: daysAgo(12),
+  },
+  b2: {
+    review: `「流程，是弱者才要遵循的规矩。」读到这句话的瞬间就值回书钱。三个晚上读完，最后一筒荔枝送到长安时，居然有点想哭。`,
+    started_at: daysAgo(27),
+    finished_at: daysAgo(25),
+  },
+  b3: {
+    review: `读到一半，冷战时期的芯片暗战比小说还精彩。剩下半本留着通勤路上慢慢看。`,
+    started_at: daysAgo(40),
+    finished_at: null,
+  },
+  b4: {
+    review: `「死是一件不必急于求成的事。」十五岁读到的是句子，三十岁再读才是人生。常读常新的一本小书。`,
+    started_at: daysAgo(60),
+    finished_at: daysAgo(58),
+  },
+  b5: {
+    review: `财富与认知的段子合集，适合随手翻一篇。观点未必都认同，但「把自己产品化」确实在脑子里住下了。`,
+    started_at: daysAgo(75),
+    finished_at: null,
+  },
+};
+
+const gameSeeds = [
+  { id: "g1", title: "塞尔达传说：王国之泪", platform: "Switch", genre: "开放世界", play_status: "played", play_hours: 145, rating: 9.5, days_ago: 20 },
+  { id: "g2", title: "艾尔登法环", platform: "PS5", genre: "动作角色扮演", play_status: "played", play_hours: 98, rating: 9, days_ago: 35 },
+  { id: "g3", title: "星露谷物语", platform: "PC", genre: "模拟经营", play_status: "playing", play_hours: 210, rating: 9, days_ago: 60 },
+  { id: "g4", title: "空洞骑士：丝之歌", platform: "Switch", genre: "类银河恶魔城", play_status: "playing", play_hours: 12, rating: 0, days_ago: 5 },
+  { id: "g5", title: "双人成行", platform: "PS5", genre: "合作冒险", play_status: "played", play_hours: 14, rating: 8.5, days_ago: 120 },
+  { id: "g6", title: "博德之门 3", platform: "PC", genre: "角色扮演", play_status: "want", play_hours: 0, rating: 0, days_ago: 90 },
+  { id: "g7", title: "怪物猎人：荒野", platform: "PS5", genre: "动作", play_status: "want", play_hours: 0, rating: 0, days_ago: 70 },
+];
+
+const gameList = gameSeeds.map(({ days_ago, ...g }, i) => ({
+  ...g,
+  cover: img(`game-${g.id}`, 1200, 800),
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
+const gameReviews = {
+  g1: "空岛与地底的设计脑洞惊人，余料建造的自由度是系列之最。",
+  g2: "受苦但有瘾，交界地的每一块箱庭都值得慢慢逛。",
+  g3: "种田钓鱼养鸡，游戏里的农场比现实生活规律多了。",
+  g4: "刚开场，地图又大又美，等玩明白了再来补分。",
+  g5: "和另一半通关的最佳选择，关卡创意密度高到离谱。",
+  g6: "被朋友安利了无数遍，等一个打折就入库。",
+};
+
+const fitnessList = [
+  { id: "f1", title: "卧推 + 杠铃划船力量课", type: "strength", duration_min: 60, calories: 420, days_ago: 1 },
+  { id: "f2", title: "晨跑 5 公里", type: "cardio", duration_min: 32, calories: 350, days_ago: 2 },
+  { id: "f3", title: "全身拉伸放松课", type: "stretch", duration_min: 25, calories: 90, days_ago: 3 },
+  { id: "f4", title: "深蹲日：下肢力量训练", type: "strength", duration_min: 70, calories: 480, days_ago: 5 },
+  { id: "f5", title: "游泳 1500 米", type: "cardio", duration_min: 45, calories: 520, days_ago: 6 },
+  { id: "f6", title: "HIIT 间歇训练", type: "cardio", duration_min: 20, calories: 280, days_ago: 8 },
+  { id: "f7", title: "睡前肩颈瑜伽", type: "stretch", duration_min: 30, calories: 100, days_ago: 9 },
+].map(({ days_ago, ...f }, i) => ({
+  ...f,
+  date: daysAgo(days_ago).slice(0, 10),
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
+const techStackList = [
+  { id: "ts1", name: "TypeScript", category: "语言", level: 4, description: "五年主力语言，类型体操与工程化配置都比较熟。", days_ago: 100 },
+  { id: "ts2", name: "React", category: "前端框架", level: 4, description: "从 class 组件用到 Hooks，源码翻过几轮。", days_ago: 100 },
+  { id: "ts3", name: "Next.js", category: "前端框架", level: 3, description: "App Router 与静态导出实践较多，RSC 还在跟进。", days_ago: 99 },
+  { id: "ts4", name: "Tailwind CSS", category: "样式方案", level: 3, description: "全部主题的样式方案，对设计令牌组织有些心得。", days_ago: 99 },
+  { id: "ts5", name: "Node.js", category: "运行时", level: 3, description: "脚本、CLI 与 BFF 场景常用，性能调优经验一般。", days_ago: 98 },
+  { id: "ts6", name: "Go", category: "语言", level: 2, description: "能读懂服务端代码，写过小工具，没上过生产。", days_ago: 98 },
+  { id: "ts7", name: "PostgreSQL", category: "数据库", level: 2, description: "常用查询与索引优化没问题，复杂调优要查文档。", days_ago: 97 },
+  { id: "ts8", name: "Docker", category: "运维部署", level: 2, description: "写 Dockerfile 和 compose 编排熟练，K8s 还在学。", days_ago: 97 },
+  { id: "ts9", name: "Rust", category: "语言", level: 1, description: "读完半本 The Book，代码停留在练习题水平。", days_ago: 96 },
+  { id: "ts10", name: "Kubernetes", category: "运维部署", level: 1, description: "了解核心概念，实践仅限本地搭过一次集群。", days_ago: 96 },
+].map(({ days_ago, ...t }, i) => ({
+  ...t,
+  icon: img(`tech-${t.id}`, 200, 200),
+  status: 2,
+  sort_order: i,
+  created_at: daysAgo(days_ago),
+  updated_at: daysAgo(days_ago),
+}));
+
 const commentsStore = {
   "article:a1": [
     { id: "cm1", parent_id: null, nickname: "路过的旅人", website: "", content: "这条路线收藏了，周末就去走一遍！", is_blogger: false, created_at: daysAgo(3) },
@@ -310,6 +610,12 @@ const server = http.createServer((req, res) => {
       travel_enabled: true,
       portfolio_enabled: true,
       equipment_enabled: true,
+      open_source_enabled: true,
+      recipe_enabled: true,
+      book_enabled: true,
+      game_enabled: true,
+      fitness_enabled: true,
+      tech_stack_enabled: true,
       updated_at: daysAgo(1),
     });
   }
@@ -477,6 +783,94 @@ const server = http.createServer((req, res) => {
     const e = equipments.find((x) => x.id === decodeURIComponent(equipmentOne[1]));
     if (!e) return notFound(res);
     return ok(res, e);
+  }
+
+  // 开源作品
+  if (path === "/api/v1/public/open-sources") {
+    let list = openSourceList;
+    const kw = q.get("keyword");
+    if (kw) list = list.filter((o) => o.name.includes(kw) || o.summary.includes(kw) || o.topics.includes(kw) || o.language.includes(kw));
+    return ok(res, page(list, q));
+  }
+  const openSourceOne = path.match(/^\/api\/v1\/public\/open-sources\/([^/]+)$/);
+  if (openSourceOne) {
+    const o = openSourceList.find((x) => x.id === decodeURIComponent(openSourceOne[1]));
+    if (!o) return notFound(res);
+    return ok(res, { ...o, ...openSourceDetails[o.id] });
+  }
+
+  // 美食菜谱
+  if (path === "/api/v1/public/recipes") {
+    let list = recipeList;
+    const kw = q.get("keyword");
+    const difficulty = q.get("difficulty");
+    if (kw) list = list.filter((r) => r.title.includes(kw) || r.summary.includes(kw) || r.tags.includes(kw));
+    if (difficulty) list = list.filter((r) => String(r.difficulty) === difficulty);
+    return ok(res, page(list, q));
+  }
+  const recipeOne = path.match(/^\/api\/v1\/public\/recipes\/([^/]+)$/);
+  if (recipeOne) {
+    const r = recipeList.find((x) => x.id === decodeURIComponent(recipeOne[1]));
+    if (!r) return notFound(res);
+    return ok(res, { ...r, ...(recipeDetails[r.id] || { ingredients: [], steps: [] }) });
+  }
+
+  // 读书书架
+  if (path === "/api/v1/public/books") {
+    let list = bookList;
+    const kw = q.get("keyword");
+    const readingStatus = q.get("reading_status");
+    if (kw) list = list.filter((b) => b.title.includes(kw) || b.author.includes(kw));
+    if (readingStatus && readingStatus !== "all") list = list.filter((b) => b.reading_status === readingStatus);
+    return ok(res, page(list, q));
+  }
+  const bookOne = path.match(/^\/api\/v1\/public\/books\/([^/]+)$/);
+  if (bookOne) {
+    const b = bookList.find((x) => x.id === decodeURIComponent(bookOne[1]));
+    if (!b) return notFound(res);
+    return ok(res, { ...b, ...(bookDetails[b.id] || { review: "", started_at: null, finished_at: null }) });
+  }
+
+  // 游戏库
+  if (path === "/api/v1/public/games") {
+    let list = gameList;
+    const kw = q.get("keyword");
+    const platform = q.get("platform");
+    const genre = q.get("genre");
+    const playStatus = q.get("play_status");
+    if (kw) list = list.filter((g) => g.title.includes(kw) || g.genre.includes(kw));
+    if (platform) list = list.filter((g) => g.platform === platform);
+    if (genre) list = list.filter((g) => g.genre === genre);
+    if (playStatus && playStatus !== "all") list = list.filter((g) => g.play_status === playStatus);
+    return ok(res, page(list, q));
+  }
+  const gameOne = path.match(/^\/api\/v1\/public\/games\/([^/]+)$/);
+  if (gameOne) {
+    const g = gameList.find((x) => x.id === decodeURIComponent(gameOne[1]));
+    if (!g) return notFound(res);
+    return ok(res, { ...g, short_review: gameReviews[g.id] || "" });
+  }
+
+  // 健身训练（仅列表）
+  if (path === "/api/v1/public/fitness") {
+    let list = fitnessList;
+    const kw = q.get("keyword");
+    const type = q.get("type");
+    if (kw) list = list.filter((f) => f.title.includes(kw));
+    if (type && type !== "all") list = list.filter((f) => f.type === type);
+    return ok(res, page(list, q));
+  }
+
+  // 技术栈（仅列表）
+  if (path === "/api/v1/public/tech-stacks") {
+    let list = techStackList;
+    const kw = q.get("keyword");
+    const category = q.get("category");
+    const level = q.get("level");
+    if (kw) list = list.filter((t) => t.name.includes(kw) || t.description.includes(kw));
+    if (category) list = list.filter((t) => t.category === category);
+    if (level) list = list.filter((t) => String(t.level) === level);
+    return ok(res, page(list, q));
   }
 
   res.writeHead(404, { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" });
