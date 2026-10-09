@@ -159,14 +159,14 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
           </p>
           {themeInfo.homepage && (
             <p className="mt-1">
-              Theme：
+              主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-colors duration-200 hover:text-accent"
               >
-                wanderlust-template
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

@@ -134,14 +134,6 @@
     .shell-footer .slogan em { color: var(--accent); font-style: normal; }
     .shell-footer a { color: var(--muted); text-decoration: none; }
     .shell-footer a:hover { color: var(--accent); }
-    .theme-chip {
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 11px;
-      color: var(--muted);
-      margin: 0 6px;
-    }
   </style>
 </head>
 <body>
@@ -192,11 +184,11 @@
 
       // 页脚：主题来源链接（与 theme.json homepage 一致）
       var THEME_HOMEPAGE = "https://github.com/StudyNoWeekend/novablog-web/tree/HEAD/melody-notes";
-      var THEME_VERSION = "0.4.0";
+      var THEME_VERSION = "0.5.1";
       var footerTheme = document.getElementById("footer-theme");
       footerTheme.innerHTML =
-        '主题<span class="theme-chip">Melody Notes v' + THEME_VERSION + "</span>来源：<a href=\"" +
-        THEME_HOMEPAGE + '" target="_blank" rel="noopener noreferrer">novablog-web/melody-notes</a>';
+        '主题来源：<a href="' +
+        THEME_HOMEPAGE + '" target="_blank" rel="noopener noreferrer">旋律笔记（melody-notes）v' + THEME_VERSION + "</a>";
 
       // 获取博主资料并更新品牌文字与页脚署名
       var blogTitle = "";

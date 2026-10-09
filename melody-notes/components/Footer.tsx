@@ -215,18 +215,14 @@ export function Footer({ profile: serverProfile }: FooterProps) {
           </p>
           {themeInfo.homepage && (
             <p>
-              主题
-              <span className="mx-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] text-text-muted">
-                Melody Notes v{themeInfo.version}
-              </span>
-              来源：
+              主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cursor-pointer transition-colors duration-200 hover:text-accent"
               >
-                novablog-web/melody-notes
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

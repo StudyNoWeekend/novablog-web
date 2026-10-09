@@ -164,14 +164,14 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
           </p>
           {themeInfo.homepage && (
             <p className="mt-1.5">
-              主题「{themeInfo.name}」来源：
+              主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cursor-pointer text-white/65 underline decoration-white/25 underline-offset-2 transition-colors duration-200 hover:text-accent"
               >
-                {themeInfo.homepage}
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

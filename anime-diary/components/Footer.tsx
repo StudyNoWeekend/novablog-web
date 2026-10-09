@@ -193,14 +193,14 @@ export function Footer({ profile: serverProfile }: FooterProps) {
           </p>
           {themeInfo.homepage && (
             <p className="mt-1.5">
-              主题「{themeInfo.name}」来源：
+              主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-colors duration-200 ease-out hover:text-accent"
               >
-                {themeInfo.homepage}
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

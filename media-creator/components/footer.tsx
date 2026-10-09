@@ -111,8 +111,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>
-            © {new Date().getFullYear()} {info?.blog_title || info?.nickname || "FrameWithMe"}. All
-            rights reserved.
+            © {new Date().getFullYear()} {info?.blog_title || info?.nickname || "FrameWithMe"}
           </p>
           {themeInfo.homepage && (
             <p>

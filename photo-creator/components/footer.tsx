@@ -111,14 +111,14 @@ export function Footer({ blogger }: FooterProps) {
 
           {themeInfo.homepage && (
             <p className="pt-8 text-xs text-muted-foreground">
-              来源：
+              主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cursor-pointer rounded-md transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {themeInfo.homepage}
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

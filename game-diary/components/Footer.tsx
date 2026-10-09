@@ -236,7 +236,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
                 rel="noopener noreferrer"
                 className="transition-colors duration-200 ease-out hover:text-accent-hover"
               >
-                {themeInfo.homepage}
+                {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}

@@ -1,7 +1,7 @@
 {
   "id": "media-diary",
   "name": "多媒体日记",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
