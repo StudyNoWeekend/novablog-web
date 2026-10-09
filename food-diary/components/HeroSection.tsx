@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, UtensilsCrossed } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 interface HeroSectionProps {
   profile: BloggerProfile | null;
@@ -65,6 +66,8 @@ export function HeroSection({ profile, covers }: HeroSectionProps) {
           <p className="mt-6 max-w-md text-sm leading-loose text-white/90 drop-shadow-sm md:text-base">
             {profile?.bio || DEFAULT_BIO}
           </p>
+
+          <ProfileBadges />
 
           <Link
             href="/articles"
