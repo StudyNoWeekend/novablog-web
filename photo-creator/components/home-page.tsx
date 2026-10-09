@@ -10,6 +10,7 @@ import { SocialLinks } from "./social-links";
 import { ErrorState, EmptyState } from "./error-state";
 import { HeroSkeleton, PortfolioWallSkeleton, JournalSkeleton, AboutSkeleton } from "./loading";
 import { ScrollReveal, LineReveal } from "./scroll-reveal";
+import { ProfileBadges, ZodiacPersonalityCards } from "./profile-traits";
 
 export function HomePage() {
   const [bloggerData, setBloggerData] = useState<Blogger | null>(null);
@@ -163,6 +164,8 @@ export function HomePage() {
               ))}
             </h1>
 
+            <ProfileBadges onDark={Boolean(bloggerData?.page_background)} />
+
             <button
               type="button"
               onClick={() => scrollTo("#stories")}
@@ -263,6 +266,11 @@ export function HomePage() {
               </button>
             </ScrollReveal>
           </div>
+        </div>
+
+        {/* 星座 / 性格 */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ZodiacPersonalityCards className="mt-8" />
         </div>
       </section>
 

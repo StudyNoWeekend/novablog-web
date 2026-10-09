@@ -22,6 +22,23 @@ export interface PaginationParams extends ApiParams {
   page_size?: number;
 }
 
+/** 博主星座（GET /api/v1/public/blogger，未设置或博主关闭展示时为 null） */
+export interface ZodiacInfo {
+  key: string;
+  name: string;
+  image: string;
+  date_range: string;
+  element: string;
+}
+
+/** 博主性格 MBTI（GET /api/v1/public/blogger，未设置或博主关闭展示时为 null） */
+export interface PersonalityInfo {
+  key: string;
+  name: string;
+  image: string;
+  description: string;
+}
+
 export interface Blogger {
   nickname: string;
   avatar: string;
@@ -35,6 +52,10 @@ export interface Blogger {
     url: string;
     sort_order: number;
   }[];
+  /** 星座信息，未设置或博主关闭展示时为 null */
+  zodiac?: ZodiacInfo | null;
+  /** 性格（MBTI）信息，未设置或博主关闭展示时为 null */
+  personality?: PersonalityInfo | null;
 }
 
 export interface Article {
