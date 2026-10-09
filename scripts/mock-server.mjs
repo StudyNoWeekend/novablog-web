@@ -32,6 +32,19 @@ const blogger = {
     { platform: "rss", name: "RSS", color: "#F26522", url: "https://example.com/rss", sort_order: 5 },
   ],
   tags: ["城市漫步", "胶片摄影", "独立游戏", "手冲咖啡"],
+  zodiac: {
+    key: "leo",
+    name: "狮子座",
+    image: "",
+    date_range: "7.23-8.22",
+    element: "火象",
+  },
+  personality: {
+    key: "INTP",
+    name: "逻辑学家",
+    image: "",
+    description: "热衷探索概念与原理，以严谨的逻辑推演理解世界的运行规律。",
+  },
 };
 
 const categories = [
@@ -133,8 +146,8 @@ const travelList = travelSeeds.map((t) => ({
 const travelDetailExtra = {
   t1: {
     attractions: [
-      { name: "桥西历史文化街区", description: "刀剪剑博物馆一带的老巷，清晨人少最出片。", image: img("qiaoxi", 600, 450) },
-      { name: "满觉陇", description: "秋天满城桂花香，山路两侧全是茶田。", image: img("manjuelong", 600, 450) },
+      { id: "t1-a1", name: "桥西历史文化街区", description: "刀剪剑博物馆一带的老巷，清晨人少最出片。", image: img("qiaoxi", 600, 450), duration: "半天", location: "浙江省杭州市拱墅区桥西直街", latitude: 30.3197, longitude: 120.1364, coordType: "gcj02" },
+      { id: "t1-a2", name: "满觉陇", description: "秋天满城桂花香，山路两侧全是茶田。", image: img("manjuelong", 600, 450), duration: "半天", location: "浙江省杭州市西湖区满觉陇路", latitude: 30.2162, longitude: 120.1169, coordType: "gcj02" },
     ],
     itinerary: [
       { day: "Day 1", description: "下午抵达，逛桥西直街，晚上运河边散步。" },
@@ -144,6 +157,50 @@ const travelDetailExtra = {
     reviews: [
       { nickname: "路过的旅人", rating: 5, content: "跟着走了一遍，节奏刚刚好！" },
       { nickname: "Momo", rating: 4, content: "满觉陇那段太美了，秋天一定要去。" },
+    ],
+  },
+  t2: {
+    attractions: [
+      { id: "t2-a1", name: "宽窄巷子", description: "老成都的闲生活，盖碗茶配掏耳朵。", image: img("kuanzhai", 600, 450), duration: "半天", location: "四川省成都市青羊区宽窄巷子", latitude: 30.6634, longitude: 104.0532, coordType: "gcj02" },
+      { id: "t2-a2", name: "锦里古街", description: "夜景比白天好看，红灯笼亮起来才算到了成都。", image: img("jinli", 600, 450), duration: "2-3 小时", location: "四川省成都市武侯区武侯祠大街", latitude: 30.6442, longitude: 104.0432, coordType: "gcj02" },
+    ],
+    itinerary: [
+      { day: "Day 1", description: "落地先涮一顿火锅，晚上逛锦里夜景。" },
+      { day: "Day 2", description: "宽窄巷子喝茶听戏，下午人民公园。" },
+      { day: "Day 3", description: "熊猫基地看花花，晚上建设路小吃街。" },
+      { day: "Day 4", description: "东郊记忆拍照，返程。" },
+    ],
+    reviews: [
+      { nickname: "干饭人", rating: 5, content: "照着吃了一圈，没有踩雷的。" },
+    ],
+  },
+  t3: {
+    attractions: [
+      { id: "t3-a1", name: "大理古城", description: "人民路的夜晚和床单厂的艺术市集都值得慢慢逛。", image: img("dali-oldtown", 600, 450), duration: "1 天", location: "云南省大理白族自治州大理市大理古城", latitude: 25.6926, longitude: 100.1635, coordType: "gcj02" },
+      { id: "t3-a2", name: "喜洲古镇", description: "稻田边的白族院子，破酥粑粑要趁热吃。", image: img("xizhou", 600, 450), duration: "半天", location: "云南省大理白族自治州大理市喜洲镇", latitude: 25.8553, longitude: 100.1021, coordType: "gcj02" },
+    ],
+    itinerary: [
+      { day: "Day 1", description: "古城安顿，傍晚才村码头看日落。" },
+      { day: "Day 2", description: "租电动车北上，喜洲吃午饭，海舍公路慢慢骑。" },
+      { day: "Day 3", description: "双廊住一晚，南诏风情岛发呆。" },
+      { day: "Day 4", description: "挖色小普陀，环海东路返程。" },
+      { day: "Day 5", description: "古城早市买伴手礼，返程。" },
+    ],
+    reviews: [
+      { nickname: "环海骑士", rating: 5, content: "电动车环海太自由了，注意防晒！" },
+    ],
+  },
+  t4: {
+    attractions: [
+      { id: "t4-a1", name: "鼓浪屿", description: "避开周末早班轮渡，巷子里的老别墅比景点好看。", image: img("gulangyu", 600, 450), duration: "1 天", location: "福建省厦门市思明区鼓浪屿", latitude: 24.4438, longitude: 118.0672, coordType: "gcj02" },
+      { id: "t4-a2", name: "沙坡尾", description: "避风坞边的文艺街区，黄昏光线最适合拍照。", image: img("shapowei", 600, 450), duration: "2-3 小时", location: "福建省厦门市思明区沙坡尾", latitude: 24.4357, longitude: 118.0901, coordType: "gcj02" },
+    ],
+    itinerary: [
+      { day: "Day 1", description: "早上轮渡上岛，绕岛步行一圈，傍晚回本岛。" },
+      { day: "Day 2", description: "沙坡尾吃早午餐，八市买海鲜，看一场海上日落后返程。" },
+    ],
+    reviews: [
+      { nickname: "海边风", rating: 4, content: "周末人多，工作日去体验更好。" },
     ],
   },
 };
@@ -596,6 +653,51 @@ const server = http.createServer((req, res) => {
   const q = url.searchParams;
 
   if (req.method === "OPTIONS") return ok(res, null);
+
+  // 地图嵌入页 mock（真实环境由 CMS 提供：Leaflet + OSM 免 key 底图，postMessage 上报高度）
+  if (req.method === "GET" && path.startsWith("/map-embed/travel/")) {
+    const travelId = decodeURIComponent(path.split("/").pop() || "");
+    const extra = travelDetailExtra[travelId] || { attractions: [] };
+    const pins = (extra.attractions || [])
+      .map((a, i, arr) => {
+        const x = arr.length > 1 ? 18 + (i * 64) / (arr.length - 1) : 50;
+        const y = i % 2 === 0 ? 30 : 58;
+        return `<div class="pin" style="left:${x}%;top:${y}%"><i></i><b>${a.name}</b></div>`;
+      })
+      .join("");
+    const html = `<!doctype html>
+<html lang="zh">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>景点地图</title>
+<style>
+html,body{margin:0}
+.map{position:relative;height:420px;font-family:system-ui,-apple-system,"PingFang SC",sans-serif;overflow:hidden;
+background:linear-gradient(rgba(148,163,184,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.28) 1px,transparent 1px),linear-gradient(160deg,#eef2e6,#dbe7d4 60%,#cfe0d8);
+background-size:28px 28px,28px 28px,cover}
+.pin{position:absolute;transform:translate(-50%,-100%);text-align:center}
+.pin i{display:block;width:14px;height:14px;border-radius:50% 50% 50% 0;background:#e0592a;border:2px solid #fff;transform:rotate(-45deg);margin:0 auto;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.pin b{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;background:#fff;font-size:12px;color:#374151;box-shadow:0 1px 4px rgba(0,0,0,.2);white-space:nowrap}
+.brand{position:absolute;right:10px;bottom:8px;font-size:11px;color:#7c8a84;background:rgba(255,255,255,.7);padding:1px 6px;border-radius:6px}
+</style></head>
+<body><div class="map">${pins}<span class="brand">OpenStreetMap · Leaflet（本地 mock）</span></div>
+<script>
+(function () {
+  function post() {
+    var h = parseInt(new URLSearchParams(location.search).get("h") || "420", 10);
+    if (!isFinite(h)) h = 420;
+    h = Math.min(2000, Math.max(240, h));
+    document.querySelector(".map").style.height = h + "px";
+    parent.postMessage({ type: "novablog-map-embed:height", height: h }, "*");
+  }
+  post();
+  window.addEventListener("resize", post);
+})();
+</script></body></html>`;
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+    });
+    return res.end(html);
+  }
 
   // 博主
   if (path === "/api/v1/public/blogger") return ok(res, blogger);

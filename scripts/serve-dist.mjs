@@ -89,7 +89,10 @@ function proxyApi(req, res) {
 }
 
 const server = http.createServer((req, res) => {
-  if (req.url.startsWith("/api/")) return proxyApi(req, res);
+  // /api/v1 公开接口与 CMS 根路径的 /map-embed 地图嵌入页均由 mock 提供，模拟同域部署
+  if (req.url.startsWith("/api/") || req.url.startsWith("/map-embed/")) {
+    return proxyApi(req, res);
+  }
   const file = resolveFile(req.url || "/");
   if (!file) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
