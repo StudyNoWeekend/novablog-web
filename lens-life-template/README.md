@@ -27,7 +27,7 @@
 
 已接入博主星座/性格展示（本地 logo，关于我页卡片 + 首页 Hero 徽章）。
 
-已接入旅行攻略地图嵌入：攻略详情页在景点含坐标时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）。
+已接入旅行攻略地图嵌入：攻略详情页在景点含坐标时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）；景点卡片按坐标系显示对应地图平台跳转 chip（gcj02 → 高德、wgs84/未知 → Google，携带原始坐标新窗口打开，无坐标不显示）。
 
 ## 本地开发
 

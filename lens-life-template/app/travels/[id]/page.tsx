@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Eye,
   MapPin,
+  Navigation,
   Star,
 } from "lucide-react";
 import {
@@ -72,6 +73,25 @@ function hasCoordinates(attractions: Record<string, unknown>[]): boolean {
     const lng = Number(attraction.longitude);
     return Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0);
   });
+}
+
+// 按 coordType 生成对应地图平台的跳转链接（使用存储的原始坐标，不做坐标系转换）
+function mapJumpLink(attraction: Record<string, unknown>): { label: string; url: string } | null {
+  const lat = Number(attraction.latitude);
+  const lng = Number(attraction.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) return null;
+  const coordType = String(attraction.coordType ?? attraction.coord_type ?? "").toLowerCase();
+  const name = pickString(attraction, ["name", "title"]);
+  if (coordType === "gcj02") {
+    return {
+      label: "在高德地图查看",
+      url: `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&src=novablog&callnative=1`,
+    };
+  }
+  return {
+    label: "在 Google 地图查看",
+    url: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+  };
 }
 
 function StarRating({ value }: { value: number }) {
@@ -221,6 +241,7 @@ export default async function TravelDetailPage({ params }: PageProps) {
                   "summary",
                   "text",
                 ]);
+                const jump = mapJumpLink(attraction);
                 return (
                   <div
                     key={`attraction-${i}`}
@@ -247,6 +268,17 @@ export default async function TravelDetailPage({ params }: PageProps) {
                         <p className="mt-2 text-sm leading-relaxed text-text-muted">
                           {description}
                         </p>
+                      )}
+                      {jump && (
+                        <a
+                          href={jump.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-background-soft px-3.5 text-xs text-text-muted transition-colors duration-200 hover:border-accent hover:text-accent"
+                        >
+                          <Navigation className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          {jump.label}
+                        </a>
                       )}
                     </div>
                   </div>

@@ -73,6 +73,13 @@
     .attraction img { width: 176px; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
     .attraction h3 { font-size: 17px; margin-bottom: 6px; }
     .attraction p { font-size: 14px; color: var(--muted); }
+    .attraction .map-jump {
+      display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
+      padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px;
+      font-size: 12px; color: var(--muted); text-decoration: none; background: var(--bg);
+      transition: color .2s, border-color .2s;
+    }
+    .attraction .map-jump:hover { color: var(--accent); border-color: var(--accent); }
     .itinerary { list-style: none; border-left: 2px solid rgba(201,168,106,.25); padding-left: 22px; }
     .itinerary li { position: relative; margin-bottom: 22px; }
     .itinerary li::before {
@@ -328,6 +335,24 @@
         }
         return 0;
       }
+      // 按 coordType 生成对应地图平台的跳转链接（使用存储的原始坐标，不做坐标系转换）
+      function mapJump(a) {
+        var lat = Number(a.latitude);
+        var lng = Number(a.longitude);
+        if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return null;
+        var coordType = String(a.coordType != null ? a.coordType : a.coord_type || "").toLowerCase();
+        var name = pickString(a, ["name", "title"]);
+        if (coordType === "gcj02") {
+          return {
+            label: "在高德地图查看",
+            url: "https://uri.amap.com/marker?position=" + lng + "," + lat + "&name=" + encodeURIComponent(name) + "&src=novablog&callnative=1",
+          };
+        }
+        return {
+          label: "在 Google 地图查看",
+          url: "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng,
+        };
+      }
       function stars(value) {
         var n = Math.max(0, Math.min(5, Math.round(value)));
         var out = "";
@@ -379,10 +404,13 @@
             var image = safeUrl(pickString(a, ["image", "cover_image", "image_url", "cover", "pic", "photo"]));
             var name = escapeHtml(pickString(a, ["name", "title"]));
             var desc = escapeHtml(pickString(a, ["description", "content", "intro", "summary", "text"]));
+            var jump = mapJump(a);
             html += '<div class="attraction">' +
               (image !== "#" ? '<img src="' + image + '" alt="' + (name || "景点 " + (i + 1)) + '" loading="lazy" />' : "") +
               '<div class="body">' + (name ? "<h3 class=\"serif\">" + name + "</h3>" : "") +
-              (desc ? "<p>" + desc + "</p>" : "") + "</div></div>";
+              (desc ? "<p>" + desc + "</p>" : "") +
+              (jump ? '<a class="map-jump" href="' + jump.url + '" target="_blank" rel="noopener noreferrer">' + jump.label + "</a>" : "") +
+              "</div></div>";
           });
           el("t-attractions").innerHTML = html;
 
