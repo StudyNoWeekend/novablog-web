@@ -24,7 +24,7 @@
 
 已接入博主星座/性格展示：使用本地 logo（`public/profile-logos/` 下 12 星座 + 16 MBTI），关于我页展示星座/性格双卡片、首页 Hero 展示星座/性格徽章；后端未设置或博主关闭展示开关时不渲染。
 
-攻略详情页在景点含坐标时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）。
+攻略详情页在景点含坐标时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）。景点卡片按坐标系显示对应地图平台跳转 chip（gcj02 → 高德、wgs84/未知 → Google，携带原始坐标新窗口打开，无坐标不显示）。
 
 ## 本地开发
 
