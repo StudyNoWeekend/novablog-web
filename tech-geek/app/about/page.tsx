@@ -3,6 +3,7 @@ import Image from "next/image";
 import { MapPin, Mail, Code2 } from "lucide-react";
 import { blogger, Blogger } from "@/lib/api";
 import { SocialIcon } from "@/components/social-icons";
+import { ZodiacPersonalityCards } from "@/components/profile-traits";
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -108,6 +109,11 @@ export default async function AboutPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* 星座 / 性格卡片（博主未设置时不渲染） */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ZodiacPersonalityCards className="mt-8" />
         </div>
       </section>
 

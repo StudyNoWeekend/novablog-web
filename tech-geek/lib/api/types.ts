@@ -31,6 +31,27 @@ export interface SocialLink {
   sort_order: number;
 }
 
+/** 博主星座（GET /public/blogger 的 zodiac 字段，未设置或关闭展示时为 null） */
+export interface ZodiacInfo {
+  /** 星座 key（小写，如 "leo"） */
+  key: string;
+  name: string;
+  image?: string;
+  /** 日期区间文案，如 "7.23 - 8.22" */
+  date_range?: string;
+  /** 四象：火象/土象/风象/水象 */
+  element?: string;
+}
+
+/** 博主性格（MBTI，GET /public/blogger 的 personality 字段，未设置或关闭展示时为 null） */
+export interface PersonalityInfo {
+  /** MBTI key（大写，如 "INTP"） */
+  key: string;
+  name: string;
+  image?: string;
+  description?: string;
+}
+
 export interface Blogger {
   nickname: string;
   avatar: string;
@@ -44,6 +65,10 @@ export interface Blogger {
   social_links: SocialLink[];
   /** 博主自定义标签（如「开发者」「摄影爱好者」），非文章标签 */
   tags?: string[];
+  /** 博主星座，未设置或关闭展示时为 null */
+  zodiac?: ZodiacInfo | null;
+  /** 博主性格（MBTI），未设置或关闭展示时为 null */
+  personality?: PersonalityInfo | null;
 }
 
 export interface ModuleConfig {

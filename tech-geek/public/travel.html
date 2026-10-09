@@ -223,6 +223,7 @@
               (desc ? "<p>" + escapeHtml(desc) + "</p>" : "") +
               "</div>";
           });
+          html += '<div id="t-map" style="margin-top:24px"></div>';
           html += "</section>";
         }
 
@@ -258,6 +259,29 @@
           html += "</section>";
         }
         el("t-sections").innerHTML = html;
+
+        // 景点地图：至少一个景点带有效经纬度时嵌入 CMS 地图页（postMessage 自适应高度）
+        var hasCoords = attractions.some(function (a) {
+          var lat = Number(a.latitude);
+          var lng = Number(a.longitude);
+          return isFinite(lat) && isFinite(lng) && (lat !== 0 || lng !== 0);
+        });
+        var mapWrap = el("t-map");
+        if (hasCoords && mapWrap && id) {
+          var frame = document.createElement("iframe");
+          frame.src = siteRoot + "/map-embed/travel/" + encodeURIComponent(id) + "?h=420";
+          frame.title = "景点地图";
+          frame.loading = "lazy";
+          frame.setAttribute("style", "width:100%;border:0;border-radius:12px;height:420px;display:block");
+          mapWrap.appendChild(frame);
+          window.addEventListener("message", function (event) {
+            var d = event.data;
+            if (!d || typeof d !== "object" || d.type !== "novablog-map-embed:height" || typeof d.height !== "number") return;
+            if (event.source !== frame.contentWindow) return;
+            var h = Math.min(2000, Math.max(240, Math.round(d.height)));
+            frame.style.height = h + "px";
+          });
+        }
 
         el("status").hidden = true;
         el("travel").hidden = false;

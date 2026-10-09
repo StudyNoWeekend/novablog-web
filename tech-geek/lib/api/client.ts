@@ -40,7 +40,11 @@ declare global {
 /** 请求超时（ms），可由环境变量覆盖，默认 15s */
 const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT ?? "") || 15_000;
 
-function getBaseUrl(): string {
+/**
+ * 站点根地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 编译期环境变量 > 同域相对路径。
+ * 地图嵌入等 CMS 根路径页面复用此函数拼接地址。
+ */
+export function getBaseUrl(): string {
   // 优先级：部署时注入的 theme-config.js > 编译期环境变量 > 同域相对路径
   const injected =
     typeof window !== "undefined" && window.__NOVA_CONFIG__?.apiBase;

@@ -27,6 +27,7 @@ import {
 } from "@/lib/api";
 import { ArticleListItem } from "@/components/article-list-item";
 import { ProfileCard } from "@/components/profile-card";
+import { ProfileBadges } from "@/components/profile-traits";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -258,6 +259,9 @@ function Hero({
           <p className="mt-4 text-base leading-relaxed text-slate-200/90 md:text-lg">
             {profile?.bio || profile?.blog_description || "记录学习、思考和实践的点滴，在技术的世界里持续成长。"}
           </p>
+
+          {/* 星座 / 性格小徽章（博主未设置时不渲染） */}
+          <ProfileBadges />
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
