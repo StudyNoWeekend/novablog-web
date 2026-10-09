@@ -19,6 +19,7 @@ import { TravelLikeButton } from "@/components/TravelLikeButton";
 import { Comments } from "@/components/Comments";
 import { ModuleDisabled } from "@/components/ModuleDisabled";
 import { TravelViewTracker } from "@/components/ViewTracker";
+import { MapEmbed } from "@/components/MapEmbed";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -62,6 +63,15 @@ function pickNumber(map: Record<string, unknown>, keys: string[]): number {
     if (typeof value === "number" && Number.isFinite(value)) return value;
   }
   return 0;
+}
+
+// 景点是否带有效经纬度（历史数据可能缺失或存成字符串；无坐标时不渲染地图）
+function hasCoordinates(attractions: Record<string, unknown>[]): boolean {
+  return attractions.some((attraction) => {
+    const lat = Number(attraction.latitude);
+    const lng = Number(attraction.longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0);
+  });
 }
 
 function StarRating({ value }: { value: number }) {
@@ -244,6 +254,11 @@ export default async function TravelDetailPage({ params }: PageProps) {
                 );
               })}
             </div>
+            {hasCoordinates(attractions) && (
+              <div className="mt-8 overflow-hidden rounded-radius-md border border-border shadow-card">
+                <MapEmbed travelId={travel.id} />
+              </div>
+            )}
           </section>
         )}
 

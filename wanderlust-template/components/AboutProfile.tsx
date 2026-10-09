@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Heart, Mail, MapPin, Mountain } from "lucide-react";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { SocialIcons } from "@/components/SocialIcons";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 
 /**
  * 关于我：博主资料 + 标签 + 社交链接（客户端运行时取数，静态导出下实时展示）。
@@ -139,6 +140,9 @@ export function AboutProfile() {
               </div>
             </div>
           )}
+
+          {/* 星座 / 性格 */}
+          <ZodiacPersonalityCards className="mt-8" />
         </div>
       </section>
     </>

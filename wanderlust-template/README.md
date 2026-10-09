@@ -25,6 +25,8 @@
 
 导航与页面展示由后端「模块开关配置」（`/api/v1/public/module-config`）驱动：关闭文章模块会隐藏游记入口，关闭旅行模块会隐藏目的地/攻略入口，关闭器材模块会隐藏装备入口，关闭音乐模块会隐藏音乐入口。六个新模块入口统一收纳在导航「更多」下拉与移动端「更多功能」小节中，随开关过滤；页脚同步展示对应链接。
 
+已接入博主星座/性格展示（本地 logo，关于我页卡片 + 首页 Hero 徽章）。
+
 ## 对接的公开接口
 
 与 lens-life-template 完全一致的数据层（`lib/api/*`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`（列表/发表）、`travels`（列表/详情/hot/view/like）、`equipments`、`module-config`，以及 `open-sources`、`recipes`、`books`、`games`、`fitness`、`tech-stacks` 六个新模块（有详情接口的四个模块含 detail 取数）。统一走 `lib/api/client.ts` 三级回退（theme-config.js 注入 → 环境变量 → 同域相对路径），全部取数函数失败时回退空数据。

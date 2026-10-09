@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Search, Send } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 interface HeroSectionProps {
   profile: BloggerProfile | null;
@@ -51,6 +52,8 @@ export function HeroSection({ profile }: HeroSectionProps) {
             <span className="h-1 w-1 rounded-full bg-white/70" />
             成长
           </p>
+
+          <ProfileBadges />
 
           <p className="mt-6 max-w-md text-sm leading-relaxed text-white/85 md:text-base">
             {profile?.bio || DEFAULT_BIO}
