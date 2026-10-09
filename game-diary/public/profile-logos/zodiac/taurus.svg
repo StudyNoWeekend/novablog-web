@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img" aria-label="金牛座星座连线图">
+  <path d="M4 6L9 12L13 13M19 5L16 11L13 13M13 13L8 17" stroke="#C9962E" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <g fill="#E8B54A">
+    <circle cx="4" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="16" cy="11" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="8" cy="17" r="1"/><circle cx="13" cy="13" r="1.5"/>
+  </g>
+</svg>

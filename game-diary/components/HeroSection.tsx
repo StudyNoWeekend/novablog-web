@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Crown, Gamepad2, Link as LinkIcon, Mail, Play } from "lucide-react";
 import type { BloggerProfile, SocialLink } from "@/lib/api/blogger";
 
+import { ProfileBadges } from "@/components/ProfileTraits";
+
 interface HeroSectionProps {
   profile: BloggerProfile | null;
 }
@@ -75,6 +77,9 @@ export function HeroSection({ profile }: HeroSectionProps) {
               <div className="h-4 w-1/2 animate-pulse rounded bg-text-muted/15" />
             </div>
           )}
+
+          {/* 昵称徽章：星座 / MBTI */}
+          <ProfileBadges />
 
           {/* CTA buttons */}
           <div className="mt-9 flex flex-wrap items-center gap-3">

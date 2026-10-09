@@ -14,6 +14,7 @@ import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getVideos } from "@/lib/api/videos";
 import { getGames } from "@/lib/api/games";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 
 const platformIconMap: Record<string, React.ElementType> = {
   bilibili: Play,
@@ -140,6 +141,9 @@ export function AboutPageContent() {
               )}
             </div>
           </div>
+
+          {/* 星座 / 性格 */}
+          <ZodiacPersonalityCards className="mt-8" />
         </div>
       </section>
 

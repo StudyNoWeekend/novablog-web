@@ -29,6 +29,7 @@
 - **壳页面兜底**：`public/article.html`、`public/open-source.html`、`public/recipe.html`、`public/book.html`、`public/game.html` 为自包含壳页面，未预渲染的详情 URL 由 CMS 托管器兜底到壳页面客户端取数渲染（含 XSS 转义、安全 URL、slug 解析容错与错误态）；
 - **评论区**：文章详情支持访客评论与两级回复，壳页面与预渲染页行为一致；
 - **浏览计数**：静态导出后由客户端 `ViewTracker` 挂载上报；
+- **博主星座/性格**：已接入博主星座/性格展示（本地 logo，关于我页名片卡 + 首页 Hero 徽章）；
 - **构建期容错**：全部取数函数 catch 后回退空数据，`generateStaticParams` 失败时使用占位 slug 并短路（不依赖后端可达）。
 
 ## 本地开发
@@ -43,7 +44,7 @@ pnpm dev            # 需要 .env.local 指向后端（参考 .env.local.example
 遵循仓库根 [docs/theme-spec.md](../docs/theme-spec.md)，三处版本一致后打 tag：
 
 ```bash
-git tag game-diary-v0.4.0 && git push origin game-diary-v0.4.0
+git tag game-diary-v0.5.0 && git push origin game-diary-v0.5.0
 ```
 
 发布前离线自检：
