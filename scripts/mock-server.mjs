@@ -193,7 +193,7 @@ const travelDetailExtra = {
   t4: {
     attractions: [
       { id: "t4-a1", name: "鼓浪屿", description: "避开周末早班轮渡，巷子里的老别墅比景点好看。", image: img("gulangyu", 600, 450), duration: "1 天", location: "福建省厦门市思明区鼓浪屿", latitude: 24.4438, longitude: 118.0672, coordType: "gcj02" },
-      { id: "t4-a2", name: "沙坡尾", description: "避风坞边的文艺街区，黄昏光线最适合拍照。", image: img("shapowei", 600, 450), duration: "2-3 小时", location: "福建省厦门市思明区沙坡尾", latitude: 24.4357, longitude: 118.0901, coordType: "gcj02" },
+      { id: "t4-a2", name: "沙坡尾", description: "避风坞边的文艺街区，黄昏光线最适合拍照。", image: img("shapowei", 600, 450), duration: "2-3 小时", location: "福建省厦门市思明区沙坡尾", latitude: 24.4357, longitude: 118.0901, coordType: "wgs84" },
     ],
     itinerary: [
       { day: "Day 1", description: "早上轮渡上岛，绕岛步行一圈，傍晚回本岛。" },
