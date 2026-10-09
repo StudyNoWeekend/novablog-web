@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Cat, Heart, Mail, MapPin, Smile } from "lucide-react";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { SocialIcon } from "@/components/SocialIcon";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 
 const TAG_CHIP_STYLES = [
   "border-accent/30 bg-accent-subtle text-accent-hover",
@@ -129,6 +130,9 @@ export function AboutContent() {
           </div>
         </div>
       </div>
+
+      {/* 星座 / 性格 */}
+      <ZodiacPersonalityCards className="mt-8" />
 
       {/* 关于博客 */}
       <div className="mt-8 rounded-radius-lg border border-border bg-surface p-8 shadow-card">

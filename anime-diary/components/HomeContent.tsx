@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { ArticleCard } from "@/components/ArticleCard";
 import { SocialIcon } from "@/components/SocialIcon";
+import { ProfileBadges } from "@/components/ProfileTraits";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getCategories } from "@/lib/api/categories";
@@ -152,6 +153,7 @@ export function HomeContent() {
               </span>
             ))}
           </div>
+          <ProfileBadges />
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link
               href="/articles"
