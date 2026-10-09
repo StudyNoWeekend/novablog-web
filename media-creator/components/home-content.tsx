@@ -30,6 +30,7 @@ import {
 } from "@/lib/api";
 import { SectionHeader } from "@/components/section-header";
 import { VideoCard } from "@/components/video-card";
+import { ProfileBadges } from "@/components/profile-traits";
 
 function formatDate(date?: string) {
   if (!date) return "";
@@ -134,6 +135,8 @@ export function HomeContent() {
                   info?.blog_description ||
                   "我是一个热爱影像创作的博主，分享视频拍摄技巧、拍摄 Vlog、设备评测和创意剪辑，希望能用镜头，记录生活中那些闪闪发光的瞬间。"}
               </p>
+              {/* 星座 / 性格徽章（博主未设置或关闭展示时自动隐藏） */}
+              <ProfileBadges />
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link
                   href={primaryCta.href}

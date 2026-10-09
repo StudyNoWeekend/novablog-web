@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Camera, Clapperboard, Globe, Link as LinkIcon, MapPin } from "lucide-react";
 import { blogger, type Blogger } from "@/lib/api";
+import { ZodiacPersonalityCards } from "@/components/profile-traits";
 import { getSocialHref, getSocialIcon, getSocialLabel, isEmailLink } from "@/components/social-icon";
 
 /** 关于我：静态导出后构建期取数会被固化，因此博主信息客户端取数实时渲染 */
@@ -71,6 +72,9 @@ export function AboutContent() {
             {!info && <span className="inline-block h-5 w-2/3 animate-pulse rounded bg-muted align-middle" />}
           </p>
         </div>
+
+        {/* 星座 / 性格（博主未设置或关闭展示时自动隐藏） */}
+        <ZodiacPersonalityCards className="mt-8" />
 
         {/* 信息栏 */}
         {info && (

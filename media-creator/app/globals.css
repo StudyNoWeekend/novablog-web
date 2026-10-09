@@ -4,6 +4,8 @@
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+/* 浅色主题挂载在 html.light（深色为默认），供个别组件做深浅色自适应（如 Hero 徽章） */
+@custom-variant light (&:is(.light *));
 
 @theme inline {
   --color-background: var(--background);
