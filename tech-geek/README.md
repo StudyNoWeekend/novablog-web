@@ -28,7 +28,7 @@
 
 博主「星座 / 性格」展示已接入：数据来自 `/api/v1/public/blogger` 的 `zodiac` / `personality` 字段（未设置或博主关闭展示时不渲染），logo 使用本地静态资源 `/profile-logos/`，展示于关于我页双卡片与首页 Hero 徽章。
 
-旅行攻略详情页在景点含经纬度时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）；历史景点数据无坐标时不渲染地图。
+旅行攻略详情页在景点含经纬度时嵌入 CMS 地图（`/map-embed/travel/:id`，iframe + postMessage 自适应高度）；历史景点数据无坐标时不渲染地图；景点卡片按坐标系显示对应地图平台跳转 chip（gcj02 → 高德、wgs84/未知 → Google，携带原始坐标新窗口打开，无坐标不显示）。
 
 ## 主题切换
 

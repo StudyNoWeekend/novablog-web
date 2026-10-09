@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Eye, MapPin, Star } from "lucide-react";
+import { ArrowLeft, CalendarDays, Eye, MapPin, Navigation, Star } from "lucide-react";
 import { travels, getModuleConfig, TravelGuideDetail } from "@/lib/api";
 import { ViewTracker } from "@/components/view-tracker";
 import { TravelLikeButton } from "@/components/travel-like-button";
@@ -68,6 +68,25 @@ function hasCoordinates(attractions: Record<string, unknown>[]): boolean {
     const lng = Number(attraction.longitude);
     return Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0);
   });
+}
+
+// 按 coordType 生成对应地图平台的跳转链接（使用存储的原始坐标，不做坐标系转换）
+function mapJumpLink(attraction: Record<string, unknown>): { label: string; url: string } | null {
+  const lat = Number(attraction.latitude);
+  const lng = Number(attraction.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) return null;
+  const coordType = String(attraction.coordType ?? attraction.coord_type ?? "").toLowerCase();
+  const name = pickString(attraction, ["name", "title"]);
+  if (coordType === "gcj02") {
+    return {
+      label: "在高德地图查看",
+      url: `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&src=novablog&callnative=1`,
+    };
+  }
+  return {
+    label: "在 Google 地图查看",
+    url: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+  };
 }
 
 function StarRating({ value }: { value: number }) {
@@ -205,6 +224,7 @@ export default async function TravelDetailPage({ params }: PageProps) {
                 const image = pickString(attraction, ["image", "cover_image", "image_url", "cover", "pic", "photo"]);
                 const name = pickString(attraction, ["name", "title"]);
                 const description = pickString(attraction, ["description", "content", "intro", "summary", "text"]);
+                const jump = mapJumpLink(attraction);
                 return (
                   <div
                     key={`attraction-${i}`}
@@ -226,6 +246,17 @@ export default async function TravelDetailPage({ params }: PageProps) {
                       {name && <h3 className="text-lg font-semibold text-foreground">{name}</h3>}
                       {description && (
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+                      )}
+                      {jump && (
+                        <a
+                          href={jump.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-muted px-3.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
+                          {jump.label}
+                        </a>
                       )}
                     </div>
                   </div>

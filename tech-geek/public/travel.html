@@ -96,6 +96,21 @@
     .card h3 { font-size: 17px; margin-bottom: 6px; }
     .card p { font-size: 14px; color: var(--muted); }
     .card .label { color: var(--accent); font-weight: 600; }
+    .card .map-jump {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      padding: 5px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      background: var(--bg);
+      transition: color .2s, border-color .2s;
+    }
+    .card .map-jump:hover { color: var(--accent); border-color: var(--accent); }
     .stars { color: #f59e0b; letter-spacing: 2px; font-size: 13px; }
     .itinerary { list-style: none; border-left: 2px solid var(--accent-dim); margin: 0 0 0 6px; padding-left: 22px; }
     .itinerary li { position: relative; margin: 18px 0; }
@@ -176,6 +191,25 @@
         return 0;
       }
 
+      // 按 coordType 生成对应地图平台的跳转链接（使用存储的原始坐标，不做坐标系转换）
+      function mapJump(a) {
+        var lat = Number(a.latitude);
+        var lng = Number(a.longitude);
+        if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return null;
+        var coordType = String(a.coordType != null ? a.coordType : a.coord_type || "").toLowerCase();
+        var name = pickString(a, ["name", "title"]);
+        if (coordType === "gcj02") {
+          return {
+            label: "在高德地图查看",
+            url: "https://uri.amap.com/marker?position=" + lng + "," + lat + "&name=" + encodeURIComponent(name) + "&src=novablog&callnative=1",
+          };
+        }
+        return {
+          label: "在 Google 地图查看",
+          url: "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng,
+        };
+      }
+
       function stars(n) {
         var clamped = Math.max(0, Math.min(5, Math.round(n)));
         return "★★★★★".slice(0, clamped) + "☆☆☆☆☆".slice(0, 5 - clamped);
@@ -218,9 +252,11 @@
           attractions.forEach(function (a) {
             var name = pickString(a, ["name", "title"]);
             var desc = pickString(a, ["description", "content", "intro", "summary", "text"]);
+            var jump = mapJump(a);
             html += '<div class="card">' +
               (name ? '<h3>' + escapeHtml(name) + "</h3>" : "") +
               (desc ? "<p>" + escapeHtml(desc) + "</p>" : "") +
+              (jump ? '<a class="map-jump" href="' + jump.url + '" target="_blank" rel="noopener noreferrer">' + jump.label + "</a>" : "") +
               "</div>";
           });
           html += '<div id="t-map" style="margin-top:24px"></div>';
