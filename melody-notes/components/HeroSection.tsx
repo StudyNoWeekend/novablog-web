@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Music2 } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 /** 标题下的手绘波浪下划线 */
 function Squiggle({ className = "" }: { className?: string }) {
@@ -101,6 +102,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
         <p className="mt-7 max-w-xl whitespace-pre-line text-[15px] leading-relaxed text-text-secondary md:text-base">
           {intro}
         </p>
+        <ProfileBadges />
         <div className="mt-9">
           <Link
             href="/playlists"

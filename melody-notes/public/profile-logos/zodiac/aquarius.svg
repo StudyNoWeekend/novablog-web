@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img" aria-label="水瓶座星座连线图">
+  <path d="M3 9L7 12L11 9L15 12L19 9M5 17L9 20L13 17L17 20" stroke="#C9962E" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <g fill="#E8B54A">
+    <circle cx="3" cy="9" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="11" cy="9" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="19" cy="9" r="1"/><circle cx="5" cy="17" r="1"/><circle cx="9" cy="20" r="1"/><circle cx="13" cy="17" r="1"/><circle cx="17" cy="20" r="1"/>
+  </g>
+</svg>

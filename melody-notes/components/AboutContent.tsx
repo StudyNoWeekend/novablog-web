@@ -7,6 +7,7 @@ import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getSongs, getPlaylists } from "@/lib/api/music";
 import { SocialIcons } from "@/components/SocialIcons";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 
 interface AboutData {
   profile: BloggerProfile | null;
@@ -127,6 +128,9 @@ export function AboutContent() {
                   </div>
                 )}
               </div>
+
+              {/* 星座 / 性格 */}
+              <ZodiacPersonalityCards className="mt-8" />
 
               {/* 简介 */}
               <div className="mt-8 rounded-xl border border-border bg-surface p-8 shadow-card">
