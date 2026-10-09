@@ -27,6 +27,8 @@
 
 已接入博主星座/性格展示（本地 logo，关于我页卡片 + 首页 Hero 徽章）。
 
+已接入攻略地图：详情页在景点含坐标时嵌入 CMS 地图（iframe + postMessage 自适应高度），景点卡片按坐标系显示对应地图平台跳转 chip（gcj02 → 高德、wgs84/未知 → Google，携带原始坐标新窗口打开，无坐标不显示）。
+
 ## 对接的公开接口
 
 与 lens-life-template 完全一致的数据层（`lib/api/*`）：`blogger`、`articles`（列表/详情/hot/random/view）、`categories`、`tags`、`comments`（列表/发表）、`travels`（列表/详情/hot/view/like）、`equipments`、`module-config`，以及 `open-sources`、`recipes`、`books`、`games`、`fitness`、`tech-stacks` 六个新模块（有详情接口的四个模块含 detail 取数）。统一走 `lib/api/client.ts` 三级回退（theme-config.js 注入 → 环境变量 → 同域相对路径），全部取数函数失败时回退空数据。
