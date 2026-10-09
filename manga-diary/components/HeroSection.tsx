@@ -8,6 +8,7 @@ import {
   Sparkle,
 } from "@/components/ComicDoodle";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 interface HeroSectionProps {
   profile: BloggerProfile | null;
@@ -67,6 +68,8 @@ export function HeroSection({ profile }: HeroSectionProps) {
               </span>
             ))}
           </div>
+
+          <ProfileBadges />
 
           {/* CTA */}
           <Link

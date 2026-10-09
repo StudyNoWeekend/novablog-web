@@ -9,6 +9,21 @@ export interface SocialLink {
   color?: string;
 }
 
+export interface ZodiacInfo {
+  key: string;
+  name: string;
+  image: string;
+  date_range: string;
+  element: string;
+}
+
+export interface PersonalityInfo {
+  key: string;
+  name: string;
+  image: string;
+  description: string;
+}
+
 export interface BloggerProfile {
   nickname: string;
   avatar: string;
@@ -21,6 +36,8 @@ export interface BloggerProfile {
   city?: string;
   tags?: string[];
   social_links: SocialLink[];
+  zodiac?: ZodiacInfo | null;
+  personality?: PersonalityInfo | null;
 }
 
 export async function getBloggerProfile(): Promise<BloggerProfile | null> {

@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { SocialIcons } from "@/components/SocialIcons";
 import { CatFace, CrownDoodle, PawPrint, Sparkle } from "@/components/ComicDoodle";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 
 /** 关于我：拍立得头像 + 简介 + 标签 + 社交链接 */
 export function AboutContent() {
@@ -116,6 +117,9 @@ export function AboutContent() {
             </p>
           </div>
         </div>
+
+        {/* 星座 / 性格 */}
+        <ZodiacPersonalityCards className="mt-8" />
       </div>
     </div>
   );
