@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Crown, Mail, MapPin, Smile } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { SocialIcons } from "@/components/SocialIcons";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 import { getBloggerProfile } from "@/lib/api/blogger";
 
 export const metadata: Metadata = {
@@ -142,6 +143,9 @@ export default async function AboutPage() {
               </div>
             </div>
           </div>
+
+          {/* 星座 / 性格双卡片（未设置或博主关闭展示时不渲染） */}
+          <ZodiacPersonalityCards className="mt-8" />
         </div>
       </section>
     </div>

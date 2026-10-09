@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Smile } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 interface HeroSectionProps {
   profile: BloggerProfile | null;
@@ -70,6 +71,9 @@ export function HeroSection({ profile }: HeroSectionProps) {
           <p className="mt-7 text-sm font-medium tracking-wide text-white/90 md:text-base">
             {formatLine(profile)}
           </p>
+
+          {/* 博主星座 / 性格徽章（未设置或关闭展示时不渲染） */}
+          <ProfileBadges />
 
           <p className="mt-4 max-w-md text-sm leading-loose text-white/70 md:text-base">
             {profile?.bio || profile?.blog_description || DEFAULT_BIO}
