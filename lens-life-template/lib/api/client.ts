@@ -26,6 +26,8 @@ function getSiteRoot(): string {
   return "";
 }
 
+export { getSiteRoot };
+
 function buildUrl(base: string, path: string): string {
   const normalizedBase = base.replace(/\/+$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;

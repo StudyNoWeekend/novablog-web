@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getBloggerProfile } from "@/lib/api/blogger";
+import { ZodiacPersonalityCards } from "@/components/ProfileTraits";
 import {
   Camera,
   MapPin,
@@ -95,6 +96,13 @@ export default async function AboutPage() {
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Zodiac & personality */}
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ZodiacPersonalityCards />
         </div>
       </section>
 

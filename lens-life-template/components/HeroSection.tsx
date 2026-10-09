@@ -14,6 +14,7 @@ import {
   Twitter,
 } from "lucide-react";
 import { BloggerProfile, SocialLink } from "@/lib/api/blogger";
+import { ProfileBadges } from "@/components/ProfileTraits";
 
 interface HeroSectionProps {
   profile: BloggerProfile | null;
@@ -132,6 +133,9 @@ export function HeroSection({ profile }: HeroSectionProps) {
         ) : (
           <div className="mt-4 h-5 w-32 animate-pulse rounded-md bg-text-muted/20" />
         )}
+
+        {/* Zodiac & personality badges */}
+        <ProfileBadges />
 
         {profile ? (
           <>
