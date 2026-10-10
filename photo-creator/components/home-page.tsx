@@ -4,7 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Play, ChevronDown, ChevronRight, ImageIcon } from "lucide-react";
-import { blogger, articles, portfolios, Blogger, Article, Portfolio } from "@/lib/api";
+import {
+  blogger,
+  articles,
+  portfolios,
+  equipments,
+  getModuleConfig,
+  Blogger,
+  Article,
+  Portfolio,
+  Equipment,
+  ModuleConfig,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { SocialLinks } from "./social-links";
 import { ErrorState, EmptyState } from "./error-state";
@@ -16,6 +27,8 @@ export function HomePage() {
   const [bloggerData, setBloggerData] = useState<Blogger | null>(null);
   const [portfoliosData, setPortfoliosData] = useState<Portfolio[]>([]);
   const [articlesData, setArticlesData] = useState<Article[]>([]);
+  const [equipmentsData, setEquipmentsData] = useState<Equipment[]>([]);
+  const [modules, setModules] = useState<ModuleConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,14 +41,18 @@ export function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      const [b, p, a] = await Promise.all([
+      const [b, p, a, e, m] = await Promise.all([
         blogger.get().catch(() => null),
         portfolios.list({ page: 1, page_size: 6 }),
         articles.list({ page: 1, page_size: 4 }),
+        equipments.list({ page: 1, page_size: 3 }).catch(() => null),
+        getModuleConfig(),
       ]);
       setBloggerData(b);
       setPortfoliosData(p.list);
       setArticlesData(a.list);
+      setEquipmentsData(e?.list ?? []);
+      setModules(m);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载首页失败");
     } finally {
@@ -109,6 +126,11 @@ export function HomePage() {
     )?.url?.replace(/^mailto:/i, "") || "";
 
   const quoteBg = portfoliosData[0]?.cover_url || bloggerData?.page_background || "";
+
+  // 模块开关门控（module-config 拉取失败时 getModuleConfig 已回退全开）
+  const showStories = (modules?.portfolio_enabled ?? true) && portfoliosData.length > 0;
+  const showJournal = (modules?.article_enabled ?? true) && articlesData.length > 0;
+  const showGear = (modules?.equipment_enabled ?? true) && equipmentsData.length > 0;
 
   return (
     <div className="overflow-x-hidden">
@@ -275,7 +297,7 @@ export function HomePage() {
       </section>
 
       {/* Portfolio Wall */}
-      {portfoliosData.length > 0 && (
+      {showStories && (
         <section id="stories" className="relative bg-background py-20 md:py-28 lg:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <ScrollReveal className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
@@ -364,7 +386,7 @@ export function HomePage() {
       )}
 
       {/* Journal */}
-      {articlesData.length > 0 && (
+      {showJournal && (
         <section id="journal" className="relative bg-background py-20 md:py-28 lg:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <ScrollReveal className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
@@ -498,35 +520,46 @@ export function HomePage() {
       </section>
 
       {/* Gear */}
-      <section id="gear" className="relative bg-background py-20 md:py-28 lg:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ScrollReveal className="mb-12 text-center">
-            <span className="text-xs font-medium tracking-[0.2em] text-primary">(装备)</span>
-            <h2 className="mt-2 font-heading text-3xl font-light tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-              我的装备
-            </h2>
-          </ScrollReveal>
+      {showGear && (
+        <section id="gear" className="relative bg-background py-20 md:py-28 lg:py-32">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ScrollReveal className="mb-12 text-center">
+              <span className="text-xs font-medium tracking-[0.2em] text-primary">(装备)</span>
+              <h2 className="mt-2 font-heading text-3xl font-light tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                我的装备
+              </h2>
+            </ScrollReveal>
 
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              { label: "相机", name: "LEICA M11" },
-              { label: "镜头", name: "35mm Summilux" },
-              { label: "胶片", name: "Kodak Portra 400" },
-            ].map((item, i) => (
-              <ScrollReveal key={item.label} delay={i * 100}>
-                <div className="group flex flex-col items-center border border-border bg-card p-8 text-center transition-colors hover:border-primary/50 sm:p-10">
-                  <span className="text-[10px] tracking-[0.2em] text-muted-foreground">
-                    {item.label}
-                  </span>
-                  <span className="mt-3 font-heading text-2xl font-light text-foreground transition-colors group-hover:text-primary sm:text-3xl">
-                    {item.name}
-                  </span>
-                </div>
-              </ScrollReveal>
-            ))}
+            <div className="grid gap-6 sm:grid-cols-3">
+              {equipmentsData.map((equipment, i) => (
+                <ScrollReveal key={equipment.id} delay={i * 100}>
+                  <Link
+                    href={`/gear/${equipment.id}`}
+                    className="group flex cursor-pointer flex-col items-center border border-border bg-card p-8 text-center transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring sm:p-10"
+                  >
+                    <span className="text-[10px] tracking-[0.2em] text-muted-foreground">
+                      {equipment.brand || "装备"}
+                    </span>
+                    <span className="mt-3 font-heading text-2xl font-light text-foreground transition-colors group-hover:text-primary sm:text-3xl">
+                      {equipment.name}
+                    </span>
+                  </Link>
+                </ScrollReveal>
+              ))}
+            </div>
+
+            <ScrollReveal delay={300} className="mt-10 text-center">
+              <Link
+                href="/gear"
+                className="group inline-flex cursor-pointer items-center gap-2 rounded-md text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                查看全部装备
+                <ChevronRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </ScrollReveal>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Contact */}
       <section id="contact" className="relative border-t border-border bg-background py-20 md:py-28 lg:py-32">
