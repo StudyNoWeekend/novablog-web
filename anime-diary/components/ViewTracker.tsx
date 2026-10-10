@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { incrementArticleView } from "@/lib/api/articles";
+import { incrementTravelView } from "@/lib/api/travels";
 
 /**
  * 浏览计数客户端上报：静态导出后详情页在构建期渲染，
@@ -15,6 +16,18 @@ export function ArticleViewTracker({ slug }: { slug: string }) {
     reported.current = true;
     incrementArticleView(slug);
   }, [slug]);
+
+  return null;
+}
+
+export function TravelViewTracker({ id }: { id: string }) {
+  const reported = useRef(false);
+
+  useEffect(() => {
+    if (reported.current) return;
+    reported.current = true;
+    incrementTravelView(id);
+  }, [id]);
 
   return null;
 }

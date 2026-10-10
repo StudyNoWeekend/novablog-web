@@ -4,51 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  BookOpen,
-  Camera,
-  ChefHat,
-  ChevronDown,
-  Dumbbell,
-  Gamepad2,
-  GitFork,
-  Layers,
-  Menu,
-  Search,
-  X,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Camera, ChevronDown, Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { blogger, moduleConfig, ALL_ENABLED, type Blogger, type ModuleConfig } from "@/lib/api";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getSocialHref, getSocialIcon, getSocialLabel, isEmailLink } from "@/components/social-icon";
+import {
+  filterNavModules,
+  splitNavModules,
+  type NavModule,
+} from "@/components/nav-modules";
 
-interface NavItem {
-  label: string;
-  href: string;
-  moduleKey?: keyof ModuleConfig;
-  /** 移动端「更多功能」小节与桌面下拉展示的图标 */
-  icon?: LucideIcon;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { label: "首页", href: "/" },
-  { label: "作品", href: "/videos", moduleKey: "video_enabled" },
-  { label: "音乐", href: "/music", moduleKey: "music_enabled" },
+/** 主导航末尾固定项（置于「更多」下拉之后，不占 10 个模块名额） */
+const TAIL_NAV_ITEMS: NavModule[] = [
   { label: "关于我", href: "/about" },
-  { label: "博客", href: "/articles", moduleKey: "article_enabled" },
-  { label: "设备", href: "/gear", moduleKey: "equipment_enabled" },
   { label: "联系", href: "/contact" },
-];
-
-/** 「更多」下拉组的六个子项，各带 moduleKey 随开关过滤（全关时整个下拉不渲染） */
-const MORE_ITEMS: NavItem[] = [
-  { label: "开源作品", href: "/open-source", moduleKey: "open_source_enabled", icon: GitFork },
-  { label: "美食菜谱", href: "/recipes", moduleKey: "recipe_enabled", icon: ChefHat },
-  { label: "读书书架", href: "/books", moduleKey: "book_enabled", icon: BookOpen },
-  { label: "游戏库", href: "/games", moduleKey: "game_enabled", icon: Gamepad2 },
-  { label: "健身训练", href: "/fitness", moduleKey: "fitness_enabled", icon: Dumbbell },
-  { label: "技术栈", href: "/tech-stack", moduleKey: "tech_stack_enabled", icon: Layers },
 ];
 
 export function Navbar() {
@@ -76,15 +46,14 @@ export function Navbar() {
     };
   }, []);
 
-  const navItems = NAV_ITEMS.filter((item) => !item.moduleKey || modules[item.moduleKey]);
   const socialLinks = (info?.social_links ?? []).slice(0, 4);
 
-  // 「更多」子项随模块开关过滤；六个全关时整个下拉组不渲染
-  const moreItems = MORE_ITEMS.filter((item) => !item.moduleKey || modules[item.moduleKey]);
-
-  // 「联系」等固定项排在下拉组之后
-  const mainItems = navItems.filter((item) => item.href !== "/contact");
-  const fixedItems = navItems.filter((item) => item.href === "/contact");
+  // 内容模块：桌面端前 10 项平铺，其余收纳进「更多」；移动端全量平铺
+  const { mainItems, moreItems } = splitNavModules(modules);
+  const mobileItems = filterNavModules(modules);
+  const tailNavItems = TAIL_NAV_ITEMS.filter(
+    (item) => !item.moduleKey || modules[item.moduleKey]
+  );
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
@@ -113,9 +82,10 @@ export function Navbar() {
     };
   }, [moreOpen]);
 
-  // 路由跳转后自动关闭「更多」下拉
+  // 路由跳转后自动关闭「更多」下拉与移动端菜单
   useEffect(() => {
     setMoreOpen(false);
+    setMobileOpen(false);
   }, [pathname]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -124,37 +94,6 @@ export function Navbar() {
     setSearchOpen(false);
     setMobileOpen(false);
     router.push(q ? `/articles?keyword=${encodeURIComponent(q)}` : "/articles");
-  };
-
-  // 「更多」子项渲染（桌面下拉与移动端小节共用，仅容器样式不同）
-  const renderMoreLink = (item: NavItem, isMobile = false) => {
-    const Icon = item.icon;
-    return (
-      <Link
-        key={item.href}
-        href={item.href}
-        role={isMobile ? undefined : "menuitem"}
-        onClick={() => {
-          setMoreOpen(false);
-          setMobileOpen(false);
-        }}
-        aria-current={isActive(item.href) ? "page" : undefined}
-        className={cn(
-          "flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl px-4 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          isMobile && "py-3 text-base font-medium",
-          isActive(item.href)
-            ? isMobile
-              ? "bg-secondary text-primary"
-              : "text-primary"
-            : isMobile
-              ? "text-foreground hover:bg-muted"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-        )}
-      >
-        {Icon && <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />}
-        {item.label}
-      </Link>
-    );
   };
 
   return (
@@ -192,25 +131,20 @@ export function Navbar() {
 
           {/* 桌面端居中导航 */}
           <div className="hidden lg:flex items-center gap-1">
+            {/* 首页固定项（不占模块名额） */}
+            <NavLink href="/" label="首页" active={isActive("/")} />
+
+            {/* 内容模块前 10 项平铺（纯文字） */}
             {mainItems.map((item) => (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={`relative cursor-pointer rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.label}
-                {isActive(item.href) && (
-                  <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-primary" />
-                )}
-              </Link>
+                label={item.label}
+                active={isActive(item.href)}
+              />
             ))}
 
-            {/* 「更多」下拉组：主导航末尾固定项（联系）之前 */}
+            {/* 「更多」下拉组：子项随模块开关过滤，全关时整个下拉不渲染 */}
             {moreItems.length > 0 && (
               <div className="relative" ref={moreRef}>
                 <button
@@ -221,7 +155,7 @@ export function Navbar() {
                   aria-label="更多页面"
                   className={cn(
                     "relative flex cursor-pointer items-center gap-1 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    moreActive
+                    moreActive || moreOpen
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
                   )}
@@ -245,28 +179,39 @@ export function Navbar() {
                     aria-label="更多页面菜单"
                     className="absolute right-0 top-full mt-3 w-44 rounded-2xl border border-border bg-background/95 p-1.5 shadow-xl backdrop-blur-md"
                   >
-                    {moreItems.map((item) => renderMoreLink(item))}
+                    {moreItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                          aria-current={isActive(item.href) ? "page" : undefined}
+                          className={cn(
+                            "flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl px-4 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isActive(item.href)
+                              ? "text-primary"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {Icon && <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                          {item.label}                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>
             )}
 
-            {fixedItems.map((item) => (
-              <Link
+            {/* 尾部固定项（关于我 / 联系） */}
+            {tailNavItems.map((item) => (
+              <NavLink
                 key={item.href}
                 href={item.href}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={`relative cursor-pointer rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {item.label}
-                {isActive(item.href) && (
-                  <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-primary" />
-                )}
-              </Link>
+                label={item.label}
+                active={isActive(item.href)}
+              />
             ))}
           </div>
 
@@ -338,7 +283,7 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* 移动端菜单 */}
+      {/* 移动端菜单：内容模块全量平铺 + 尾部固定项 */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-md">
           <div className="mx-auto max-w-7xl space-y-1 px-4 py-4 sm:px-6">
@@ -359,33 +304,40 @@ export function Navbar() {
                 <Search className="h-4 w-4" />
               </button>
             </form>
-            {navItems.map((item) => (
-              <Link
+
+            {/* 首页固定项 */}
+            <MobileNavLink
+              href="/"
+              label="首页"
+              active={isActive("/")}
+              onClick={() => setMobileOpen(false)}
+            />
+
+            {/* 内容模块全量平铺（不受 10 项限制） */}
+            {mobileItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <MobileNavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : undefined}
+                  active={isActive(item.href)}
+                  onClick={() => setMobileOpen(false)}
+                />
+              );
+            })}
+
+            {/* 尾部固定项（关于我 / 联系） */}
+            {tailNavItems.map((item) => (
+              <MobileNavLink
                 key={item.href}
                 href={item.href}
+                label={item.label}
+                active={isActive(item.href)}
                 onClick={() => setMobileOpen(false)}
-                aria-current={isActive(item.href) ? "page" : undefined}
-                className={`block cursor-pointer rounded-xl px-4 py-3 text-base font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
-                  isActive(item.href)
-                    ? "bg-secondary text-primary"
-                    : "text-foreground hover:bg-muted"
-                }`}
-              >
-                {item.label}
-              </Link>
+              />
             ))}
-
-            {/* 「更多功能」小节：以小标题 + 分隔线与主导航区分 */}
-            {moreItems.length > 0 && (
-              <div className="border-t border-border pt-3">
-                <p className="px-4 pb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  更多功能
-                </p>
-                <nav className="space-y-1" aria-label="更多功能导航">
-                  {moreItems.map((item) => renderMoreLink(item, true))}
-                </nav>
-              </div>
-            )}
 
             <div className="flex items-center gap-2 border-t border-border px-4 pt-3">
               {socialLinks.map((link) => {
@@ -408,5 +360,61 @@ export function Navbar() {
         </div>
       )}
     </header>
+  );
+}
+
+/** 桌面端平铺文字导航项（激活态底部短横线） */
+function NavLink({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`relative cursor-pointer rounded-lg px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${
+        active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+      {active && (
+        <span className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full bg-primary" />
+      )}
+    </Link>
+  );
+}
+
+/** 移动端菜单导航项（可选图标，激活态次背景高亮） */
+function MobileNavLink({
+  href,
+  label,
+  icon,
+  active,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  icon?: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-xl px-4 py-3 text-base font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+        active ? "bg-secondary text-primary" : "text-foreground hover:bg-muted"
+      )}
+    >
+      {icon}
+      {label}
+    </Link>
   );
 }

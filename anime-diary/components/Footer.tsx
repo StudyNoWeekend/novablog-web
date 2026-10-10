@@ -7,38 +7,25 @@ import type { BloggerProfile } from "@/lib/api/blogger";
 import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
 import { SocialIcon } from "@/components/SocialIcon";
-import { filterMoreItems } from "@/components/more-nav-items";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
 interface FooterProps {
   profile: BloggerProfile | null;
 }
 
-const DEFAULT_EMAIL = "";
-
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
+/** 页脚尾部固定链接（全量内容模块链接之后） */
+const FOOTER_TAIL_LINKS = [
+  { label: "关于我", href: "/about" },
+  { label: "联系", href: "/contact" },
+];
 
 const FOOTER_SOCIAL_CLASS =
   "flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-night-soft text-sm font-medium text-white/70 transition-all duration-200 hover:border-accent hover:text-accent";
 
 export function Footer({ profile: serverProfile }: FooterProps) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
-  // 模块开关：取到前为 null（「更多」链接全量平铺），取到后按开关过滤
+  // 模块开关：取到前为 null（链接全量平铺），取到后按开关过滤
   const [modules, setModules] = useState<ModuleConfig | null>(null);
 
   // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
@@ -59,7 +46,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     let cancelled = false;
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
-        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+        if (!cancelled) setModules({ ...ALL_MODULE_CONFIG, ...config });
       })
       .catch(() => {
         // 静默失败
@@ -67,7 +54,8 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const moreFooterItems = filterMoreItems(modules);
+  // 全量内容模块链接（随模块开关过滤）+ 尾部固定链接
+  const moduleLinks = filterNavModules(modules);
 
   const socialLinks = profile?.social_links?.length
     ? profile.social_links.map((s) => ({
@@ -76,21 +64,12 @@ export function Footer({ profile: serverProfile }: FooterProps) {
       }))
     : [];
 
-  const navLinks = [
-    { label: "首页", href: "/" },
-    { label: "动态", href: "/articles" },
-    { label: "作品", href: "/portfolio" },
-    { label: "音乐", href: "/music" },
-    { label: "关于我", href: "/about" },
-    { label: "联系", href: "/contact" },
-  ];
-
   return (
     <footer className="bg-night text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
+        <div className="flex flex-col items-center justify-between gap-10 md:items-start lg:flex-row">
           {/* Brand */}
-          <div className="flex flex-col items-center gap-2 md:items-start">
+          <div className="flex max-w-sm flex-col items-center gap-2 md:items-start">
             <div className="flex items-center gap-2.5">
               <Link
                 href="/"
@@ -117,21 +96,33 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             </p>
           </div>
 
-          {/* Links */}
-          <nav
-            aria-label="页脚导航"
-            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/70"
-          >
-            {navLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="cursor-pointer transition-colors duration-200 ease-out hover:text-accent"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Quick links：全量内容模块 + 尾部固定链接（超过 8 个，两列网格） */}
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-semibold text-white">快速导航</p>
+            <nav
+              aria-label="页脚导航"
+              className="grid grid-cols-2 gap-x-10 gap-y-2"
+            >
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-white/70 transition-colors duration-200 ease-out hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-white/70 transition-colors duration-200 ease-out hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
 
           {/* Social Icons + contact info */}
           <div className="flex flex-col items-center gap-3 md:items-end">
@@ -166,25 +157,6 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             </div>
           </div>
         </div>
-
-        {/* 「更多功能」链接：随模块开关过滤 */}
-        {moreFooterItems.length > 0 && (
-          <nav
-            aria-label="更多功能"
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-white/10 pt-6"
-          >
-            {moreFooterItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm text-white/60 transition-colors duration-200 ease-out hover:text-accent"
-              >
-                <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
 
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/50">
           <p>

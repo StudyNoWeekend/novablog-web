@@ -7,33 +7,11 @@ import type { BloggerProfile } from "@/lib/api/blogger";
 import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
 import { SocialIcons } from "@/components/SocialIcons";
-import { filterMoreItems } from "@/components/more-nav-items";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
-const NAV_LINKS = [
-  { label: "目的地", href: "/destinations" },
-  { label: "游记", href: "/articles" },
-  { label: "攻略", href: "/travels" },
-  { label: "装备", href: "/gear" },
-  { label: "关于我", href: "/about" },
-];
-
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [{ label: "关于我", href: "/about" }];
 
 export function Footer({ profile: serverProfile }: { profile: BloggerProfile | null }) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
@@ -60,7 +38,7 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
     let cancelled = false;
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
-        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+        if (!cancelled) setModules({ ...ALL_MODULE_CONFIG, ...config });
       })
       .catch(() => {
         // 静默失败
@@ -70,7 +48,8 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
     };
   }, []);
 
-  const moreFooterItems = filterMoreItems(modules);
+  // 全量内容模块链接（随模块开关过滤）
+  const moduleLinks = filterNavModules(modules);
 
   return (
     <footer className="border-t border-border bg-background-soft">
@@ -109,18 +88,29 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
             </div>
           </div>
 
-          {/* Quick links */}
+          {/* Quick links：全量内容模块 + 尾部固定链接 */}
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold text-text-primary">快速导航</p>
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="cursor-pointer text-sm text-text-muted transition-colors duration-200 hover:text-accent"
-              >
-                {link.label}
-              </Link>
-            ))}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-muted transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-muted transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Social + version */}
@@ -136,24 +126,6 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-text-subtle">
-          {/* 「更多功能」链接：随模块开关过滤 */}
-          {moreFooterItems.length > 0 && (
-            <nav
-              aria-label="更多功能"
-              className="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
-            >
-              {moreFooterItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm text-text-muted transition-colors duration-200 hover:text-accent"
-                >
-                  <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          )}
           <p>
             © {new Date().getFullYear()} {profile?.blog_title || ""} · 用脚步丈量世界
           </p>

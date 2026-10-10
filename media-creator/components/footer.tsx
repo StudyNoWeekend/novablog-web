@@ -6,20 +6,12 @@ import Image from "next/image";
 import { Camera } from "lucide-react";
 import { blogger, moduleConfig, ALL_ENABLED, type Blogger, type ModuleConfig } from "@/lib/api";
 import { getSocialHref, getSocialIcon, getSocialLabel, isEmailLink } from "@/components/social-icon";
+import { filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
-const NAV_ITEMS: { label: string; href: string; moduleKey?: keyof ModuleConfig }[] = [
-  { label: "首页", href: "/" },
-  { label: "作品", href: "/videos", moduleKey: "video_enabled" },
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [
   { label: "关于我", href: "/about" },
-  { label: "博客", href: "/articles", moduleKey: "article_enabled" },
-  { label: "设备", href: "/gear", moduleKey: "equipment_enabled" },
-  { label: "开源作品", href: "/open-source", moduleKey: "open_source_enabled" },
-  { label: "美食菜谱", href: "/recipes", moduleKey: "recipe_enabled" },
-  { label: "读书书架", href: "/books", moduleKey: "book_enabled" },
-  { label: "游戏库", href: "/games", moduleKey: "game_enabled" },
-  { label: "健身训练", href: "/fitness", moduleKey: "fitness_enabled" },
-  { label: "技术栈", href: "/tech-stack", moduleKey: "tech_stack_enabled" },
   { label: "联系", href: "/contact" },
 ];
 
@@ -40,12 +32,13 @@ export function Footer() {
     };
   }, []);
 
-  const navItems = NAV_ITEMS.filter((item) => !item.moduleKey || modules[item.moduleKey]);
+  // 全量内容模块链接（随模块开关过滤）
+  const moduleLinks = filterNavModules(modules);
 
   return (
     <footer className="border-t border-border bg-card/40">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-8 text-center md:flex-row md:items-start md:justify-between md:text-left">
+        <div className="flex flex-col gap-8 text-center md:flex-row md:items-start md:justify-between md:text-left">
           {/* 品牌 */}
           <div className="max-w-xs">
             <Link
@@ -75,21 +68,33 @@ export function Footer() {
             </p>
           </div>
 
-          {/* 导航 */}
-          <nav aria-label="页脚导航" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="cursor-pointer rounded text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {item.label}
-              </Link>
-            ))}
+          {/* 快速导航：全量内容模块 + 尾部固定链接（超过 8 个用两列网格） */}
+          <nav aria-label="页脚导航" className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-foreground">快速导航</p>
+            <div className="grid grid-cols-2 gap-x-10 gap-y-2 md:justify-items-start">
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer rounded text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer rounded text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </nav>
 
           {/* 社交 */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 md:justify-start">
             {(info?.social_links ?? []).map((link) => {
               const Icon = getSocialIcon(link.platform);
               return (

@@ -1,7 +1,7 @@
 {
   "id": "food-diary",
   "name": "美食日记",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
@@ -15,7 +15,8 @@
       "/open-source/*": "/open-source-detail.html",
       "/recipes/*": "/recipe.html",
       "/books/*": "/book.html",
-      "/games/*": "/game.html"
+      "/games/*": "/game.html",
+      "/portfolio/*": "/portfolio.html"
     }
   }
 }

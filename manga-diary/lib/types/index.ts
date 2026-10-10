@@ -290,3 +290,64 @@ export interface TechStack {
   created_at: string;
   updated_at: string;
 }
+
+// ---------- 旅行攻略 ----------
+export interface TravelGuide {
+  id: string;
+  title: string;
+  summary: string;
+  cover_image: string;
+  status: number;
+  destination: string;
+  region: string;
+  category_id: string;
+  category_name: string;
+  days: number;
+  best_month: string;
+  view_count: number;
+  like_count: number;
+  rating: number;
+  review_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TravelGuideDetail extends TravelGuide {
+  attractions: Record<string, unknown>[];
+  itinerary: Record<string, unknown>[];
+  reviews: Record<string, unknown>[];
+}
+
+// ---------- 视频作品 ----------
+export interface VideoPlatform {
+  id: string;
+  video_id: string;
+  platform: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  cover_url: string;
+  description: string;
+  status: number;
+  sort_order: number;
+  platforms: VideoPlatform[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 装备 ----------
+export interface Equipment {
+  id: string;
+  name: string;
+  image_url: string;
+  brand: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}

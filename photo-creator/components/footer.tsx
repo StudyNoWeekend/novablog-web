@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SocialLinks } from "./social-links";
+import { filterNavModules } from "./nav-modules";
 import {
   ALL_ENABLED_MODULE_CONFIG,
   getModuleConfig,
@@ -15,14 +16,10 @@ interface FooterProps {
   blogger: Blogger | null;
 }
 
-/** 页脚扩展链接：带 moduleKey 的项随模块开关过滤（构建期兜底全开） */
-const FOOTER_LINKS: { href: string; label: string; moduleKey: keyof ModuleConfig }[] = [
-  { href: "/open-source", label: "开源作品", moduleKey: "open_source_enabled" },
-  { href: "/recipes", label: "美食菜谱", moduleKey: "recipe_enabled" },
-  { href: "/books", label: "读书书架", moduleKey: "book_enabled" },
-  { href: "/games", label: "游戏库", moduleKey: "game_enabled" },
-  { href: "/fitness", label: "健身训练", moduleKey: "fitness_enabled" },
-  { href: "/tech-stack", label: "技术栈", moduleKey: "tech_stack_enabled" },
+/** 页脚尾部固定链接（全量模块链接之后，不占模块名额） */
+const FOOTER_TAIL_LINKS = [
+  { href: "/#about", label: "关于" },
+  { href: "/#contact", label: "联系" },
 ];
 
 export function Footer({ blogger }: FooterProps) {
@@ -40,7 +37,13 @@ export function Footer({ blogger }: FooterProps) {
     };
   }, []);
 
-  const footerLinks = FOOTER_LINKS.filter((link) => modules[link.moduleKey]);
+  // 快速导航：全量内容模块链接 + 尾部固定链接（随模块开关过滤）
+  const footerLinks = [
+    ...filterNavModules(modules).map((item) => ({ href: item.href, label: item.label })),
+    ...FOOTER_TAIL_LINKS,
+  ];
+  // 超过 8 个改用两列网格排布
+  const useGrid = footerLinks.length > 8;
 
   const emailLink = blogger?.social_links?.find((link) =>
     ["mail", "email"].includes(link.platform.toLowerCase())
@@ -94,18 +97,34 @@ export function Footer({ blogger }: FooterProps) {
 
           {footerLinks.length > 0 && (
             <nav
-              className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4"
+              className="w-full max-w-md pt-4"
               aria-label="页脚导航"
             >
-              {footerLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="cursor-pointer rounded-md text-xs tracking-[0.15em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {useGrid ? (
+                <div className="grid grid-cols-2 justify-items-center gap-x-10 gap-y-2">
+                  {footerLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="cursor-pointer rounded-md text-xs tracking-[0.15em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                  {footerLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="cursor-pointer rounded-md text-xs tracking-[0.15em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </nav>
           )}
 

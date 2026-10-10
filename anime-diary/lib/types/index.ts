@@ -285,6 +285,67 @@ export interface TechStack {
   updated_at: string;
 }
 
+// ---------- 旅行攻略 ----------
+export interface TravelGuide {
+  id: string;
+  title: string;
+  summary: string;
+  cover_image: string;
+  status: number;
+  destination: string;
+  region: string;
+  category_id: string;
+  category_name: string;
+  days: number;
+  best_month: string;
+  view_count: number;
+  like_count: number;
+  rating: number;
+  review_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TravelGuideDetail extends TravelGuide {
+  attractions: Record<string, unknown>[];
+  itinerary: Record<string, unknown>[];
+  reviews: Record<string, unknown>[];
+}
+
+// ---------- 器材装备 ----------
+export interface Equipment {
+  id: string;
+  name: string;
+  image_url: string;
+  brand: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 视频作品 ----------
+export interface VideoPlatform {
+  id: string;
+  video_id: string;
+  platform: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  cover_url: string;
+  description: string;
+  status: number;
+  sort_order: number;
+  platforms: VideoPlatform[];
+  created_at: string;
+  updated_at: string;
+}
+
 // ---------- 分页列表结果（带失败标记） ----------
 // failed=true 表示取数失败（list 回退为空数组），列表页据此展示「错误重试」态，
 // 与「暂无内容」空态区分（取数函数已 catch 回退，构建绝不依赖后端可达）

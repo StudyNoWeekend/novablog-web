@@ -274,3 +274,99 @@ export interface TechStack {
   created_at: string;
   updated_at: string;
 }
+
+// ---------- 旅行攻略 ----------
+export interface TravelGuide {
+  id: string;
+  title: string;
+  summary: string;
+  cover_image: string;
+  status: number;
+  destination: string;
+  region: string;
+  category_id: string;
+  category_name: string;
+  days: number;
+  best_month: string;
+  view_count: number;
+  like_count: number;
+  rating: number;
+  review_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TravelGuideDetail extends TravelGuide {
+  attractions: Record<string, unknown>[];
+  itinerary: Record<string, unknown>[];
+  reviews: Record<string, unknown>[];
+}
+
+// ---------- 装备 ----------
+export interface Equipment {
+  id: string;
+  name: string;
+  image_url: string;
+  brand: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 视频作品 ----------
+export interface VideoPlatform {
+  id: string;
+  video_id: string;
+  platform: string;
+  url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  cover_url: string;
+  description: string;
+  status: number;
+  sort_order: number;
+  platforms: VideoPlatform[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- 摄影作品集 ----------
+export interface Portfolio {
+  id: string;
+  name: string;
+  description: string;
+  cover_mode: number;
+  cover_preset_id: string;
+  cover_url: string;
+  status: number;
+  sort_order: number;
+  category_id: string;
+  category_name: string;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioItem {
+  id: string;
+  portfolio_id: string;
+  preset_id: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  output_url: string;
+  mime_type: string;
+  output_size: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioDetail extends Portfolio {
+  items: PortfolioItem[];
+}

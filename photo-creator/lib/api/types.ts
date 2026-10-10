@@ -342,6 +342,18 @@ export interface GameDetail extends Game {
   short_review: string;
 }
 
+/** 装备（GET /equipments，仅列表无详情） */
+export interface Equipment {
+  id: string;
+  name: string;
+  image_url: string;
+  brand: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 /** 健身训练记录（GET /fitness，仅列表无详情） */
 export interface FitnessRecord {
   id: string;

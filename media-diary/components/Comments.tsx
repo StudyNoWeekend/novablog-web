@@ -6,7 +6,7 @@ import { listComments, createComment } from "@/lib/api/comments";
 import type { Comment } from "@/lib/types";
 
 interface CommentsProps {
-  targetType: "article";
+  targetType: "article" | "travel_guide";
   targetId: string;
 }
 

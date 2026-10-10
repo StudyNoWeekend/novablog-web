@@ -1,7 +1,7 @@
 {
   "id": "anime-diary",
   "name": "次元日记",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
@@ -11,6 +11,7 @@
   "routes": {
     "fallback": {
       "/articles/*": "/article.html",
+      "/travels/*": "/travel.html",
       "/open-source/*": "/open-source-detail.html",
       "/recipes/*": "/recipe.html",
       "/books/*": "/book.html",

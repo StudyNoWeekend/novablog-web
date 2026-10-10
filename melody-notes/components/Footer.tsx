@@ -6,7 +6,7 @@ import { Send } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
 import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
-import { filterMoreItems } from "@/components/more-nav-items";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import { SocialIcons } from "@/components/SocialIcons";
 import themeInfo from "@/theme.json";
 
@@ -14,22 +14,8 @@ interface FooterProps {
   profile: BloggerProfile | null;
 }
 
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [{ label: "关于我", href: "/about" }];
 
 /** 页脚声波装饰线 */
 function Waveform() {
@@ -79,7 +65,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     let cancelled = false;
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
-        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+        if (!cancelled) setModules({ ...ALL_MODULE_CONFIG, ...config });
       })
       .catch(() => {
         // 静默失败
@@ -87,7 +73,8 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const moreFooterItems = filterMoreItems(modules);
+  // 全量内容模块链接（随模块开关过滤）+ 尾部固定链接
+  const moduleLinks = filterNavModules(modules);
 
   const blogEmail = profile?.email || "";
   const year = new Date().getFullYear();
@@ -121,26 +108,29 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             </p>
           </div>
 
-          {/* Nav links */}
-          <nav
-            aria-label="页脚导航"
-            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 self-center text-sm text-text-secondary"
-          >
-            <Link href="/" className="cursor-pointer transition-colors duration-200 hover:text-accent">
-              首页
-            </Link>
-            <Link href="/music" className="cursor-pointer transition-colors duration-200 hover:text-accent">
-              音乐推荐
-            </Link>
-            <Link href="/playlists" className="cursor-pointer transition-colors duration-200 hover:text-accent">
-              歌单
-            </Link>
-            <Link href="/articles" className="cursor-pointer transition-colors duration-200 hover:text-accent">
-              文章
-            </Link>
-            <Link href="/about" className="cursor-pointer transition-colors duration-200 hover:text-accent">
-              关于我
-            </Link>
+          {/* Quick links：全量内容模块（超过 8 个用两列网格）+ 尾部固定链接 */}
+          <nav aria-label="页脚导航" className="flex flex-col gap-3 self-center">
+            <p className="text-sm font-semibold text-text-primary">快速导航</p>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </nav>
 
           {/* Subscribe */}
@@ -186,25 +176,6 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             )}
           </div>
         </div>
-
-        {/* 「更多功能」链接：随模块开关过滤 */}
-        {moreFooterItems.length > 0 && (
-          <nav
-            aria-label="更多功能"
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-border pt-6"
-          >
-            {moreFooterItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm text-text-muted transition-colors duration-200 hover:text-accent"
-              >
-                <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-xs text-text-subtle md:flex-row">

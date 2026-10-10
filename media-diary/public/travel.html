@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的旅行攻略详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>多媒体日记加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #faf7f0;
+      --panel: #ffffff;
+      --panel-soft: #f3edde;
+      --border: #eee6d4;
+      --border-strong: #e0d5bc;
+      --text: #262117;
+      --text-soft: #57503f;
+      --muted: #8c8370;
+      --accent: #f2b824;
+      --accent-deep: #d99e0b;
+      --accent-subtle: rgba(242, 184, 36, 0.16);
+      --ink: #161310;
+      --danger: #ec6a8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.85;
+    }
+    .display { letter-spacing: 0.02em; }
+    .shell-header {
+      background: var(--ink);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
+    .brand-logo {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--accent); color: var(--ink);
+    }
+    .shell-header a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .shell-header a:hover { color: var(--accent); }
+    main { max-width: 860px; margin: 0 auto; padding: 32px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    .back { display: inline-block; color: var(--muted); text-decoration: none; font-size: 14px; margin-bottom: 20px; }
+    .back:hover { color: var(--accent-deep); }
+    .hero { position: relative; border-radius: 14px; overflow: hidden; margin-bottom: 32px; background: var(--panel-soft); }
+    .hero img { width: 100%; aspect-ratio: 21/9; object-fit: cover; display: block; }
+    .hero .ph { width: 100%; aspect-ratio: 21/9; }
+    .hero .shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.3), transparent); }
+    .hero .info { position: absolute; left: 0; right: 0; bottom: 0; padding: 24px 28px; }
+    .hero .dest { display: flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.9); margin-bottom: 8px; }
+    .hero h1 { color: #fff; font-size: 28px; line-height: 1.35; font-weight: 600; max-width: 720px; }
+    .hero .meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-size: 14px; color: rgba(255,255,255,.85); }
+    .summary {
+      border-left: 3px solid var(--accent);
+      background: var(--panel-soft);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 18px;
+      margin: 0 0 30px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .action-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 30px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 36px; padding: 0 16px;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: var(--panel); color: var(--muted);
+      font-size: 14px; text-decoration: none; cursor: pointer;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent-deep); }
+    .chip.liked { border-color: var(--accent); background: var(--accent-subtle); color: var(--accent-deep); }
+    h2.section { font-size: 24px; margin: 44px 0 18px; padding-top: 32px; border-top: 1px dashed var(--border-strong); }
+    .spot {
+      display: flex; flex-direction: column; gap: 14px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px; margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(38, 33, 23, 0.07);
+    }
+    @media (min-width: 640px) { .spot { flex-direction: row; } }
+    .spot img { width: 176px; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+    .spot .body { flex: 1; min-width: 0; }
+    .spot h3 { font-size: 17px; }
+    .spot p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .spot .jump {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 10px; min-height: 30px; padding: 0 12px;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: var(--panel-soft); color: var(--muted);
+      font-size: 12px; text-decoration: none;
+    }
+    .spot .jump:hover { border-color: var(--accent); color: var(--accent-deep); }
+    .timeline { list-style: none; border-left: 2px solid rgba(242, 184, 36, 0.3); padding-left: 22px; }
+    .timeline li { position: relative; margin-bottom: 26px; }
+    .timeline li::before {
+      content: ""; position: absolute; left: -29px; top: 8px;
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid var(--accent); background: var(--bg);
+    }
+    .timeline h3 { font-size: 16px; color: var(--accent-deep); }
+    .timeline p { font-size: 14px; color: var(--text-soft); margin-top: 4px; }
+    .review {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 18px; margin-bottom: 12px;
+    }
+    .review .head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .review .name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .review .stars { color: var(--accent); font-size: 13px; letter-spacing: 2px; }
+    .review .content { font-size: 14px; color: var(--text-soft); margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand display" id="brand-title">多媒体日记</span>
+    <a href="/travels">← 返回攻略列表</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载旅行攻略…</div>
+    <article id="travel" hidden>
+      <a class="back" href="/travels">← 返回攻略列表</a>
+      <div class="hero">
+        <img id="t-cover" alt="" hidden />
+        <div id="t-cover-ph" class="ph"></div>
+        <div class="shade"></div>
+        <div class="info">
+          <p class="dest" id="t-dest" hidden></p>
+          <h1 id="t-title" class="display"></h1>
+          <div class="meta" id="t-meta"></div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button type="button" id="t-like" class="chip">
+          <span id="t-like-count">♡</span>
+          <span id="t-like-text">点赞</span>
+        </button>
+        <span class="chip" id="t-views"></span>
+      </div>
+
+      <div id="t-summary" class="summary" hidden></div>
+
+      <section id="sec-attractions" hidden>
+        <h2 class="section display">景点推荐</h2>
+        <div id="t-attractions"></div>
+      </section>
+
+      <section id="sec-itinerary" hidden>
+        <h2 class="section display">行程安排</h2>
+        <ol class="timeline" id="t-itinerary"></ol>
+      </section>
+
+      <section id="sec-reviews" hidden>
+        <h2 class="section display">旅行评价</h2>
+        <div id="t-reviews"></div>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-title");
+            if (brand && blogTitle) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 id：/travels/{id} | /travels/{id}.html | /travels/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/travels\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/travels\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // JSONB 字段防御性取值（历史数据字段名可能不一致）
+      function pickString(map, keys) {
+        for (var i = 0; i < keys.length; i++) {
+          var v = map[keys[i]];
+          if (typeof v === "string" && v.trim()) return v;
+          if (typeof v === "number") return String(v);
+        }
+        return "";
+      }
+
+      function pickNumber(map, keys) {
+        for (var i = 0; i < keys.length; i++) {
+          var v = map[keys[i]];
+          if (typeof v === "number" && isFinite(v)) return v;
+        }
+        return 0;
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/travels">返回攻略列表</a>';
+      }
+
+      // 景点经纬度跳转链接：coordType=gcj02 用高德，其余用 Google（使用存储的原始坐标，不做坐标系转换）
+      function mapJumpLink(attraction) {
+        var lat = Number(attraction.latitude);
+        var lng = Number(attraction.longitude);
+        if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return null;
+        var coordType = String(attraction.coordType || attraction.coord_type || "").toLowerCase();
+        var name = pickString(attraction, ["name", "title"]);
+        if (coordType === "gcj02") {
+          return {
+            label: "在高德地图查看",
+            url: "https://uri.amap.com/marker?position=" + lng + "," + lat +
+              "&name=" + encodeURIComponent(name) + "&src=novablog&callnative=1"
+          };
+        }
+        return {
+          label: "在 Google 地图查看",
+          url: "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng
+        };
+      }
+
+      function starsHtml(rating) {
+        var full = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+        var out = "";
+        for (var i = 1; i <= 5; i++) out += i <= full ? "★" : "☆";
+        return '<span class="stars" aria-label="评分 ' + full + ' / 5">' + out + "</span>";
+      }
+
+      function render(t) {
+        var title = t.title || "旅行攻略";
+        document.title = blogTitle ? title + " | " + blogTitle : title;
+        el("t-title").textContent = title;
+
+        if (t.cover_image) {
+          var c = el("t-cover");
+          c.src = safeUrl(t.cover_image);
+          c.hidden = false;
+          el("t-cover-ph").style.display = "none";
+        }
+
+        var dest = [t.destination, t.region].filter(function (v) { return v && String(v).trim(); }).join(" · ");
+        if (dest) {
+          el("t-dest").textContent = dest;
+          el("t-dest").hidden = false;
+        }
+
+        var meta = [];
+        if (t.days > 0) meta.push(escapeHtml(t.days) + " 天");
+        if (t.best_month) meta.push("最佳月份 " + escapeHtml(t.best_month));
+        if (t.rating > 0) {
+          var r = "★ " + Number(t.rating).toFixed(1);
+          if (t.review_count > 0) r += " (" + escapeHtml(t.review_count) + " 条评价)";
+          meta.push(r);
+        }
+        el("t-meta").innerHTML = meta.join(" ");
+
+        var likeBtn = el("t-like");
+        el("t-like-count").textContent = "♡ " + (t.like_count || 0);
+        likeBtn.addEventListener("click", function () {
+          if (likeBtn.disabled) return;
+          likeBtn.disabled = true;
+          likeBtn.classList.add("liked");
+          el("t-like-count").textContent = "♥ " + (Number(t.like_count || 0) + 1);
+          el("t-like-text").textContent = "已点赞";
+          fetch(apiBase + "/public/travels/" + encodeURIComponent(t.id) + "/like", { method: "POST" })
+            .catch(function () {
+              likeBtn.classList.remove("liked");
+              el("t-like-count").textContent = "♡ " + (t.like_count || 0);
+              el("t-like-text").textContent = "点赞";
+              likeBtn.disabled = false;
+            });
+        });
+        if (t.view_count !== undefined) {
+          el("t-views").textContent = escapeHtml(t.view_count) + " 次浏览";
+        }
+
+        if (t.summary && String(t.summary).trim()) {
+          el("t-summary").textContent = t.summary;
+          el("t-summary").hidden = false;
+        }
+
+        // 景点推荐
+        var attractions = Array.isArray(t.attractions) ? t.attractions : [];
+        if (attractions.length > 0) {
+          el("t-attractions").innerHTML = attractions.map(function (a, i) {
+            var image = pickString(a, ["image", "cover_image", "image_url", "cover", "pic", "photo"]);
+            var name = pickString(a, ["name", "title"]);
+            var description = pickString(a, ["description", "content", "intro", "summary", "text"]);
+            var jump = mapJumpLink(a);
+            var img = image
+              ? '<img src="' + safeUrl(image) + '" alt="' + escapeHtml(name || "景点 " + (i + 1)) + '" loading="lazy" />'
+              : "";
+            var jumpHtml = jump
+              ? '<a class="jump" href="' + safeUrl(jump.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(jump.label) + "</a>"
+              : "";
+            return '<div class="spot">' + img +
+              '<div class="body"><h3>' + escapeHtml(name || "景点 " + (i + 1)) + "</h3>" +
+              (description ? "<p>" + escapeHtml(description) + "</p>" : "") + jumpHtml + "</div></div>";
+          }).join("");
+          el("sec-attractions").hidden = false;
+        }
+
+        // 行程时间线
+        var itinerary = Array.isArray(t.itinerary) ? t.itinerary : [];
+        if (itinerary.length > 0) {
+          el("t-itinerary").innerHTML = itinerary.map(function (item, i) {
+            var label = pickString(item, ["day", "day_label", "dayLabel", "label", "title", "name"]);
+            var description = pickString(item, ["description", "content", "detail", "summary", "text"]);
+            return "<li><h3>" + escapeHtml(label || "第 " + (i + 1) + " 段行程") + "</h3>" +
+              (description ? "<p>" + escapeHtml(description) + "</p>" : "") + "</li>";
+          }).join("");
+          el("sec-itinerary").hidden = false;
+        }
+
+        // 评价列表
+        var reviews = Array.isArray(t.reviews) ? t.reviews : [];
+        if (reviews.length > 0) {
+          el("t-reviews").innerHTML = reviews.map(function (r, i) {
+            var author = pickString(r, ["nickname", "user", "author", "name", "reviewer"]);
+            var rating = pickNumber(r, ["rating", "score", "star", "stars"]);
+            var content = pickString(r, ["content", "comment", "text", "description", "review"]);
+            return '<div class="review"><div class="head"><span class="name">' +
+              escapeHtml(author || "匿名旅行者") + "</span>" +
+              (rating > 0 ? starsHtml(rating) : "") + "</div>" +
+              (content ? '<p class="content">' + escapeHtml(content) + "</p>" : "") + "</div>";
+          }).join("");
+          el("sec-reviews").hidden = false;
+        }
+
+        el("status").hidden = true;
+        el("travel").hidden = false;
+
+        // 浏览计数：与站点预渲染页的客户端上报行为保持一致（仅上报一次，不阻塞渲染）
+        if (t.id) {
+          fetch(apiBase + "/public/travels/" + encodeURIComponent(t.id) + "/view", { method: "POST" })
+            .catch(function () { /* 静默失败 */ });
+        }
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的攻略地址"); return; }
+
+      fetch(apiBase + "/public/travels/" + encodeURIComponent(id), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "攻略不存在或已下架"); }
+        })
+        .catch(function () { showError("攻略加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

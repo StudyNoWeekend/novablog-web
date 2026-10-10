@@ -1,7 +1,7 @@
 {
   "id": "wanderlust-template",
   "name": "漫游世界",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "engine": "next-static",
   "api_compat": "v1",
   "author": "novablog",
@@ -12,6 +12,7 @@
     "fallback": {
       "/articles/*": "/article.html",
       "/travels/*": "/travel.html",
+      "/portfolio/*": "/portfolio.html",
       "/open-source/*": "/open-source-detail.html",
       "/recipes/*": "/recipe.html",
       "/books/*": "/book.html",

@@ -4,54 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import {
-  BookOpen,
-  ChefHat,
-  ChevronDown,
-  Code2,
-  Dumbbell,
-  Gamepad2,
-  GitFork,
-  Layers,
-  Menu,
-  X,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ChevronDown, Code2, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  filterNavModules,
+  splitNavModules,
+  type NavModule,
+} from "@/components/nav-modules";
 import { blogger, getModuleConfig, Blogger, ModuleConfig } from "@/lib/api";
 
-interface NavItem {
-  href: string;
-  label: string;
-  moduleKey?: keyof ModuleConfig;
-  /** 移动端「更多功能」小节展示的图标 */
-  icon?: LucideIcon;
-}
+/** 首页固定项（置于导航最前，不占 10 个模块名额） */
+const HOME_NAV_ITEM: NavModule = { label: "首页", href: "/" };
 
-/** 导航项与 module-config 模块开关联动，关闭的模块导航项自动隐藏 */
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "首页" },
-  { href: "/articles", label: "文章", moduleKey: "article_enabled" },
-  { href: "/categories", label: "分类", moduleKey: "article_enabled" },
-  { href: "/tags", label: "标签", moduleKey: "article_enabled" },
-  { href: "/travels", label: "旅行", moduleKey: "travel_enabled" },
-  { href: "/portfolio", label: "作品集", moduleKey: "portfolio_enabled" },
-  { href: "/videos", label: "视频", moduleKey: "video_enabled" },
-  { href: "/music", label: "音乐", moduleKey: "music_enabled" },
-  { href: "/gear", label: "器材", moduleKey: "equipment_enabled" },
-  { href: "/about", label: "关于我" },
-];
-
-/** 「更多」下拉组的六个子项，各带 moduleKey 随开关过滤（全关时整个下拉不渲染） */
-const MORE_ITEMS: NavItem[] = [
-  { href: "/open-source", label: "开源作品", moduleKey: "open_source_enabled", icon: GitFork },
-  { href: "/recipes", label: "美食菜谱", moduleKey: "recipe_enabled", icon: ChefHat },
-  { href: "/books", label: "读书书架", moduleKey: "book_enabled", icon: BookOpen },
-  { href: "/games", label: "游戏库", moduleKey: "game_enabled", icon: Gamepad2 },
-  { href: "/fitness", label: "健身训练", moduleKey: "fitness_enabled", icon: Dumbbell },
-  { href: "/tech-stack", label: "技术栈", moduleKey: "tech_stack_enabled", icon: Layers },
-];
+/** 主导航末尾固定项（置于「更多」下拉之后，不占 10 个模块名额） */
+const TAIL_NAV_ITEMS: NavModule[] = [{ label: "关于我", href: "/about" }];
 
 interface NavbarProps {
   /** 构建期传入的初始值；客户端运行时会重新获取并覆盖 */
@@ -103,20 +70,23 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const navItems = NAV_ITEMS.filter(
+  const isActivePath = (href: string) =>
+    href === "/"
+      ? pathname === "/"
+      : pathname === href || pathname.startsWith(`${href}/`);
+
+  // 内容模块：桌面端前 10 项平铺，其余收纳进「更多」；移动端全量平铺
+  const { mainItems, moreItems } = splitNavModules(modules);
+  const mobileItems = filterNavModules(modules);
+
+  // 尾部固定项（当前均无 moduleKey，恒显示）
+  const tailNavItems = TAIL_NAV_ITEMS.filter(
     (item) => !item.moduleKey || modules[item.moduleKey]
   );
 
-  // 「更多」子项随模块开关过滤；六个全关时整个下拉组不渲染
-  const moreItems = MORE_ITEMS.filter(
-    (item) => !item.moduleKey || modules[item.moduleKey]
-  );
-
-  const renderNavLink = (item: NavItem, isMobile = false) => {
-    const active =
-      item.href === "/"
-        ? pathname === "/"
-        : pathname === item.href || pathname.startsWith(`${item.href}/`);
+  // 平铺文字导航项（桌面与移动端共用）
+  const renderNavLink = (item: NavModule, isMobile = false) => {
+    const active = isActivePath(item.href);
     return (
       <Link
         key={item.href}
@@ -139,21 +109,23 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
     );
   };
 
-  // 「更多」子项渲染（桌面下拉与移动端小节共用，仅容器样式不同）
-  const renderMoreLink = (item: NavItem, isMobile = false) => {
-    const active =
-      pathname === item.href || pathname.startsWith(`${item.href}/`);
+  // 带图标导航项：桌面端「更多」下拉子项与移动端内容模块共用
+  const renderMoreLink = (item: NavModule, isMobile = false) => {
+    const active = isActivePath(item.href);
     const Icon = item.icon;
     return (
       <Link
         key={item.href}
         href={item.href}
         role={isMobile ? undefined : "menuitem"}
-        onClick={() => setMoreOpen(false)}
+        onClick={() => {
+          setMoreOpen(false);
+          if (isMobile) setMobileOpen(false);
+        }}
         aria-current={active ? "page" : undefined}
         className={cn(
           "flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-md px-4 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          isMobile && "px-3",
+          isMobile ? "px-3" : "",
           active
             ? "text-primary"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -166,9 +138,7 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
   };
 
   // 当前路径命中任一「更多」子项时触发器高亮
-  const moreActive = moreItems.some(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
-  );
+  const moreActive = moreItems.some((item) => isActivePath(item.href));
 
   // 点击面板外部 / Escape 关闭「更多」下拉
   useEffect(() => {
@@ -196,10 +166,6 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
     setMoreOpen(false);
   }, [pathname]);
 
-  // 「关于我」等固定项排在下拉组之后
-  const mainItems = navItems.filter((item) => item.href !== "/about");
-  const aboutItems = navItems.filter((item) => item.href === "/about");
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -225,9 +191,13 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-0.5 lg:flex" aria-label="主导航">
+          {/* 首页固定项（不占模块名额） */}
+          {renderNavLink(HOME_NAV_ITEM)}
+
+          {/* 内容模块前 10 项平铺 */}
           {mainItems.map((item) => renderNavLink(item))}
 
-          {/* 「更多」下拉组：末尾固定项（关于我）之前 */}
+          {/* 「更多」下拉（子项随模块开关过滤，全关时整个下拉不渲染） */}
           {moreItems.length > 0 && (
             <div className="relative" ref={moreRef}>
               <button
@@ -268,7 +238,8 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
             </div>
           )}
 
-          {aboutItems.map((item) => renderNavLink(item))}
+          {/* 尾部固定项（关于我），置于「更多」之后 */}
+          {tailNavItems.map((item) => renderNavLink(item))}
         </nav>
 
         {/* 桌面端右侧留白，移动端显示汉堡菜单 */}
@@ -288,20 +259,15 @@ export function Navbar({ initialModules, initialProfile }: NavbarProps) {
         <div className="border-t border-border lg:hidden">
           <div className="mx-auto max-w-7xl space-y-1 px-4 py-3 sm:px-6">
             <nav className="space-y-1" aria-label="移动端导航">
-              {navItems.map((item) => renderNavLink(item, true))}
-            </nav>
+              {/* 首页固定项 */}
+              {renderNavLink(HOME_NAV_ITEM, true)}
 
-            {/* 「更多功能」小节：以小标题 + 分隔线与主导航区分 */}
-            {moreItems.length > 0 && (
-              <div className="border-t border-border pt-3">
-                <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  更多功能
-                </p>
-                <nav className="space-y-1" aria-label="更多功能导航">
-                  {moreItems.map((item) => renderMoreLink(item, true))}
-                </nav>
-              </div>
-            )}
+              {/* 内容模块全量平铺（不受桌面端 10 项限制） */}
+              {mobileItems.map((item) => renderMoreLink(item, true))}
+
+              {/* 尾部固定项 */}
+              {tailNavItems.map((item) => renderNavLink(item, true))}
+            </nav>
           </div>
         </div>
       )}

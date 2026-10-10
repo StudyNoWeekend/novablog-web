@@ -10,6 +10,7 @@ import {
   Category,
   Comment,
   CreateCommentPayload,
+  Equipment,
   FitnessRecord,
   Game,
   GameDetail,
@@ -246,6 +247,12 @@ export const games = {
     play_status?: string;
   }) => get<PaginatedResponse<Game>>("/api/v1/public/games", params),
   detail: (id: string) => get<GameDetail>(`/api/v1/public/games/${id}`),
+};
+
+export const equipments = {
+  // 装备仅列表接口（无详情）
+  list: (params?: PaginationParams & { keyword?: string; brand?: string }) =>
+    get<PaginatedResponse<Equipment>>("/api/v1/public/equipments", params),
 };
 
 export const fitness = {

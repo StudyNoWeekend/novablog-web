@@ -6,7 +6,7 @@ import { Gamepad2, Mail, Send } from "lucide-react";
 import type { BloggerProfile } from "@/lib/api/blogger";
 import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
-import { filterMoreItems } from "@/components/more-nav-items";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
 interface FooterProps {
@@ -15,22 +15,8 @@ interface FooterProps {
 
 const FOOTER_QUOTE = "“好的游戏，值得被更多人看见。”";
 
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [{ label: "关于我", href: "/about" }];
 
 function SocialIcon({ platform, url }: { platform: string; url: string }) {
   const p = platform.toLowerCase();
@@ -67,7 +53,7 @@ function SocialIcon({ platform, url }: { platform: string; url: string }) {
 export function Footer({ profile: serverProfile }: FooterProps) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
   const [subscribeEmail, setSubscribeEmail] = useState("");
-  // 模块开关：取到前为 null（「更多」链接全量平铺），取到后按开关过滤
+  // 模块开关：取到前为 null（快速导航全量平铺），取到后按开关过滤
   const [modules, setModules] = useState<ModuleConfig | null>(null);
 
   // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
@@ -88,7 +74,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     let cancelled = false;
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
-        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+        if (!cancelled) setModules({ ...ALL_MODULE_CONFIG, ...config });
       })
       .catch(() => {
         // 静默失败
@@ -96,7 +82,8 @@ export function Footer({ profile: serverProfile }: FooterProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const moreFooterItems = filterMoreItems(modules);
+  // 全量内容模块链接（随模块开关过滤）
+  const moduleLinks = filterNavModules(modules);
 
   const socialLinks =
     profile?.social_links?.map((s) => ({
@@ -124,7 +111,7 @@ export function Footer({ profile: serverProfile }: FooterProps) {
   return (
     <footer className="border-t border-border bg-background-soft">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-8">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           {/* Brand + quote */}
           <div className="flex flex-col justify-between gap-6">
             <Link
@@ -182,6 +169,33 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             )}
           </div>
 
+          {/* Quick links：全量内容模块 + 尾部固定链接（超过 8 个，两列网格） */}
+          <div>
+            <h2 className="mb-4 font-heading text-base font-bold text-text-primary">
+              快速导航
+            </h2>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-muted transition-colors duration-200 ease-out hover:text-accent-hover"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-text-muted transition-colors duration-200 ease-out hover:text-accent-hover"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* Friend links (social links from profile) */}
           <div>
             <h2 className="mb-4 font-heading text-base font-bold text-text-primary">
@@ -202,25 +216,6 @@ export function Footer({ profile: serverProfile }: FooterProps) {
             )}
           </div>
         </div>
-
-        {/* 「更多功能」链接：随模块开关过滤 */}
-        {moreFooterItems.length > 0 && (
-          <nav
-            aria-label="更多功能"
-            className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-border pt-6"
-          >
-            {moreFooterItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-semibold text-text-muted transition-colors duration-200 ease-out hover:text-accent-hover"
-              >
-                <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
 
         {/* Bottom bar */}
         <div className="mt-12 border-t border-border pt-6">

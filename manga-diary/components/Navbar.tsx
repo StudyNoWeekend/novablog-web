@@ -9,44 +9,18 @@ import type { ModuleConfig } from "@/lib/types";
 import type { BloggerProfile } from "@/lib/api/blogger";
 import { apiFetch } from "@/lib/api/client";
 import { CatFace } from "@/components/ComicDoodle";
-import { filterMoreItems } from "@/components/more-nav-items";
+import {
+  ALL_MODULE_CONFIG,
+  filterNavModules,
+  splitNavModules,
+  type NavModule,
+} from "@/components/nav-modules";
 
-interface NavItem {
-  label: string;
-  href: string;
-  moduleKey?: keyof ModuleConfig;
-}
-
-/** 主导航固定项（「更多」下拉插入在末尾固定项之前） */
-const NAV_ITEMS: NavItem[] = [
-  { label: "首页", href: "/" },
-  { label: "作品", href: "/portfolio", moduleKey: "portfolio_enabled" },
-  { label: "动态", href: "/articles", moduleKey: "article_enabled" },
-  { label: "音乐", href: "/music", moduleKey: "music_enabled" },
-];
-
-/** 主导航末尾固定项（置于「更多」下拉之后） */
-const TAIL_NAV_ITEMS: NavItem[] = [
+/** 主导航末尾固定项（置于「更多」下拉之后，不占 10 个模块名额） */
+const TAIL_NAV_ITEMS: NavModule[] = [
   { label: "关于我", href: "/about" },
   { label: "留言", href: "/contact" },
 ];
-
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
 
 interface NavbarProps {
   modules: ModuleConfig;
@@ -68,7 +42,7 @@ export function Navbar({ modules: _modules }: NavbarProps) {
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
         if (!cancelled) {
-          setRuntimeModules({ ...ALL_ENABLED, ...config });
+          setRuntimeModules({ ...ALL_MODULE_CONFIG, ...config });
         }
       })
       .catch(() => {
@@ -100,14 +74,12 @@ export function Navbar({ modules: _modules }: NavbarProps) {
   // 优先使用运行时获取的配置，降级到构建时 prop
   const modules = runtimeModules ?? _modules;
 
-  const navItems = NAV_ITEMS.filter(
-    (item) => !item.moduleKey || modules[item.moduleKey]
-  );
+  // 内容模块：桌面端前 10 项平铺，其余收纳进「更多」；移动端全量平铺
+  const { mainItems, moreItems } = splitNavModules(modules);
+  const mobileItems = filterNavModules(modules);
   const tailNavItems = TAIL_NAV_ITEMS.filter(
     (item) => !item.moduleKey || modules[item.moduleKey]
   );
-  // 「更多」下拉子项：随模块开关过滤，六个全关时整个下拉不渲染
-  const moreItems = filterMoreItems(modules);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
@@ -177,25 +149,13 @@ export function Navbar({ modules: _modules }: NavbarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-0.5 lg:flex">
-            {navItems.map((item) => {
-              const isActive = isActivePath(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`relative cursor-pointer px-3 py-3 text-sm transition-colors duration-200 ease-out ${
-                    isActive
-                      ? "text-accent"
-                      : "text-white/75 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-accent" />
-                  )}
-                </Link>
-              );
-            })}
+            {/* 首页固定项（不占模块名额） */}
+            <DesktopTextLink label="首页" href="/" pathname={pathname} />
+
+            {/* 内容模块前 10 项平铺 */}
+            {mainItems.map((item) => (
+              <DesktopTextLink key={item.href} label={item.label} href={item.href} pathname={pathname} />
+            ))}
 
             {/* 「更多」下拉（子项随模块开关过滤，全关时不渲染） */}
             {moreItems.length > 0 && (
@@ -241,7 +201,9 @@ export function Navbar({ modules: _modules }: NavbarProps) {
                             isActive ? "text-accent-hover" : "text-text-secondary"
                           }`}
                         >
-                          <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                          {item.icon && (
+                            <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                          )}
                           {item.label}
                         </Link>
                       );
@@ -251,25 +213,10 @@ export function Navbar({ modules: _modules }: NavbarProps) {
               </div>
             )}
 
-            {tailNavItems.map((item) => {
-              const isActive = isActivePath(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`relative cursor-pointer px-3 py-3 text-sm transition-colors duration-200 ease-out ${
-                    isActive
-                      ? "text-accent"
-                      : "text-white/75 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-accent" />
-                  )}
-                </Link>
-              );
-            })}
+            {/* 尾部固定项（置于「更多」之后） */}
+            {tailNavItems.map((item) => (
+              <DesktopTextLink key={item.href} label={item.label} href={item.href} pathname={pathname} />
+            ))}
           </div>
 
           {/* 右侧动作：搜索 + 头像 */}
@@ -320,71 +267,45 @@ export function Navbar({ modules: _modules }: NavbarProps) {
         {/* Mobile Navigation */}
         <div
           className={`overflow-hidden bg-ink transition-all duration-300 ease-out lg:hidden ${
-            isMenuOpen ? "max-h-[42rem] border-t border-white/10 opacity-100" : "max-h-0 opacity-0"
+            isMenuOpen ? "max-h-[64rem] border-t border-white/10 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
           <div className="flex flex-col px-4 py-3">
-            {navItems.map((item) => {
+            {/* 首页固定项 */}
+            <MobileTextLink label="首页" href="/" pathname={pathname} onClick={closeMenu} />
+
+            {/* 内容模块全量平铺（不受 10 项限制） */}
+            {mobileItems.map((item) => {
               const isActive = isActivePath(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={closeMenu}
-                  className={`cursor-pointer rounded-radius-sm px-3 py-3 text-base transition-colors duration-200 ease-out ${
+                  className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-radius-sm px-3 py-3 text-base transition-colors duration-200 ease-out ${
                     isActive
                       ? "bg-accent/15 text-accent"
                       : "text-white/75 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  {item.label}
-                </Link>
-              );
-            })}
-            {tailNavItems.map((item) => {
-              const isActive = isActivePath(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={closeMenu}
-                  className={`cursor-pointer rounded-radius-sm px-3 py-3 text-base transition-colors duration-200 ease-out ${
-                    isActive
-                      ? "bg-accent/15 text-accent"
-                      : "text-white/75 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
+                  {item.icon && (
+                    <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+                  )}
                   {item.label}
                 </Link>
               );
             })}
 
-            {/* 「更多功能」小节：六个新模块入口平铺，随模块开关过滤 */}
-            {moreItems.length > 0 && (
-              <div className="mt-2 border-t border-white/10 pt-3">
-                <p className="px-3 pb-1.5 text-xs font-medium uppercase tracking-widest text-white/40">
-                  更多功能
-                </p>
-                {moreItems.map((item) => {
-                  const isActive = isActivePath(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={closeMenu}
-                      className={`flex min-h-[44px] cursor-pointer items-center gap-2.5 rounded-radius-sm px-3 text-base transition-colors duration-200 ease-out ${
-                        isActive
-                          ? "bg-accent/15 text-accent"
-                          : "text-white/75 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+            {/* 尾部固定项 */}
+            {tailNavItems.map((item) => (
+              <MobileTextLink
+                key={item.href}
+                label={item.label}
+                href={item.href}
+                pathname={pathname}
+                onClick={closeMenu}
+              />
+            ))}
           </div>
         </div>
       </header>
@@ -392,5 +313,61 @@ export function Navbar({ modules: _modules }: NavbarProps) {
       {/* Spacer for fixed header */}
       <div className="h-18" />
     </>
+  );
+}
+
+/** 桌面端平铺文字导航项（黄色手绘短下划线激活态） */
+function DesktopTextLink({
+  label,
+  href,
+  pathname,
+}: {
+  label: string;
+  href: string;
+  pathname: string;
+}) {
+  const isActive =
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  return (
+    <Link
+      href={href}
+      className={`relative cursor-pointer px-3 py-3 text-sm transition-colors duration-200 ease-out ${
+        isActive ? "text-accent" : "text-white/75 hover:text-white"
+      }`}
+    >
+      {label}
+      {isActive && (
+        <span className="absolute bottom-0 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-accent" />
+      )}
+    </Link>
+  );
+}
+
+/** 移动端纯文字导航项（首页 / 尾部固定项） */
+function MobileTextLink({
+  label,
+  href,
+  pathname,
+  onClick,
+}: {
+  label: string;
+  href: string;
+  pathname: string;
+  onClick: () => void;
+}) {
+  const isActive =
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`cursor-pointer rounded-radius-sm px-3 py-3 text-base transition-colors duration-200 ease-out ${
+        isActive
+          ? "bg-accent/15 text-accent"
+          : "text-white/75 hover:bg-white/10 hover:text-white"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }

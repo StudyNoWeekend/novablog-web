@@ -185,6 +185,8 @@ export async function generateStaticParams() {
 
 `module-config` 在原有 7 个布尔开关（`article/media/music/video/travel/portfolio/equipment_enabled`）之外新增 6 个：`open_source_enabled`、`recipe_enabled`、`book_enabled`、`game_enabled`、`fitness_enabled`、`tech_stack_enabled`。开关只管展示：关闭时对应导航项隐藏、页面渲染「模块未开启」提示（复用主题现有 ModuleDisabled 类组件，没有就按主题风格新建）。
 
+**导航栏统一规则**：主题在 `components/nav-modules.tsx` 维护全量有序内容模块清单 `NAV_MODULES`（label/href/icon/moduleKey，显隐绑定模块开关）。桌面端平铺前 10 项（纯文字），第 11 项起收纳进「更多」下拉（子项带图标）；「首页」固定最前、「关于/联系」等尾部固定项置于「更多」之后，均不占名额；「更多」为空时不渲染。移动端菜单与页脚全量展示模块清单，不应用 10 条限制。主题应提供全部 12 个 CMS 内容模块的页面（文章/旅行/作品集/视频/音乐/器材/开源作品/美食菜谱/读书书架/游戏库/健身训练/技术栈），缺失页面会导致导航出现 404 入口。
+
 **API 层必须容错**：每个取数函数 catch 异常后回退空数据/`null`（参考 `lens-life-template/lib/api/*`），保证任何一处后端不可达都不会让 `pnpm build` 失败——构建期失败只允许降级（少预渲染几个页面），不允许中断。
 
 ### 3.6 工程一致性要求

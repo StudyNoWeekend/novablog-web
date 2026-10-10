@@ -7,38 +7,18 @@ import type { BloggerProfile } from "@/lib/api/blogger";
 import type { ModuleConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api/client";
 import { SocialIcons } from "@/components/SocialIcons";
-import { filterMoreItems } from "@/components/more-nav-items";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
-const NAV_LINKS = [
-  { label: "首页", href: "/" },
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [
   { label: "关于我", href: "/about" },
-  { label: "作品展示", href: "/works" },
-  { label: "内容专栏", href: "/articles" },
-  { label: "音乐", href: "/music" },
   { label: "合作联系", href: "/contact" },
 ];
 
-const ALL_ENABLED: ModuleConfig = {
-  article_enabled: true,
-  media_enabled: true,
-  music_enabled: true,
-  video_enabled: true,
-  travel_enabled: true,
-  portfolio_enabled: true,
-  equipment_enabled: true,
-  open_source_enabled: true,
-  recipe_enabled: true,
-  book_enabled: true,
-  game_enabled: true,
-  fitness_enabled: true,
-  tech_stack_enabled: true,
-  updated_at: "",
-};
-
 export function Footer({ profile: serverProfile }: { profile: BloggerProfile | null }) {
   const [profile, setProfile] = useState<BloggerProfile | null>(serverProfile);
-  // 模块开关：取到前为 null（「更多功能」链接全量平铺），取到后按开关过滤
+  // 模块开关：取到前为 null（链接全量平铺），取到后按开关过滤
   const [modules, setModules] = useState<ModuleConfig | null>(null);
 
   // 客户端运行时重新获取博主资料，覆盖静态导出下服务端获取为 null 的问题
@@ -59,7 +39,7 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
     let cancelled = false;
     apiFetch<ModuleConfig>("/public/module-config")
       .then((config) => {
-        if (!cancelled) setModules({ ...ALL_ENABLED, ...config });
+        if (!cancelled) setModules({ ...ALL_MODULE_CONFIG, ...config });
       })
       .catch(() => {
         // 静默失败
@@ -67,7 +47,8 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
     return () => { cancelled = true; };
   }, []);
 
-  const moreFooterItems = filterMoreItems(modules);
+  // 全量内容模块链接（随模块开关过滤）
+  const moduleLinks = filterNavModules(modules);
 
   return (
     <footer className="bg-ink text-white/70">
@@ -97,18 +78,29 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
             )}
           </div>
 
-          {/* Quick links */}
+          {/* Quick links：全量内容模块链接（超过 8 个用两列网格）+ 尾部固定链接 */}
           <nav aria-label="页脚导航" className="flex flex-col gap-2.5">
             <p className="text-sm font-semibold text-white/85">快速导航</p>
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="cursor-pointer text-sm text-white/55 transition-colors duration-200 hover:text-accent"
-              >
-                {link.label}
-              </Link>
-            ))}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
+              {moduleLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-white/55 transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {FOOTER_TAIL_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="cursor-pointer text-sm text-white/55 transition-colors duration-200 hover:text-accent"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </nav>
 
           {/* Social + 手写标语（对应 UI 图页脚右下角「一起把生活拍成电影」） */}
@@ -132,25 +124,6 @@ export function Footer({ profile: serverProfile }: { profile: BloggerProfile | n
             </span>
           </div>
         </div>
-
-        {/* 「更多功能」链接：随模块开关过滤 */}
-        {moreFooterItems.length > 0 && (
-          <nav
-            aria-label="更多功能"
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-white/10 pt-6"
-          >
-            {moreFooterItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm text-white/55 transition-colors duration-200 ease-out hover:text-accent"
-              >
-                <item.icon className="h-4 w-4" strokeWidth={1.5} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
 
         {/* Copyright + 主题来源链接 */}
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/45">

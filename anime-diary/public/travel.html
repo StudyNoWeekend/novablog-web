@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 动态内容壳页面：静态导出未预生成的旅行攻略详情由此页面客户端取数渲染（主题规范 3.4） -->
+  <title>旅行攻略加载中</title>
+  <script src="/theme-config.js"></script>
+  <style>
+    :root {
+      --bg: #fdfcff;
+      --panel: #ffffff;
+      --border: rgba(60, 53, 84, 0.12);
+      --text: #3c3554;
+      --muted: #8f89a8;
+      --accent: #f078a1;
+      --accent-deep: #e75c8d;
+      --night: #2f2847;
+      --danger: #e05656;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.8;
+    }
+    .kuaile { font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+    .shell-header {
+      background: var(--night);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      color: #fff;
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand .heart { color: var(--accent); }
+    .shell-header a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 13px; }
+    .shell-header a:hover { color: var(--accent); }
+    main { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; }
+    .status {
+      color: var(--muted);
+      padding: 64px 0;
+      text-align: center;
+    }
+    .status.error { color: var(--danger); }
+    .status.error a { color: var(--accent-deep); }
+    .back {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back:hover { color: var(--accent-deep); }
+    .hero { position: relative; border-radius: 14px; overflow: hidden; background: var(--border); margin-bottom: 24px; }
+    .hero img { width: 100%; aspect-ratio: 21/9; object-fit: cover; display: block; }
+    .hero .ph { width: 100%; aspect-ratio: 21/9; }
+    .hero .overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.3), transparent);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 24px 28px;
+    }
+    .hero .dest {
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .hero h1 {
+      color: #fff;
+      font-size: 26px;
+      line-height: 1.4;
+    }
+    .hero .meta { color: rgba(255,255,255,.85); font-size: 13px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 14px; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .btn-like {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .btn-like:hover { border-color: var(--accent); color: var(--accent-deep); }
+    .btn-like.liked { border-color: var(--accent); background: rgba(240,120,161,0.12); color: var(--accent-deep); cursor: default; }
+    .btn-like .num { font-variant-numeric: tabular-nums; }
+    .view-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .summary {
+      border-left: 4px solid var(--accent);
+      background: rgba(240,120,161,0.06);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 18px;
+      margin: 0 0 12px;
+      color: #59527a;
+      font-style: italic;
+    }
+    h2.section { font-size: 23px; margin: 40px 0 18px; }
+    .attraction {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 24px rgba(60,53,84,0.06);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .attraction img {
+      width: 176px; aspect-ratio: 4/3; object-fit: cover;
+      border-radius: 8px; flex-shrink: 0;
+    }
+    .attraction .body { flex: 1; min-width: 220px; }
+    .attraction h3 { font-size: 17px; }
+    .attraction p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .map-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 12px;
+      text-decoration: none;
+      padding: 5px 14px;
+      margin-top: 10px;
+      transition: all .2s ease;
+    }
+    .map-chip:hover { border-color: var(--accent); color: var(--accent-deep); }
+    .itinerary { list-style: none; border-left: 2px solid rgba(240,120,161,0.2); padding-left: 24px; }
+    .itinerary li { position: relative; margin-bottom: 24px; }
+    .itinerary li::before {
+      content: "";
+      position: absolute;
+      left: -31px; top: 8px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--bg);
+    }
+    .itinerary h3 { font-size: 15px; color: var(--accent-deep); }
+    .itinerary p { font-size: 14px; color: #59527a; margin-top: 4px; }
+    .review-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 24px rgba(60,53,84,0.06);
+    }
+    .review-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .review-name { font-size: 14px; font-weight: 600; }
+    .stars { color: var(--accent); font-size: 13px; letter-spacing: 2px; }
+    .stars .off { color: var(--border); }
+    .review-content { font-size: 14px; color: #59527a; margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
+    .shell-footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header class="shell-header">
+    <span class="brand kuaile"><span id="brand-text"></span><span class="heart">♥</span></span>
+    <a href="/travels">← 返回攻略列表</a>
+  </header>
+  <main>
+    <div id="status" class="status">正在加载攻略…</div>
+    <article id="travel" hidden>
+      <a class="back" href="/travels">← 返回攻略列表</a>
+      <div class="hero">
+        <img id="t-cover" alt="" hidden />
+        <div id="t-cover-ph" class="ph"></div>
+        <div class="overlay" id="t-overlay">
+          <p class="dest" id="t-dest"></p>
+          <h1 id="t-title" class="kuaile"></h1>
+          <div class="meta" id="t-meta"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" id="t-like" class="btn-like">
+          <span aria-hidden="true">♥</span>
+          <span class="num" id="t-like-count">0</span>
+          <span id="t-like-text">点赞</span>
+        </button>
+        <span class="view-chip"><span id="t-views">0</span> 次浏览</span>
+      </div>
+      <blockquote id="t-summary" class="summary" hidden></blockquote>
+      <section id="sec-attractions" hidden>
+        <h2 class="section kuaile">景点推荐</h2>
+        <div id="t-attractions"></div>
+      </section>
+      <section id="sec-itinerary" hidden>
+        <h2 class="section kuaile">行程安排</h2>
+        <ol id="t-itinerary" class="itinerary"></ol>
+      </section>
+      <section id="sec-reviews" hidden>
+        <h2 class="section kuaile">旅行评价</h2>
+        <div id="t-reviews"></div>
+      </section>
+    </article>
+  </main>
+  <footer class="shell-footer">二次元，让生活更有趣</footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // API 地址解析：theme-config.js 注入（可携带 /api/v1 前缀）> 同域相对路径
+      var injected = window.__NOVA_CONFIG__ && window.__NOVA_CONFIG__.apiBase;
+      var siteRoot = injected
+        ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+        : "";
+      var apiBase = siteRoot + "/api/v1";
+
+      // 获取博主资料并更新品牌文字
+      var blogTitle = "";
+      fetch(apiBase + "/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) {
+            blogTitle = res.data.blog_title || "";
+            var brand = document.getElementById("brand-text");
+            if (brand) brand.textContent = blogTitle;
+          }
+        })
+        .catch(function () { /* 静默失败 */ });
+
+      // 从 URL 解析 id：/travels/{id} | /travels/{id}.html | /travels/{id}/
+      function parseId() {
+        var m = location.pathname.match(/\/travels\/([^/]+?)\.?html?\/?$/i) ||
+                location.pathname.match(/\/travels\/([^/]+?)\/?$/i);
+        if (!m) return "";
+        try {
+          return decodeURIComponent(m[1]);
+        } catch (e) {
+          // 非法百分号编码：按无效地址处理，避免页面卡在加载态
+          return "";
+        }
+      }
+
+      function el(id) { return document.getElementById(id); }
+
+      function escapeHtml(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+
+      // 链接/图片 URL 仅放行 http(s)://、//、/、#
+      function safeUrl(u) {
+        u = String(u || "").trim();
+        if (/^(https?:\/\/|\/\/|\/|#)/i.test(u)) return u;
+        return "#";
+      }
+
+      // JSONB 字段防御式取值（与预渲染页 pickString 对齐）
+      function pickString(map, keys) {
+        for (var i = 0; i < keys.length; i++) {
+          var v = map[keys[i]];
+          if (typeof v === "string" && v.trim()) return v;
+          if (typeof v === "number") return String(v);
+        }
+        return "";
+      }
+
+      function pickNumber(map, keys) {
+        for (var i = 0; i < keys.length; i++) {
+          var v = map[keys[i]];
+          if (typeof v === "number" && isFinite(v)) return v;
+        }
+        return 0;
+      }
+
+      // 按 coordType 生成地图跳转链接（gcj02 → 高德，其余 → Google）
+      function mapJumpLink(attraction) {
+        var lat = Number(attraction.latitude);
+        var lng = Number(attraction.longitude);
+        if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return null;
+        var coordType = String(attraction.coordType != null ? attraction.coordType : attraction.coord_type || "").toLowerCase();
+        var name = pickString(attraction, ["name", "title"]);
+        if (coordType === "gcj02") {
+          return {
+            label: "在高德地图查看",
+            url: "https://uri.amap.com/marker?position=" + lng + "," + lat +
+              "&name=" + encodeURIComponent(name) + "&src=novablog&callnative=1"
+          };
+        }
+        return {
+          label: "在 Google 地图查看",
+          url: "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng
+        };
+      }
+
+      function showError(msg) {
+        var s = el("status");
+        s.className = "status error";
+        s.innerHTML = msg + ' · <a href="/travels">返回攻略列表</a>';
+      }
+
+      function render(travel) {
+        var title = travel.title || "旅行攻略";
+        document.title = blogTitle ? title + " | " + blogTitle : title;
+        el("t-title").textContent = title;
+
+        var dest = travel.destination || "";
+        if (travel.region) dest += (dest ? " · " : "") + travel.region;
+        if (dest) el("t-dest").textContent = dest;
+        else el("t-dest").hidden = true;
+
+        if (travel.cover_image) {
+          var c = el("t-cover");
+          c.src = safeUrl(travel.cover_image);
+          c.hidden = false;
+          el("t-cover-ph").style.display = "none";
+        } else {
+          // 无封面：隐藏叠加层信息，避免文字悬在灰底上难以阅读
+          el("t-overlay").style.position = "static";
+          el("t-overlay").style.background = "none";
+          el("t-overlay").style.padding = "16px 4px 0";
+          el("t-dest").style.color = "var(--accent-deep)";
+          el("t-title").style.color = "var(--text)";
+          el("t-meta").style.color = "var(--muted)";
+        }
+
+        var meta = [];
+        if (travel.days > 0) meta.push(escapeHtml(String(travel.days)) + " 天");
+        if (travel.best_month) meta.push("最佳月份 " + escapeHtml(travel.best_month));
+        if (travel.rating > 0) {
+          var reviewSuffix = travel.review_count > 0 ? " (" + travel.review_count + " 条评价)" : "";
+          meta.push("★ " + Number(travel.rating).toFixed(1) + escapeHtml(reviewSuffix));
+        }
+        el("t-meta").innerHTML = meta.join(" · ");
+        if (meta.length === 0) el("t-meta").style.display = "none";
+
+        el("t-views").textContent = String(travel.view_count || 0);
+
+        if (travel.summary && String(travel.summary).trim()) {
+          var summary = el("t-summary");
+          summary.textContent = travel.summary;
+          summary.hidden = false;
+        }
+
+        initLike(travel.id, Number(travel.like_count) || 0);
+
+        var attractions = Array.isArray(travel.attractions) ? travel.attractions : [];
+        if (attractions.length > 0) {
+          el("t-attractions").innerHTML = attractions.map(function (a, i) {
+            var image = pickString(a, ["image", "cover_image", "image_url", "cover", "pic", "photo"]);
+            var name = pickString(a, ["name", "title"]) || "景点 " + (i + 1);
+            var description = pickString(a, ["description", "content", "intro", "summary", "text"]);
+            var jump = mapJumpLink(a);
+            var img = image
+              ? '<img src="' + safeUrl(image) + '" alt="' + escapeHtml(name) + '" loading="lazy" />'
+              : "";
+            var chip = jump
+              ? '<a class="map-chip" href="' + safeUrl(jump.url) + '" target="_blank" rel="noopener noreferrer">➤ ' + escapeHtml(jump.label) + "</a>"
+              : "";
+            return '<div class="attraction">' + img +
+              '<div class="body"><h3 class="kuaile">' + escapeHtml(name) + "</h3>" +
+              (description ? "<p>" + escapeHtml(description) + "</p>" : "") +
+              chip + "</div></div>";
+          }).join("");
+          el("sec-attractions").hidden = false;
+        }
+
+        var itinerary = Array.isArray(travel.itinerary) ? travel.itinerary : [];
+        if (itinerary.length > 0) {
+          el("t-itinerary").innerHTML = itinerary.map(function (item, i) {
+            var label = pickString(item, ["day", "day_label", "dayLabel", "label", "title", "name"]);
+            var description = pickString(item, ["description", "content", "detail", "summary", "text"]);
+            if (!label && !description) return "";
+            return "<li>" +
+              (label ? '<h3 class="kuaile">' + escapeHtml(label) + "</h3>" : "") +
+              (description ? "<p>" + escapeHtml(description) + "</p>" : "") +
+              "</li>";
+          }).join("");
+          el("sec-itinerary").hidden = false;
+        }
+
+        var reviews = Array.isArray(travel.reviews) ? travel.reviews : [];
+        if (reviews.length > 0) {
+          el("t-reviews").innerHTML = reviews.map(function (r) {
+            var author = pickString(r, ["nickname", "user", "author", "name", "reviewer"]) || "匿名旅行者";
+            var rating = Math.max(0, Math.min(5, Math.round(pickNumber(r, ["rating", "score", "star", "stars"]))));
+            var content = pickString(r, ["content", "comment", "text", "description", "review"]);
+            var stars = "";
+            if (rating > 0) {
+              for (var s = 1; s <= 5; s++) {
+                stars += '<span class="' + (s <= rating ? "on" : "off") + '">★</span>';
+              }
+              stars = '<span class="stars">' + stars + "</span>";
+            }
+            return '<div class="review-card"><div class="review-head">' +
+              '<span class="review-name">' + escapeHtml(author) + "</span>" + stars +
+              "</div>" +
+              (content ? '<p class="review-content">' + escapeHtml(content) + "</p>" : "") +
+              "</div>";
+          }).join("");
+          el("sec-reviews").hidden = false;
+        }
+
+        el("status").hidden = true;
+        el("travel").hidden = false;
+      }
+
+      // 点赞：乐观更新，失败回滚（与预渲染页 TravelLikeButton 行为一致）
+      function initLike(id, initialCount) {
+        var count = initialCount;
+        var liked = false;
+        var btn = el("t-like");
+        var countNode = el("t-like-count");
+        var textNode = el("t-like-text");
+        countNode.textContent = String(count);
+
+        btn.addEventListener("click", function () {
+          if (liked) return;
+          liked = true;
+          count += 1;
+          countNode.textContent = String(count);
+          btn.classList.add("liked");
+          textNode.textContent = "已点赞";
+          fetch(apiBase + "/public/travels/" + encodeURIComponent(id) + "/like", {
+            method: "POST",
+            headers: { Accept: "application/json" }
+          }).catch(function () {
+            // 失败回滚
+            count -= 1;
+            liked = false;
+            countNode.textContent = String(count);
+            btn.classList.remove("liked");
+            textNode.textContent = "点赞";
+          });
+        });
+      }
+
+      var id = parseId();
+      if (!id) { showError("无效的攻略地址"); return; }
+
+      fetch(apiBase + "/public/travels/" + encodeURIComponent(id), {
+        headers: { Accept: "application/json" }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0 && res.data) { render(res.data); }
+          else { showError((res && res.msg) || "攻略不存在或已下架"); }
+        })
+        .catch(function () { showError("攻略加载失败，请稍后重试"); });
+    })();
+  </script>
+</body>
+</html>

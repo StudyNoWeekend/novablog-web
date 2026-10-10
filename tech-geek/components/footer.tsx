@@ -2,14 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  ALL_ENABLED_MODULE_CONFIG,
-  blogger,
-  getModuleConfig,
-  Blogger,
-  ModuleConfig,
-} from "@/lib/api";
+import { blogger, getModuleConfig, Blogger, ModuleConfig } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { SocialIcon } from "@/components/social-icons";
+import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
 
 interface FooterProps {
@@ -17,23 +13,12 @@ interface FooterProps {
   initialProfile: Blogger | null;
 }
 
-/** 页脚导航链接：带 moduleKey 的项随模块开关过滤（构建期兜底全开） */
-const FOOTER_LINKS: { href: string; label: string; moduleKey?: keyof ModuleConfig }[] = [
-  { href: "/", label: "首页" },
-  { href: "/categories", label: "分类" },
-  { href: "/tags", label: "标签" },
-  { href: "/open-source", label: "开源作品", moduleKey: "open_source_enabled" },
-  { href: "/recipes", label: "美食菜谱", moduleKey: "recipe_enabled" },
-  { href: "/books", label: "读书书架", moduleKey: "book_enabled" },
-  { href: "/games", label: "游戏库", moduleKey: "game_enabled" },
-  { href: "/fitness", label: "健身训练", moduleKey: "fitness_enabled" },
-  { href: "/tech-stack", label: "技术栈", moduleKey: "tech_stack_enabled" },
-  { href: "/about", label: "关于我" },
-];
+/** 页脚尾部固定链接（全量模块链接之后） */
+const FOOTER_TAIL_LINKS = [{ label: "关于我", href: "/about" }];
 
 export function Footer({ initialProfile }: FooterProps) {
   const [info, setInfo] = useState<Blogger | null>(initialProfile);
-  const [modules, setModules] = useState<ModuleConfig>(ALL_ENABLED_MODULE_CONFIG);
+  const [modules, setModules] = useState<ModuleConfig>(ALL_MODULE_CONFIG);
 
   // 运行时重新获取博主资料与模块开关，覆盖构建期固化值（静态导出双保险）
   useEffect(() => {
@@ -58,66 +43,77 @@ export function Footer({ initialProfile }: FooterProps) {
     (a, b) => a.sort_order - b.sort_order
   );
 
-  const footerLinks = FOOTER_LINKS.filter(
-    (link) => !link.moduleKey || modules[link.moduleKey]
-  );
+  // 快速导航：全量内容模块链接（随模块开关过滤）+ 尾部固定链接
+  const moduleLinks = filterNavModules(modules);
+  const footerLinks = [...moduleLinks, ...FOOTER_TAIL_LINKS];
 
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-          <div className="text-center md:text-left">
+        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+          {/* Brand + social */}
+          <div className="max-w-sm text-center md:text-left">
             <p className="font-mono text-lg font-semibold text-foreground">
               {info?.blog_title || "Tech Geek Blog"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {info?.blog_description || "记录代码与思考"}
             </p>
+            {socialLinks.length > 0 && (
+              <div className="mt-4 flex items-center justify-center gap-3 md:justify-start">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.platform + link.url}
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={link.name || link.platform}
+                  >
+                    <SocialIcon link={link} className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
-          {socialLinks.length > 0 && (
-            <div className="flex items-center gap-3">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.platform + link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  aria-label={link.name || link.platform}
+          {/* 快速导航：全量内容模块 + 尾部固定链接（超过 8 个用两列网格） */}
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-semibold text-foreground">快速导航</p>
+            <nav
+              aria-label="页脚导航"
+              className={cn(
+                "grid gap-x-8 gap-y-2",
+                footerLinks.length > 8 ? "grid-cols-2" : "grid-cols-1"
+              )}
+            >
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="w-fit rounded-md text-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <SocialIcon link={link} className="h-4 w-4" />
-                </a>
+                  {link.label}
+                </Link>
               ))}
-            </div>
-          )}
+            </nav>
+          </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground md:flex-row">
+        <div className="mt-8 border-t border-border pt-6 text-sm text-muted-foreground">
           {themeInfo.homepage && (
-            <p>
+            <p className="text-center md:text-left">
               主题来源：
               <a
                 href={themeInfo.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {themeInfo.name}（{themeInfo.id}）v{themeInfo.version}
               </a>
             </p>
           )}
-          <nav className="flex flex-wrap items-center justify-center gap-4" aria-label="页脚导航">
-            {footerLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
         </div>
       </div>
     </footer>
