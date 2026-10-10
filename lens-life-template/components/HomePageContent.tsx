@@ -9,11 +9,13 @@ import { EquipmentCard } from "@/components/EquipmentCard";
 import { HeroSection } from "@/components/HeroSection";
 import { SongCard } from "@/components/SongCard";
 import { PlaylistCard } from "@/components/PlaylistCard";
+import { TravelCard } from "@/components/TravelCard";
 import { useMusicPlayer } from "@/components/MusicPlayerProvider";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getEquipments } from "@/lib/api/equipments";
 import { getPortfolios } from "@/lib/api/portfolios";
+import { getTravels } from "@/lib/api/travels";
 import { getSongs, getPlaylists } from "@/lib/api/music";
 import { getModuleConfig } from "@/lib/api/module-config";
 import type { ModuleConfig } from "@/lib/types";
@@ -23,6 +25,7 @@ import type {
   Portfolio,
   Song,
   Playlist,
+  TravelGuide,
   Paginated,
 } from "@/lib/types";
 
@@ -33,6 +36,7 @@ export function HomePageContent() {
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig | null>(null);
   const [equipmentsData, setEquipmentsData] = useState<Paginated<Equipment>>({ list: [], total: 0, page: 1, page_size: 5, total_pages: 0 });
   const [portfoliosData, setPortfoliosData] = useState<Paginated<Portfolio>>({ list: [], total: 0, page: 1, page_size: 5, total_pages: 0 });
+  const [travelsData, setTravelsData] = useState<Paginated<TravelGuide>>({ list: [], total: 0, page: 1, page_size: 3, total_pages: 0 });
   const [songs, setSongs] = useState<Song[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,12 +46,13 @@ export function HomePageContent() {
     setLoading(true);
     setError(null);
     try {
-      const [p, a, m, e, po, so, pl] = await Promise.all([
+      const [p, a, m, e, po, tr, so, pl] = await Promise.all([
         getBloggerProfile(),
         getArticles({ page: 1, page_size: 4 }),
         getModuleConfig(),
         getEquipments({ page: 1, page_size: 5 }),
         getPortfolios({ page: 1, page_size: 5 }),
+        getTravels({ page: 1, page_size: 3 }),
         getSongs({ page: 1, page_size: 4 }),
         getPlaylists(),
       ]);
@@ -56,6 +61,7 @@ export function HomePageContent() {
       setModuleConfig(m);
       setEquipmentsData(e);
       setPortfoliosData(po);
+      setTravelsData(tr);
       setSongs(so.list);
       setPlaylists(pl.slice(0, 4));
 
@@ -86,6 +92,7 @@ export function HomePageContent() {
   const latestArticles = articlesData.list;
   const equipments = equipmentsData.list;
   const portfolioPreview = portfoliosData.list;
+  const travels = travelsData.list;
   // 未加载完成时回退为全部开启，保证 Navbar 显示完整
   const modules = moduleConfig ?? {
     article_enabled: true,
@@ -126,6 +133,32 @@ export function HomePageContent() {
     <div className="flex flex-1 flex-col">
       {/* Hero Section */}
       <HeroSection profile={profile} />
+
+      {/* Latest Travels Section */}
+      {!loading && modules.travel_enabled && travels.length > 0 && (
+        <section className="bg-background-soft py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-10 flex items-end justify-between">
+              <h2 className="font-[var(--font-playfair)] text-2xl font-bold text-text-primary md:text-3xl">
+                最新旅拍
+              </h2>
+              <Link
+                href="/travels"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 ease-out hover:text-accent"
+              >
+                查看全部旅拍
+                <span>&gt;</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {travels.map((travel) => (
+                <TravelCard key={travel.id} travel={travel} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Latest Articles Section */}
       {!loading && modules.article_enabled && latestArticles.length > 0 && (

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Backpack, MapPin, Star } from "lucide-react";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BloggerCard } from "@/components/BloggerCard";
 import { CategoryTiles } from "@/components/CategoryTiles";
@@ -12,14 +13,24 @@ import { HotArticles } from "@/components/HotArticles";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles, getHotArticles } from "@/lib/api/articles";
 import { getCategories } from "@/lib/api/categories";
+import { getTravels } from "@/lib/api/travels";
+import { getEquipments } from "@/lib/api/equipments";
 import { getModuleConfig } from "@/lib/api/module-config";
-import type { ModuleConfig, Article, Category } from "@/lib/types";
+import type {
+  ModuleConfig,
+  Article,
+  Category,
+  TravelGuide,
+  Equipment,
+} from "@/lib/types";
 
 interface HomeData {
   profile: BloggerProfile | null;
   articles: Article[];
   hotArticles: Article[];
   categories: Category[];
+  travels: TravelGuide[];
+  equipments: Equipment[];
   modules: ModuleConfig;
 }
 
@@ -36,11 +47,13 @@ export function HomeContent() {
     let cancelled = false;
     (async () => {
       try {
-        const [p, a, hot, cats, m] = await Promise.all([
+        const [p, a, hot, cats, tr, eq, m] = await Promise.all([
           getBloggerProfile(),
           getArticles({ page: 1, page_size: 6 }),
           getHotArticles(5),
           getCategories(),
+          getTravels({ page: 1, page_size: 100 }),
+          getEquipments({ page: 1, page_size: 3 }),
           getModuleConfig(),
         ]);
         if (cancelled) return;
@@ -51,6 +64,8 @@ export function HomeContent() {
             articles: a.list,
             hotArticles: hot,
             categories: cats,
+            travels: tr.list,
+            equipments: eq.list,
             modules: m,
           },
         });
@@ -104,6 +119,8 @@ export function HomeContent() {
   const articles = state.status === "ok" ? state.data.articles : [];
   const hotArticles = state.status === "ok" ? state.data.hotArticles : [];
   const categories = state.status === "ok" ? state.data.categories : [];
+  const travels = state.status === "ok" ? state.data.travels : [];
+  const equipments = state.status === "ok" ? state.data.equipments : [];
   const modules: ModuleConfig =
     state.status === "ok"
       ? state.data.modules
@@ -126,6 +143,26 @@ export function HomeContent() {
 
   const authorName = profile?.nickname || "";
   const authorAvatar = profile?.avatar || "";
+
+  // 目的地聚合（与 DestinationsContent 同规则：按目的地分组、按攻略数排序，取前三）
+  const topDestinations = (() => {
+    const map = new Map<
+      string,
+      { name: string; cover?: string; count: number; rating: number }
+    >();
+    travels.forEach((travel) => {
+      const name = travel.destination || travel.region;
+      if (!name) return;
+      const entry = map.get(name) ?? { name, count: 0, rating: 0 };
+      entry.count += 1;
+      if (!entry.cover && travel.cover_image) entry.cover = travel.cover_image;
+      entry.rating = Math.max(entry.rating, travel.rating);
+      map.set(name, entry);
+    });
+    return Array.from(map.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+  })();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -207,6 +244,143 @@ export function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* Hot destinations */}
+      {!loading && modules.travel_enabled && topDestinations.length > 0 && (
+        <section className="bg-background-soft py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between">
+              <h2 className="flex items-center gap-2.5 font-display text-2xl text-text-primary md:text-3xl">
+                <span className="h-6 w-1.5 rounded-full bg-accent" />
+                热门目的地
+                <span className="font-hand text-xl font-medium text-accent/70 md:text-2xl">
+                  Go!
+                </span>
+              </h2>
+              <Link
+                href="/destinations"
+                className="group flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 hover:text-accent"
+              >
+                全部目的地
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  strokeWidth={1.8}
+                />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {topDestinations.map((dest) => (
+                <Link
+                  key={dest.name}
+                  href={`/travels?keyword=${encodeURIComponent(dest.name)}`}
+                  className="group relative flex cursor-pointer flex-col overflow-hidden rounded-radius-lg bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-background">
+                    {dest.cover ? (
+                      <Image
+                        src={dest.cover}
+                        alt={dest.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#eef3ec,#dfe8e0)]">
+                        <MapPin className="h-9 w-9 text-accent/50" strokeWidth={1.5} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 text-sm font-display font-medium text-white">
+                      <MapPin className="h-4 w-4 text-accent" strokeWidth={1.8} />
+                      {dest.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-4 text-sm">
+                    <span className="text-text-muted">{dest.count} 篇攻略</span>
+                    {dest.rating > 0 && (
+                      <span className="flex items-center gap-1 text-accent">
+                        <Star className="h-4 w-4 fill-accent" strokeWidth={1.5} />
+                        {dest.rating.toFixed(1)}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Travel gear */}
+      {!loading && modules.equipment_enabled && equipments.length > 0 && (
+        <section className="bg-background py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between">
+              <h2 className="flex items-center gap-2.5 font-display text-2xl text-text-primary md:text-3xl">
+                <span className="h-6 w-1.5 rounded-full bg-accent" />
+                旅行装备
+                <span className="font-hand text-xl font-medium text-accent/70 md:text-2xl">
+                  Pack~
+                </span>
+              </h2>
+              <Link
+                href="/gear"
+                className="group flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 hover:text-accent"
+              >
+                查看全部装备
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  strokeWidth={1.8}
+                />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {equipments.map((equipment) => (
+                <Link
+                  key={equipment.id}
+                  href={`/gear/${equipment.id}`}
+                  className="group flex cursor-pointer flex-col overflow-hidden rounded-radius-lg bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden bg-background-soft">
+                    {equipment.image_url ? (
+                      <Image
+                        src={equipment.image_url}
+                        alt={equipment.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#eef3ec,#dfe8e0)]">
+                        <Backpack className="h-9 w-9 text-accent/50" strokeWidth={1.5} />
+                      </div>
+                    )}
+                    {equipment.brand && (
+                      <span className="absolute left-3 top-3 rounded-md bg-white/90 px-2 py-0.5 text-xs font-medium text-text-secondary shadow-sm backdrop-blur-sm">
+                        {equipment.brand}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <h3 className="text-base font-semibold text-text-primary transition-colors duration-200 group-hover:text-accent">
+                      {equipment.name}
+                    </h3>
+                    {equipment.description && (
+                      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-text-muted">
+                        {equipment.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA banner */}
       <CtaBanner />

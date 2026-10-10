@@ -17,11 +17,12 @@ import {
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getPortfolios } from "@/lib/api/portfolios";
+import { getPlaylists } from "@/lib/api/music";
 import { getTags } from "@/lib/api/tags";
 import { getModuleConfig } from "@/lib/api/module-config";
 import { formatShortDate } from "@/lib/format";
 import type { ModuleConfig } from "@/lib/types";
-import type { Article, Portfolio, Tag } from "@/lib/types";
+import type { Article, Portfolio, Playlist, Tag } from "@/lib/types";
 
 const ALL_ENABLED: ModuleConfig = {
   article_enabled: true,
@@ -118,23 +119,26 @@ export function HomeContent() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig>(ALL_ENABLED);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, po, a, t, m] = await Promise.all([
+      const [p, po, a, t, pl, m] = await Promise.all([
         getBloggerProfile(),
         getPortfolios({ page: 1, page_size: 4 }),
         getArticles({ page: 1, page_size: 3 }),
         getTags(),
+        getPlaylists(),
         getModuleConfig(),
       ]);
       setProfile(p);
       setPortfolios(po.list);
       setArticles(a.list);
       setTags(t.slice(0, 10));
+      setPlaylists(pl.slice(0, 4));
       setModuleConfig(m);
 
       // 动态设置 favicon 与页面标题，弥补静态导出下 generateMetadata 无法获取个人资料的限制
@@ -326,6 +330,49 @@ export function HomeContent() {
             )}
           </div>
         </section>
+
+        {/* 第三行：音乐分享（歌单） */}
+        {!loading && moduleConfig.music_enabled && playlists.length > 0 && (
+          <section className="py-6">
+            <SectionHeader title="音乐分享" moreHref="/music" />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {playlists.map((playlist) => (
+                <Link
+                  key={playlist.id}
+                  href="/music"
+                  className="group block cursor-pointer rounded-radius-md border border-border bg-surface p-4 shadow-card transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-card-hover"
+                >
+                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-radius-sm border border-border bg-background-soft">
+                    {playlist.cover_url ? (
+                      <Image
+                        src={playlist.cover_url}
+                        alt={playlist.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <CatFace className="h-10 w-10 text-text-subtle" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    <h3 className="line-clamp-1 font-display text-sm text-text-primary transition-colors duration-200 group-hover:text-accent-hover">
+                      {playlist.title}
+                    </h3>
+                    {playlist.description && (
+                      <p className="line-clamp-1 text-xs text-text-muted">
+                        {playlist.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 告别横幅：下一页，我们在漫画里再见 */}
         <Link

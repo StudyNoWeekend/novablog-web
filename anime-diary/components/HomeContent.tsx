@@ -8,6 +8,8 @@ import {
   Cat,
   Gamepad2,
   Heart,
+  Images,
+  Music2,
   Palette,
   Sparkles,
   Star,
@@ -15,14 +17,17 @@ import {
   Tags as TagsIcon,
   type LucideIcon,
 } from "lucide-react";
-import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleCard, categoryBadgeStyle } from "@/components/ArticleCard";
 import { SocialIcon } from "@/components/SocialIcon";
 import { ProfileBadges } from "@/components/ProfileTraits";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getCategories } from "@/lib/api/categories";
 import { getTags } from "@/lib/api/tags";
-import type { Article, Category, Tag } from "@/lib/types";
+import { getPortfolios } from "@/lib/api/portfolios";
+import { getPlaylists } from "@/lib/api/music";
+import { getModuleConfig } from "@/lib/api/module-config";
+import type { Article, Category, Tag, Portfolio, Playlist, ModuleConfig } from "@/lib/types";
 
 const HERO_TAGS = ["动漫", "游戏", "插画", "生活", "分享"];
 
@@ -54,20 +59,29 @@ export function HomeContent() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [moduleConfig, setModuleConfig] = useState<ModuleConfig | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [p, a, c, t] = await Promise.all([
+    const [p, a, c, t, pf, pl, m] = await Promise.all([
       getBloggerProfile(),
       getArticles({ page: 1, page_size: 4 }),
       getCategories(),
       getTags(),
+      getPortfolios({ page: 1, page_size: 6 }),
+      getPlaylists(),
+      getModuleConfig(),
     ]);
     setProfile(p);
     setArticles(a.list);
     setCategories(c.filter((cat) => cat.type === "article").slice(0, 4));
     setTags(t.slice(0, 10));
+    setPortfolios(pf.list);
+    setPlaylists(pl.slice(0, 4));
+    setModuleConfig(m);
     setLoading(false);
 
     // 动态设置 favicon 与页面标题，弥补静态导出下 generateMetadata 无法获取个人资料的限制
@@ -90,6 +104,10 @@ export function HomeContent() {
   }, [loadData]);
 
   const bioLines = (profile?.bio || "").split("\n").filter(Boolean);
+  const articleEnabled = moduleConfig?.article_enabled ?? true;
+  const showPortfolios =
+    (moduleConfig?.portfolio_enabled ?? true) && portfolios.length > 0;
+  const showMusic = (moduleConfig?.music_enabled ?? true) && playlists.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -189,7 +207,11 @@ export function HomeContent() {
       <section className="bg-background py-14 md:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-5 lg:gap-10 lg:px-8">
           {/* 博主卡片 */}
-          <div className="flex flex-col items-center rounded-radius-lg border border-border bg-surface p-8 text-center shadow-card sm:flex-row sm:items-start sm:text-left lg:col-span-2">
+          <div
+            className={`flex flex-col items-center rounded-radius-lg border border-border bg-surface p-8 text-center shadow-card sm:flex-row sm:items-start sm:text-left ${
+              articleEnabled ? "lg:col-span-2" : "lg:col-span-5"
+            }`}
+          >
             <div className="relative shrink-0">
               <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-accent/30 bg-background-soft">
                 {profile?.avatar ? (
@@ -243,7 +265,8 @@ export function HomeContent() {
           </div>
 
           {/* 分类入口（取文章分类前 4 个） */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3">
+          {articleEnabled && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-3">
             {loading
               ? Array.from({ length: 4 }).map((_, i) => (
                   <div
@@ -279,11 +302,13 @@ export function HomeContent() {
                     </Link>
                   );
                 })}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
       {/* ==================== 最新动态 + 侧栏 ==================== */}
+      {articleEnabled && (
       <section className="bg-background-soft py-14 md:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:px-8">
           {/* 最新动态 */}
@@ -423,6 +448,149 @@ export function HomeContent() {
           </aside>
         </div>
       </section>
+      )}
+
+      {/* ==================== 插画作品 ==================== */}
+      {showPortfolios && (
+        <section className="bg-background py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between">
+              <div>
+                <h2 className="flex items-center gap-2.5 font-heading text-2xl text-text-primary md:text-3xl">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-subtle">
+                    <Palette className="h-5 w-5 text-accent" strokeWidth={1.5} />
+                  </span>
+                  插画作品
+                  <span className="hidden text-sm font-normal tracking-widest text-text-subtle sm:inline">
+                    Illustrations
+                  </span>
+                </h2>
+              </div>
+              <Link
+                href="/portfolio"
+                className="group flex cursor-pointer items-center gap-1 text-sm text-text-muted transition-colors duration-200 hover:text-accent-hover"
+              >
+                查看更多
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  strokeWidth={1.5}
+                />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {portfolios.slice(0, 6).map((portfolio) => (
+                <Link
+                  key={portfolio.id}
+                  href="/portfolio"
+                  className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-radius-lg border border-border bg-surface shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:border-accent/40 hover:shadow-card-hover"
+                >
+                  {portfolio.cover_url ? (
+                    <Image
+                      src={portfolio.cover_url}
+                      alt={portfolio.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-background-soft">
+                      <Images className="h-8 w-8 text-text-subtle" strokeWidth={1.5} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="flex items-center gap-2">
+                      {portfolio.category_name && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${categoryBadgeStyle(portfolio.category_id)}`}
+                        >
+                          {portfolio.category_name}
+                        </span>
+                      )}
+                      <span className="text-[11px] text-white/70">
+                        {portfolio.item_count} 张
+                      </span>
+                    </div>
+                    <h3 className="mt-1.5 font-heading text-lg text-white">
+                      {portfolio.name}
+                    </h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ==================== 音乐分享 ==================== */}
+      {showMusic && (
+        <section className="bg-background-soft py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between">
+              <div>
+                <h2 className="flex items-center gap-2.5 font-heading text-2xl text-text-primary md:text-3xl">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-lav-subtle">
+                    <Music2 className="h-5 w-5 text-lav-hover" strokeWidth={1.5} />
+                  </span>
+                  音乐分享
+                  <span className="hidden text-sm font-normal tracking-widest text-text-subtle sm:inline">
+                    Music
+                  </span>
+                </h2>
+              </div>
+              <Link
+                href="/music"
+                className="group flex cursor-pointer items-center gap-1 text-sm text-text-muted transition-colors duration-200 hover:text-accent-hover"
+              >
+                查看更多
+                <ArrowRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  strokeWidth={1.5}
+                />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {playlists.map((playlist) => (
+                <Link
+                  key={playlist.id}
+                  href="/music"
+                  className="group block cursor-pointer rounded-radius-lg border border-border bg-surface p-4 shadow-card transition-all duration-200 ease-out hover:-translate-y-1 hover:border-accent/40 hover:shadow-card-hover"
+                >
+                  <div className="relative aspect-[3/2] w-full overflow-hidden rounded-radius-md bg-background-soft">
+                    {playlist.cover_url ? (
+                      <Image
+                        src={playlist.cover_url}
+                        alt={playlist.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Music2 className="h-10 w-10 text-text-subtle" strokeWidth={1.5} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="line-clamp-1 text-sm font-medium text-text-primary transition-colors duration-200 group-hover:text-accent-hover">
+                      {playlist.title}
+                    </h3>
+                    {playlist.description && (
+                      <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-text-muted">
+                        {playlist.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -2,18 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowRight, ChefHat } from "lucide-react";
+import { ArrowRight, BookOpen, ChefHat } from "lucide-react";
 import { HeroSection } from "@/components/HeroSection";
 import { CategoryNav } from "@/components/CategoryNav";
 import { ArticleCard } from "@/components/ArticleCard";
 import { AboutCard } from "@/components/AboutCard";
 import { TravelBanner } from "@/components/TravelBanner";
+import { RecipeCard } from "@/components/RecipeCard";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getCategories } from "@/lib/api/categories";
 import { getTravels } from "@/lib/api/travels";
+import { getRecipes } from "@/lib/api/recipes";
 import { getModuleConfig } from "@/lib/api/module-config";
-import type { ModuleConfig, Article, Category, TravelGuide } from "@/lib/types";
+import type { ModuleConfig, Article, Category, TravelGuide, Recipe } from "@/lib/types";
 
 const ALL_ENABLED: ModuleConfig = {
   article_enabled: true,
@@ -38,6 +40,7 @@ export function HomeContent() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [travels, setTravels] = useState<TravelGuide[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig>(ALL_ENABLED);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,17 +49,19 @@ export function HomeContent() {
     setLoading(true);
     setError(null);
     try {
-      const [p, a, c, t, m] = await Promise.all([
+      const [p, a, c, t, r, m] = await Promise.all([
         getBloggerProfile(),
         getArticles({ page: 1, page_size: 4 }),
         getCategories(),
         getTravels({ page: 1, page_size: 3 }),
+        getRecipes({ page: 1, page_size: 3 }),
         getModuleConfig(),
       ]);
       setProfile(p);
       setArticles(a.list);
       setCategories(c);
       setTravels(t.list);
+      setRecipes(r.list);
       setModuleConfig(m);
 
       // 动态设置 favicon 与页面标题，弥补静态导出下 generateMetadata 无法获取个人资料的限制
@@ -173,6 +178,41 @@ export function HomeContent() {
           </div>
         </div>
       </section>
+
+      {/* 菜谱分享 */}
+      {!loading && moduleConfig.recipe_enabled && recipes.length > 0 && (
+        <section className="bg-background-soft py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface text-accent shadow-card">
+                  <BookOpen className="h-5.5 w-5.5" strokeWidth={1.6} />
+                </span>
+                <div>
+                  <h2 className="font-display text-2xl text-text-primary md:text-3xl">
+                    菜谱分享
+                  </h2>
+                  <p className="mt-0.5 text-xs text-text-muted md:text-sm">
+                    跟着菜谱，在家复刻好味道
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/recipes"
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium text-text-muted transition-colors duration-200 ease-out hover:text-accent-hover"
+              >
+                查看更多
+                <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {recipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 旅行横幅 */}
       {!loading && moduleConfig.travel_enabled && travels.length > 0 && (

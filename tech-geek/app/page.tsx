@@ -11,12 +11,16 @@ import {
   ArrowRight,
   FileText,
   Terminal,
+  GitFork,
+  Layers,
 } from "lucide-react";
 import {
   articles,
   categories,
   tags,
   blogger,
+  openSources,
+  techStacks,
   getModuleConfig,
   Blogger,
   Article,
@@ -24,20 +28,28 @@ import {
   ModuleConfig,
   PaginatedResponse,
   Tag as TagType,
+  OpenSource,
+  TechStack,
 } from "@/lib/api";
 import { ArticleListItem } from "@/components/article-list-item";
 import { ProfileCard } from "@/components/profile-card";
 import { ProfileBadges } from "@/components/profile-traits";
+import { OpenSourceCard } from "@/components/open-source-card";
+import { TechStackCard } from "@/components/tech-stack-card";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const LATEST_COUNT = 5;
+const OPEN_SOURCE_COUNT = 6;
+const TECH_STACK_COUNT = 8;
 
 export default function HomePage() {
   const [info, setInfo] = useState<Blogger | null>(null);
   const [latest, setLatest] = useState<PaginatedResponse<Article> | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>([]);
   const [tagList, setTagList] = useState<TagType[]>([]);
+  const [openSourceList, setOpenSourceList] = useState<OpenSource[]>([]);
+  const [techStackList, setTechStackList] = useState<TechStack[]>([]);
   const [modules, setModules] = useState<ModuleConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,17 +57,21 @@ export default function HomePage() {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [bloggerRes, latestRes, catRes, tagRes, moduleRes] = await Promise.all([
+      const [bloggerRes, latestRes, catRes, tagRes, osRes, stackRes, moduleRes] = await Promise.all([
         blogger.get(),
         articles.list({ page: 1, page_size: LATEST_COUNT }),
         categories.list(),
         tags.list(),
+        openSources.list({ page: 1, page_size: OPEN_SOURCE_COUNT }),
+        techStacks.list({ page: 1, page_size: TECH_STACK_COUNT }),
         getModuleConfig(),
       ]);
       setInfo(bloggerRes);
       setLatest(latestRes);
       setCategoryList(catRes);
       setTagList(tagRes);
+      setOpenSourceList(osRes.list ?? []);
+      setTechStackList(stackRes.list ?? []);
       setModules(moduleRes);
       setError(null);
     } catch (err) {
@@ -82,6 +98,10 @@ export default function HomePage() {
   }
 
   const articleEnabled = modules?.article_enabled ?? true;
+  const openSourceEnabled = modules?.open_source_enabled ?? true;
+  const techStackEnabled = modules?.tech_stack_enabled ?? true;
+  const showOpenSource = openSourceEnabled && openSourceList.length > 0;
+  const showTechStack = techStackEnabled && techStackList.length > 0;
   const latestArticles = latest?.list ?? [];
   const articleCount = latest?.total ?? 0;
 
@@ -206,6 +226,64 @@ export default function HomePage() {
           </aside>
         </div>
       </div>
+
+      {/* 开源作品 */}
+      {showOpenSource && (
+        <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+          <section aria-labelledby="home-open-source">
+            <div className="mb-5 flex items-center justify-between">
+              <h2
+                id="home-open-source"
+                className="flex items-center gap-2 text-xl font-bold text-foreground"
+              >
+                <GitFork className="h-5 w-5 text-primary" aria-hidden="true" />
+                开源作品
+              </h2>
+              <Link
+                href="/open-source"
+                className="flex items-center gap-1 rounded text-sm text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                查看更多
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {openSourceList.map((project) => (
+                <OpenSourceCard key={project.id} project={project} />
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* 技术栈 */}
+      {showTechStack && (
+        <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+          <section aria-labelledby="home-tech-stack">
+            <div className="mb-5 flex items-center justify-between">
+              <h2
+                id="home-tech-stack"
+                className="flex items-center gap-2 text-xl font-bold text-foreground"
+              >
+                <Layers className="h-5 w-5 text-primary" aria-hidden="true" />
+                技术栈
+              </h2>
+              <Link
+                href="/tech-stack"
+                className="flex items-center gap-1 rounded text-sm text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                查看更多
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {techStackList.map((stack) => (
+                <TechStackCard key={stack.id} stack={stack} />
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
@@ -365,6 +443,20 @@ function HomeSkeleton() {
             <Skeleton className="h-40 rounded-lg" />
             <Skeleton className="h-48 rounded-lg" />
           </div>
+        </div>
+      </div>
+      <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+        <Skeleton className="mb-5 h-7 w-32" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 rounded-lg" />
+          ))}
+        </div>
+        <Skeleton className="mb-5 mt-10 h-7 w-24" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-44 rounded-lg" />
+          ))}
         </div>
       </div>
     </div>

@@ -7,13 +7,14 @@ import { HeroSection } from "@/components/HeroSection";
 import { VideoCard } from "@/components/VideoCard";
 import { CategoryCard } from "@/components/CategoryCard";
 import { AboutCard } from "@/components/AboutCard";
+import { GameCard } from "@/components/GameCard";
 import { getBloggerProfile, type BloggerProfile } from "@/lib/api/blogger";
 import { getArticles } from "@/lib/api/articles";
 import { getVideos } from "@/lib/api/videos";
 import { getGames } from "@/lib/api/games";
 import { getCategories } from "@/lib/api/categories";
 import { getModuleConfig } from "@/lib/api/module-config";
-import type { ModuleConfig, Video, Category } from "@/lib/types";
+import type { ModuleConfig, Video, Category, Game } from "@/lib/types";
 
 const ALL_ENABLED: ModuleConfig = {
   article_enabled: true,
@@ -39,6 +40,7 @@ export function HomePageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [gameTotal, setGameTotal] = useState(0);
+  const [games, setGames] = useState<Game[]>([]);
   const [articleTotal, setArticleTotal] = useState(0);
   const [moduleConfig, setModuleConfig] = useState<ModuleConfig>(ALL_ENABLED);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export function HomePageContent() {
           getArticles({ page: 1, page_size: 100 }),
           getVideos({ page: 1, page_size: 4 }),
           getCategories(),
-          getGames({ page: 1, page_size: 1 }),
+          getGames({ page: 1, page_size: 4 }),
           getModuleConfig(),
         ]);
       setProfile(p);
@@ -72,6 +74,7 @@ export function HomePageContent() {
       setVideos(videosData.list);
       setVideoTotal(videosData.total);
       setCategories(categoriesData.slice(0, 5));
+      setGames(gamesData.list);
       setGameTotal(gamesData.total);
       setModuleConfig(modules);
 
@@ -116,6 +119,7 @@ export function HomePageContent() {
 
   const showVideos = moduleConfig.video_enabled && videos.length > 0;
   const showCategories = moduleConfig.article_enabled && categories.length > 0;
+  const showGames = moduleConfig.game_enabled && games.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -228,6 +232,42 @@ export function HomePageContent() {
                   }}
                 />
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Game Library Preview */}
+      {!loading && showGames && (
+        <section className="bg-background-soft py-14 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 flex items-end justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-theme">
+                  <Gamepad2 className="h-5 w-5 text-white" strokeWidth={1.8} />
+                </span>
+                <div>
+                  <h2 className="font-heading text-xl font-extrabold text-text-primary md:text-2xl">
+                    游戏库精选
+                  </h2>
+                  <p className="mt-0.5 text-xs text-text-muted md:text-sm">
+                    我的游戏藏库，共 {gameTotal} 款
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/games"
+                className="flex shrink-0 cursor-pointer items-center gap-1 text-sm font-semibold text-text-muted transition-colors duration-200 ease-out hover:text-accent-hover"
+              >
+                进入游戏库
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {games.map((game) => (
+                <GameCard key={game.id} game={game} />
+              ))}
             </div>
           </div>
         </section>
