@@ -62,6 +62,12 @@ const tags = ["城市漫步", "咖啡", "胶片", "星空", "独立游戏", "Nex
   created_at: "2025-01-01T00:00:00Z",
 }));
 
+// 音乐分类（type=music）：仅供 /public/categories?type=music 消费（如主题音乐页筛选）
+const musicCategories = [
+  { id: "m1", name: "专注Coding", slug: "coding", description: "写代码时的背景音", type: "music", sort_order: 0, created_at: "2025-01-01T00:00:00Z" },
+  { id: "m2", name: "夜行车载", slug: "night-drive", description: "深夜兜风专用", type: "music", sort_order: 1, created_at: "2025-01-01T00:00:00Z" },
+];
+
 const articleSeeds = [
   { slug: "citywalk-autumn", title: "秋日城市漫步路线：从运河到老巷", category_id: "c1", summary: "一条 6 公里的慢走路线，串起运河、旧书铺和一家开了三十年的面馆。", cover: img("citywalk-autumn"), views: 23100, comments: 34, days: 5 },
   { slug: "pour-over-coffee", title: "手冲咖啡入门：一把壶和一包豆子就够了", category_id: "c2", summary: "从器具选择到注水手法，写给刚开始接触手冲的你。", cover: img("pour-over-coffee"), views: 12800, comments: 18, days: 9 },
@@ -283,7 +289,7 @@ const songList = songs.map((s, i) => ({
   cid: 700000000 + i,
   source_url: `https://www.bilibili.com/video/${s.bvid}`,
   source_type: "bilibili",
-  category_id: null,
+  category_id: musicCategories[i % musicCategories.length].id,
   duration: s.duration,
   sort_order: i,
   created_at: daysAgo(30 + i),
@@ -725,6 +731,8 @@ background-size:28px 28px,28px 28px,cover}
   // 分类 / 标签
   if (path === "/api/v1/public/categories") {
     const type = q.get("type");
+    // 音乐分类单独维护：仅 type=music 时返回（与真实后端「默认仅 article 分类」的行为一致）
+    if (type === "music") return ok(res, musicCategories);
     return ok(res, type ? categories.filter((c) => c.type === type) : categories);
   }
   if (path === "/api/v1/public/tags") return ok(res, tags);

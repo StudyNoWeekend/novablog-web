@@ -9,6 +9,8 @@ import {
   Folder,
   FolderOpen,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Terminal,
   GitFork,
@@ -50,6 +52,9 @@ export default function HomePage() {
   const [tagList, setTagList] = useState<TagType[]>([]);
   const [openSourceList, setOpenSourceList] = useState<OpenSource[]>([]);
   const [techStackList, setTechStackList] = useState<TechStack[]>([]);
+  const [stackPage, setStackPage] = useState(1);
+  const [stackTotalPages, setStackTotalPages] = useState(1);
+  const [stackLoading, setStackLoading] = useState(false);
   const [modules, setModules] = useState<ModuleConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +77,8 @@ export default function HomePage() {
       setTagList(tagRes);
       setOpenSourceList(osRes.list ?? []);
       setTechStackList(stackRes.list ?? []);
+      setStackPage(stackRes.page || 1);
+      setStackTotalPages(Math.max(1, stackRes.total_pages || 1));
       setModules(moduleRes);
       setError(null);
     } catch (err) {
@@ -84,6 +91,23 @@ export default function HomePage() {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  /** 技术栈翻页：按页取数，失败时保留当前页数据 */
+  const goToStackPage = async (page: number) => {
+    if (stackLoading) return;
+    if (page < 1 || page > stackTotalPages || page === stackPage) return;
+    setStackLoading(true);
+    try {
+      const res = await techStacks.list({ page, page_size: TECH_STACK_COUNT });
+      setTechStackList(res.list ?? []);
+      setStackPage(res.page || page);
+      setStackTotalPages(Math.max(1, res.total_pages || 1));
+    } catch {
+      // 翻页失败静默保留当前页，避免打断浏览
+    } finally {
+      setStackLoading(false);
+    }
+  };
 
   if (loading) {
     return <HomeSkeleton />;
@@ -276,11 +300,46 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              className={`grid gap-4 transition-opacity duration-200 sm:grid-cols-2 lg:grid-cols-4 ${
+                stackLoading ? "pointer-events-none opacity-50" : ""
+              }`}
+              aria-busy={stackLoading}
+            >
               {techStackList.map((stack) => (
                 <TechStackCard key={stack.id} stack={stack} />
               ))}
             </div>
+
+            {/* 翻页控件（仅多页时显示） */}
+            {stackTotalPages > 1 && (
+              <nav
+                aria-label="技术栈分页"
+                className="mt-6 flex items-center justify-center gap-3"
+              >
+                <button
+                  type="button"
+                  onClick={() => goToStackPage(stackPage - 1)}
+                  disabled={stackLoading || stackPage <= 1}
+                  aria-label="上一页"
+                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground"
+                >
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <span className="font-mono text-sm text-muted-foreground" aria-live="polite">
+                  {stackPage} / {stackTotalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => goToStackPage(stackPage + 1)}
+                  disabled={stackLoading || stackPage >= stackTotalPages}
+                  aria-label="下一页"
+                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground"
+                >
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </nav>
+            )}
           </section>
         </div>
       )}

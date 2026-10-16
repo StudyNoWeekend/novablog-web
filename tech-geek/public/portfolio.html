@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- 动态内容壳页面：静态导出未预生成的作品集详情由此页面客户端取数渲染（主题规范 3.4） -->
-  <title>作品集加载中 | Tech Geek Blog</title>
+  <title>作品集加载中 | 极客风</title>
   <script src="/theme-config.js"></script>
   <script>
     // 与主站一致的主题初始化：localStorage 记忆优先，其次跟随系统（亮色为默认）
@@ -88,7 +88,7 @@
 </head>
 <body>
   <header class="shell-header">
-    <span class="brand">tech-geek blog</span>
+    <span class="brand">极客风</span>
     <a href="/">← 返回首页</a>
   </header>
   <main>
@@ -110,6 +110,21 @@
       var siteRoot = injected
         ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
         : "";
+
+      // 博主信息：左上角品牌与标题后缀使用真实博客标题（失败时回退主题名）
+      var blogTitle = "极客风";
+      fetch(siteRoot + "/api/v1/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!(res && res.code === 0 && res.data && res.data.blog_title)) return;
+          blogTitle = res.data.blog_title;
+          var brand = document.querySelector(".brand");
+          if (brand) brand.textContent = blogTitle;
+          if (document.title.indexOf(blogTitle) === -1) {
+            document.title = document.title.replace(/极客风|Tech Geek Blog/, blogTitle);
+          }
+        })
+        .catch(function () {});
 
       // 从 URL 解析 id：/portfolio/{id} | /portfolio/{id}.html | /portfolio/{id}/
       function parseId() {
@@ -143,7 +158,7 @@
       }
 
       function render(p) {
-        document.title = (p.name || "作品集") + " | Tech Geek Blog";
+        document.title = (p.name || "作品集") + " | " + blogTitle;
         el("p-name").textContent = p.name || "作品集";
 
         if (p.description) {

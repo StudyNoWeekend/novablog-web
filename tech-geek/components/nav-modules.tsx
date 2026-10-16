@@ -7,12 +7,10 @@ import {
   Dumbbell,
   Gamepad2,
   GitFork,
-  LayoutGrid,
   Layers,
   Map,
   Music,
   NotebookPen,
-  Tag,
   type LucideIcon,
 } from "lucide-react";
 import { ALL_ENABLED_MODULE_CONFIG, type ModuleConfig } from "@/lib/api";
@@ -34,8 +32,6 @@ export const ALL_MODULE_CONFIG: ModuleConfig = ALL_ENABLED_MODULE_CONFIG;
  */
 export const NAV_MODULES: NavModule[] = [
   { label: "文章", href: "/articles", icon: NotebookPen, moduleKey: "article_enabled" },
-  { label: "分类", href: "/categories", icon: LayoutGrid, moduleKey: "article_enabled" },
-  { label: "标签", href: "/tags", icon: Tag, moduleKey: "article_enabled" },
   { label: "旅行", href: "/travels", icon: Map, moduleKey: "travel_enabled" },
   { label: "作品集", href: "/portfolio", icon: Camera, moduleKey: "portfolio_enabled" },
   { label: "视频", href: "/videos", icon: Clapperboard, moduleKey: "video_enabled" },

@@ -170,7 +170,9 @@ export const articles = {
 };
 
 export const categories = {
-  list: () => get<Category[]>("/api/v1/public/categories"),
+  /** type 可选：article（默认）/ travel / portfolio / music，按分类类型过滤 */
+  list: (type?: string) =>
+    get<Category[]>("/api/v1/public/categories", type ? { type } : undefined),
 };
 
 export const tags = {

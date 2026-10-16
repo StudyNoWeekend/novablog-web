@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Mail, MapPin } from "lucide-react";
 import { blogger, getModuleConfig, Blogger, ModuleConfig } from "@/lib/api";
-import { cn } from "@/lib/utils";
 import { SocialIcon } from "@/components/social-icons";
 import { ALL_MODULE_CONFIG, filterNavModules } from "@/components/nav-modules";
 import themeInfo from "@/theme.json";
@@ -50,7 +50,7 @@ export function Footer({ initialProfile }: FooterProps) {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_auto_auto] md:gap-16">
           {/* Brand + social */}
           <div className="max-w-sm text-center md:text-left">
             <p className="font-mono text-lg font-semibold text-foreground">
@@ -77,15 +77,12 @@ export function Footer({ initialProfile }: FooterProps) {
             )}
           </div>
 
-          {/* 快速导航：全量内容模块 + 尾部固定链接（超过 8 个用两列网格） */}
+          {/* 快速导航：全量内容模块 + 尾部固定链接（固定两列网格，避免单列过长） */}
           <div className="flex flex-col gap-3">
             <p className="text-sm font-semibold text-foreground">快速导航</p>
             <nav
               aria-label="页脚导航"
-              className={cn(
-                "grid gap-x-8 gap-y-2",
-                footerLinks.length > 8 ? "grid-cols-2" : "grid-cols-1"
-              )}
+              className="grid grid-cols-2 gap-x-10 gap-y-2"
             >
               {footerLinks.map((link) => (
                 <Link
@@ -98,6 +95,30 @@ export function Footer({ initialProfile }: FooterProps) {
               ))}
             </nav>
           </div>
+
+          {/* 联系方式：博主邮箱 / 城市（未配置时不渲染对应项） */}
+          {(info?.email || info?.city) && (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-semibold text-foreground">联系我</p>
+              <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                {info?.email && (
+                  <a
+                    href={`mailto:${info.email}`}
+                    className="flex w-fit items-center gap-1.5 rounded-md transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <Mail className="h-4 w-4" aria-hidden="true" />
+                    {info.email}
+                  </a>
+                )}
+                {info?.city && (
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" aria-hidden="true" />
+                    {info.city}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 border-t border-border pt-6 text-sm text-muted-foreground">

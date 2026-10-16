@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Music, Clock } from "lucide-react";
-import { music, getModuleConfig, Song } from "@/lib/api";
+import { Music, Clock, LayoutGrid } from "lucide-react";
+import { music, categories, getModuleConfig, Song, Category } from "@/lib/api";
 import { Loading } from "@/components/loading";
 import { ErrorState } from "@/components/error-state";
 import { ModuleDisabled } from "@/components/module-disabled";
 import { useMusicPlayer } from "@/components/music-player-provider";
+import { cn } from "@/lib/utils";
 
 function formatDuration(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -15,21 +16,39 @@ function formatDuration(seconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** 分类筛选参数："all" 表示全部分类 */
+type CategoryFilter = string;
+
 export default function MusicPage() {
   const player = useMusicPlayer();
   const [songs, setSongs] = useState<Song[]>([]);
+  const [catList, setCatList] = useState<Category[]>([]);
+  const [activeCat, setActiveCat] = useState<CategoryFilter>("all");
+  const [songsLoading, setSongsLoading] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSongs = async () => {
+  const fetchSongs = async (categoryId?: CategoryFilter) => {
+    const res = await music.list({
+      page: 1,
+      page_size: 100,
+      category_id: categoryId && categoryId !== "all" ? categoryId : undefined,
+    });
+    return res.list ?? [];
+  };
+
+  const fetchAll = async () => {
     try {
       setLoading(true);
-      const [res, modules] = await Promise.all([
-        music.list({ page: 1, page_size: 100 }),
+      const [list, cats, modules] = await Promise.all([
+        fetchSongs(),
+        categories.list("music").catch(() => [] as Category[]),
         getModuleConfig(),
       ]);
-      setSongs(res.list);
+      setSongs(list);
+      setCatList(cats);
+      setActiveCat("all");
       setMusicEnabled(modules.music_enabled);
       setError(null);
     } catch (err) {
@@ -40,8 +59,23 @@ export default function MusicPage() {
   };
 
   useEffect(() => {
-    fetchSongs();
+    fetchAll();
   }, []);
+
+  /** 切换分类：按 category_id 重新取数，失败时保留当前列表 */
+  const handleCategoryChange = async (catId: CategoryFilter) => {
+    if (catId === activeCat || songsLoading) return;
+    setActiveCat(catId);
+    setSongsLoading(true);
+    try {
+      setSongs(await fetchSongs(catId));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "按分类加载歌曲失败");
+    } finally {
+      setSongsLoading(false);
+    }
+  };
 
   // 播放交给全局底部播放器（隐藏 iframe 音源），页面只负责列表与队列
   const handlePlay = (song: Song) => {
@@ -64,27 +98,60 @@ export default function MusicPage() {
   if (error) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <ErrorState title="歌曲加载失败" message={error} onRetry={fetchSongs} />
+        <ErrorState title="歌曲加载失败" message={error} onRetry={fetchAll} />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center gap-3">
+      <div className="mb-6 flex items-center gap-3">
         <Music className="h-7 w-7 text-primary" aria-hidden="true" />
         <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
           音乐播放器
         </h1>
       </div>
 
+      {/* 分类筛选（后端无音乐分类数据时不展示） */}
+      {catList.length > 0 && (
+        <div
+          className="mb-6 flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label="按分类筛选歌曲"
+        >
+          <LayoutGrid
+            className="h-4 w-4 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <CategoryChip
+            label="全部"
+            active={activeCat === "all"}
+            onClick={() => handleCategoryChange("all")}
+          />
+          {catList.map((cat) => (
+            <CategoryChip
+              key={cat.id}
+              label={cat.name}
+              active={activeCat === cat.id}
+              onClick={() => handleCategoryChange(cat.id)}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Song list */}
       {songs.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border py-16 text-center text-muted-foreground">
-          暂无歌曲
+          {activeCat !== "all" ? "该分类下暂无歌曲" : "暂无歌曲"}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
+        <div
+          className={cn(
+            "overflow-hidden rounded-lg border border-border transition-opacity duration-200",
+            songsLoading && "pointer-events-none opacity-50"
+          )}
+          aria-busy={songsLoading}
+        >
           <ul className="divide-y divide-border">
             {songs.map((song, index) => {
               const isCurrent = player.currentSong?.id === song.id;
@@ -152,5 +219,31 @@ export default function MusicPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function CategoryChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "cursor-pointer rounded-full px-3.5 py-1.5 text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        active
+          ? "bg-primary font-medium text-primary-foreground"
+          : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+      )}
+    >
+      {label}
+    </button>
   );
 }

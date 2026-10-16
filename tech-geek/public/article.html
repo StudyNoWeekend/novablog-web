@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- 动态内容壳页面：静态导出未预生成的文章详情由此页面客户端取数渲染（主题规范 3.4） -->
-  <title>文章加载中 | Tech Geek Blog</title>
+  <title>文章加载中 | 极客风</title>
   <script src="/theme-config.js"></script>
   <script>
     // 与主站一致的主题初始化：localStorage 记忆优先，其次跟随系统（亮色为默认）
@@ -118,11 +118,114 @@
     .content li { margin: 6px 0; }
     .content img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    /* 评价模块 */
+    .comments { margin-top: 56px; border-top: 1px solid var(--border); padding-top: 32px; }
+    .comments h2 { font-size: 20px; letter-spacing: -0.01em; margin-bottom: 20px; }
+    .comment-item {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .comment-list > .comment-item { margin-bottom: 12px; }
+    .comment-replies {
+      margin-top: 12px;
+      margin-left: 6px;
+      padding-left: 14px;
+      border-left: 2px solid var(--border);
+    }
+    .comment-replies .comment-item { margin-bottom: 10px; }
+    .comment-replies .comment-item:last-child { margin-bottom: 0; }
+    .comment-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+    .comment-nick { font-weight: 600; color: var(--text); }
+    .comment-badge {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+    }
+    .comment-time { color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+    .comment-content { margin-top: 8px; font-size: 15px; white-space: pre-wrap; word-break: break-word; }
+    .comment-reply-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      margin-top: 6px;
+      font-family: inherit;
+    }
+    .comment-reply-btn:hover { color: var(--accent); }
+    .comment-empty { color: var(--muted); text-align: center; padding: 24px 0; font-family: ui-monospace, Menlo, monospace; }
+    .comment-form {
+      margin-top: 24px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .comment-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .comment-form .row { grid-template-columns: 1fr; } }
+    .comment-form label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .comment-form input, .comment-form textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+    .comment-form input:focus, .comment-form textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: -1px;
+    }
+    .comment-form textarea { resize: vertical; min-height: 88px; }
+    .comment-form .field { margin-bottom: 12px; }
+    .field-error { color: var(--error); font-size: 12px; margin-top: 4px; display: none; }
+    .reply-banner {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .reply-nick { color: var(--accent); font-weight: 600; }
+    .reply-banner button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 0;
+      font-family: inherit;
+    }
+    .submit-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .form-msg { font-size: 13px; margin-top: 8px; display: none; }
+    .form-msg.error { color: var(--error); display: block; }
+    .form-msg.success { color: var(--accent); display: block; }
   </style>
 </head>
 <body>
   <header class="shell-header">
-    <span class="brand">tech-geek blog</span>
+    <span class="brand">极客风</span>
     <a href="/">← 返回首页</a>
   </header>
   <main>
@@ -133,6 +236,39 @@
       <img id="a-cover" class="cover" alt="" hidden />
       <div class="content" id="a-content"></div>
     </article>
+
+    <!-- 评价模块：文章渲染成功后展示 -->
+    <section id="comments" class="comments" hidden aria-labelledby="comments-title">
+      <h2 id="comments-title">评价（<span id="c-count">0</span>）</h2>
+      <div id="c-status" class="status" style="padding: 24px 0;">正在加载评价…</div>
+      <div id="c-list" class="comment-list"></div>
+      <form id="c-form" class="comment-form" novalidate>
+        <div id="reply-banner" class="reply-banner">
+          <span>回复</span>
+          <span id="reply-nick" class="reply-nick"></span>
+          <button type="button" id="reply-cancel">取消</button>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="c-nick">昵称 <span style="color: var(--error);">*</span></label>
+            <input id="c-nick" type="text" maxlength="50" autocomplete="name" placeholder="你的名字" />
+            <p class="field-error" id="c-nick-error">请填写昵称（1-50 字符）</p>
+          </div>
+          <div class="field">
+            <label for="c-site">网站（可选）</label>
+            <input id="c-site" type="url" autocomplete="url" placeholder="https://example.com" />
+            <p class="field-error" id="c-site-error">请输入有效网址（以 http(s):// 开头）</p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-content">评价内容 <span style="color: var(--error);">*</span></label>
+          <textarea id="c-content" maxlength="2000" placeholder="写下你的评价…"></textarea>
+          <p class="field-error" id="c-content-error">请填写内容（1-2000 字符）</p>
+        </div>
+        <button type="submit" id="c-submit" class="submit-btn">发表评价</button>
+        <p id="c-msg" class="form-msg" role="alert"></p>
+      </form>
+    </section>
   </main>
 
   <script>
@@ -144,6 +280,21 @@
       var siteRoot = injected
         ? injected.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
         : "";
+
+      // 博主信息：左上角品牌与标题后缀使用真实博客标题（失败时回退主题名）
+      var blogTitle = "极客风";
+      fetch(siteRoot + "/api/v1/public/blogger", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!(res && res.code === 0 && res.data && res.data.blog_title)) return;
+          blogTitle = res.data.blog_title;
+          var brand = document.querySelector(".brand");
+          if (brand) brand.textContent = blogTitle;
+          if (document.title.indexOf(blogTitle) === -1) {
+            document.title = document.title.replace(/极客风|Tech Geek Blog/, blogTitle);
+          }
+        })
+        .catch(function () {});
 
       // 从 URL 解析 slug：/articles/{slug} | /articles/{slug}.html | /articles/{slug}/
       function parseSlug() {
@@ -252,7 +403,7 @@
       }
 
       function render(a) {
-        document.title = a.title + " | Tech Geek Blog";
+        document.title = (a.title || "文章") + " | " + blogTitle;
         el("a-title").textContent = a.title || "无标题";
         var meta = [];
         if (a.category_name) meta.push('<span class="tag"># ' + escapeHtml(a.category_name) + "</span>");
@@ -270,6 +421,165 @@
         el("a-content").innerHTML = renderMarkdown(a.content || a.summary || "");
         el("status").hidden = true;
         el("article").hidden = false;
+        // 文章渲染成功后加载评价（依赖文章 id）
+        if (a.id) {
+          el("comments").hidden = false;
+          initComments(a.id);
+        }
+      }
+
+      /* ---------- 评价模块 ---------- */
+
+      var articleId = "";
+      var replyToId = null;
+
+      function fmtDateTime(s) {
+        var d = new Date(s);
+        if (isNaN(d.getTime())) return "";
+        function p(n) { return n < 10 ? "0" + n : "" + n; }
+        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+          " " + p(d.getHours()) + ":" + p(d.getMinutes());
+      }
+
+      function commentNode(c) {
+        var div = document.createElement("div");
+        div.className = "comment-item";
+        var badge = c.is_blogger ? '<span class="comment-badge">博主</span>' : "";
+        div.innerHTML =
+          '<div class="comment-head"><span class="comment-nick">' + escapeHtml(c.nickname || "匿名") + "</span>" + badge +
+          '<span class="comment-time">' + escapeHtml(fmtDateTime(c.created_at)) + "</span></div>" +
+          '<p class="comment-content">' + escapeHtml(c.content || "") + "</p>" +
+          '<button type="button" class="comment-reply-btn" data-id="' + escapeHtml(c.id) +
+          '" data-nick="' + escapeHtml(c.nickname || "") + '">回复</button>';
+        return div;
+      }
+
+      function renderComments(list) {
+        var wrap = el("c-list");
+        wrap.innerHTML = "";
+        el("c-count").textContent = String(list.length);
+        el("c-status").hidden = true;
+        if (!list.length) {
+          wrap.innerHTML = '<p class="comment-empty">暂无评价，快来发表第一条评价吧</p>';
+          return;
+        }
+        var tops = list.filter(function (c) { return !c.parent_id; });
+        var replies = list.filter(function (c) { return c.parent_id; });
+        tops.forEach(function (c) {
+          var node = commentNode(c);
+          var kids = replies.filter(function (r) { return r.parent_id === c.id; });
+          if (kids.length) {
+            var box = document.createElement("div");
+            box.className = "comment-replies";
+            kids.forEach(function (r) { box.appendChild(commentNode(r)); });
+            node.appendChild(box);
+          }
+          wrap.appendChild(node);
+        });
+      }
+
+      function loadComments() {
+        var status = el("c-status");
+        status.hidden = false;
+        status.className = "status";
+        status.style.padding = "24px 0";
+        status.textContent = "正在加载评价…";
+        fetch(siteRoot + "/api/v1/public/comments?target_type=article&target_id=" +
+              encodeURIComponent(articleId) + "&page=1&page_size=100",
+              { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!(res && res.code === 0 && res.data && Array.isArray(res.data.list))) {
+              throw new Error((res && res.msg) || "加载失败");
+            }
+            renderComments(res.data.list);
+          })
+          .catch(function () {
+            status.className = "status error";
+            status.textContent = "评价加载失败，刷新页面可重试";
+          });
+      }
+
+      function setReply(id, nick) {
+        replyToId = id || null;
+        el("reply-nick").textContent = replyToId && nick ? "@" + nick : "";
+        el("reply-banner").style.display = replyToId ? "flex" : "none";
+        if (replyToId) el("c-content").focus();
+      }
+
+      function setFieldError(id, show) {
+        var p = el(id);
+        if (p) p.style.display = show ? "block" : "none";
+      }
+
+      function initComments(id) {
+        articleId = id;
+        loadComments();
+
+        // 事件委托：回复按钮（列表整体重绘后依然生效）
+        el("c-list").addEventListener("click", function (e) {
+          var btn = e.target && e.target.closest ? e.target.closest(".comment-reply-btn") : null;
+          if (!btn) return;
+          setReply(btn.getAttribute("data-id"), btn.getAttribute("data-nick"));
+        });
+        el("reply-cancel").addEventListener("click", function () { setReply(null, ""); });
+
+        el("c-form").addEventListener("submit", function (e) {
+          e.preventDefault();
+          var nick = el("c-nick").value.trim();
+          var site = el("c-site").value.trim();
+          var content = el("c-content").value.trim();
+          var ok = true;
+          setFieldError("c-nick-error", false);
+          setFieldError("c-site-error", false);
+          setFieldError("c-content-error", false);
+          var msg = el("c-msg");
+          msg.className = "form-msg";
+          msg.textContent = "";
+          if (!nick || nick.length > 50) { setFieldError("c-nick-error", true); ok = false; }
+          if (site && !/^https?:\/\/[\w.-]+(:\d+)?(\/[\w\-./?%&=]*)?$/i.test(site)) {
+            setFieldError("c-site-error", true); ok = false;
+          }
+          if (!content || content.length > 2000) { setFieldError("c-content-error", true); ok = false; }
+          if (!ok) return;
+
+          var btn = el("c-submit");
+          btn.disabled = true;
+          btn.textContent = "提交中…";
+          var payload = {
+            target_type: "article",
+            target_id: articleId,
+            nickname: nick,
+            content: content
+          };
+          if (replyToId) payload.parent_id = replyToId;
+          if (site) payload.website = site;
+
+          fetch(siteRoot + "/api/v1/public/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload)
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (!(res && res.code === 0)) {
+                throw new Error((res && res.msg) || "提交失败，请稍后重试");
+              }
+              el("c-content").value = "";
+              setReply(null, "");
+              msg.className = "form-msg success";
+              msg.textContent = "评价已提交，感谢参与！";
+              loadComments();
+            })
+            .catch(function (err) {
+              msg.className = "form-msg error";
+              msg.textContent = (err && err.message) || "提交失败，请稍后重试";
+            })
+            .then(function () {
+              btn.disabled = false;
+              btn.textContent = "发表评价";
+            });
+        });
       }
 
       var slug = parseSlug();
